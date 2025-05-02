@@ -7,7 +7,11 @@ import Footer from './components/layout/Footer.vue';
   <div class="app-container">
     <Header />
     <main class="content-area">
-      <RouterView />
+      <router-view v-slot="{ Component }">
+        <transition name="fade" mode="out-in">
+          <component :is="Component" />
+        </transition>
+      </router-view>
     </main>
     <Footer />
   </div>
@@ -44,5 +48,16 @@ body {
 /* 使Canvas可以全屏显示 */
 canvas {
   display: block;
+}
+
+/* 页面过渡动画 */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 </style>
