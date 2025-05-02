@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import AiHomePage from '../views/AiHomePage.vue'
 import ButtonShowcase from '../components/ButtonShowcase.vue'
 import CardShowcase from '../components/CardShowcase.vue'
 
@@ -130,7 +131,7 @@ const Exercise = {
 
 // 路由配置
 const routes = [
-  { path: '/', component: Home },
+  { path: '/', component: AiHomePage },
   { path: '/features', component: Features },
   { path: '/about', component: About },
   { path: '/health-data', component: HealthData },
