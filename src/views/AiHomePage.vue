@@ -176,7 +176,8 @@ if (typeof window !== 'undefined') {
 <style scoped>
 .ai-home-page {
   position: relative;
-  min-height: 100vh;
+  min-height: calc(100vh - 80px);
+  /* 减去footer大约高度 */
   width: 100%;
   overflow: hidden;
   display: flex;
@@ -188,7 +189,7 @@ if (typeof window !== 'undefined') {
 
 /* 网格背景 */
 .network-bg {
-  position: fixed;
+  position: absolute;
   top: 0;
   left: 0;
   right: 0;
@@ -199,7 +200,7 @@ if (typeof window !== 'undefined') {
 
 /* 网络Canvas */
 .network-canvas {
-  position: fixed;
+  position: absolute;
   top: 0;
   left: 0;
   width: 100%;
