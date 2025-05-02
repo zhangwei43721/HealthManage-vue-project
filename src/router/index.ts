@@ -137,7 +137,7 @@ const routes = [
   {
     path: '/',
     component: AiHomePage,
-    meta: { requiresAuth: true },
+    meta: { requiresAuth: false },
   },
   {
     path: '/features',
@@ -176,6 +176,11 @@ const routes = [
     name: 'Register',
     component: Register,
     meta: { requiresAuth: false }, // 不需要身份验证
+  },
+  // 默认重定向到首页
+  {
+    path: '/:pathMatch(.*)*',
+    redirect: '/',
   },
 ]
 
