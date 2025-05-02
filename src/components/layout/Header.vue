@@ -83,7 +83,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { Heart, HamburgerButton, Close, Home, Like, User, Logout } from '@icon-park/vue-next';
+import { Heart, HamburgerButton, Close, Home, Like, User, Logout, Book, Sport } from '@icon-park/vue-next';
 import { isAuthenticated, logout } from '../../services/auth';
 
 const route = useRoute();
@@ -105,8 +105,8 @@ const userLoggedIn = ref(isAuthenticated());
 const navigationItems = [
   { name: '首页', path: '/', icon: Home },
   { name: '健康数据', path: '/health-data', icon: Like },
-  { name: '饮食管理', path: '/diet', icon: User },
-  { name: '运动计划', path: '/exercise', icon: User },
+  { name: '健康知识库', path: '/health-knowledge', icon: Book },
+  { name: '运动计划', path: '/exercise', icon: Sport },
   { name: '关于我们', path: '/about', icon: User }
 ];
 

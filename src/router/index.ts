@@ -3,6 +3,7 @@ import AiHomePage from '../views/AiHomePage.vue'
 import Login from '../views/login/index.vue'
 import Register from '../views/register/register.vue'
 import HealthData from '../views/health-data.vue'
+import HealthKnowledge from '../views/health-knowledge.vue'
 import { isAuthenticated } from '../services/auth'
 
 // 页面组件
@@ -20,7 +21,7 @@ const Features = {
           </li>
           <li class="flex items-center text-gray-700">
             <span class="bg-green-100 text-green-600 rounded-full p-1 mr-3">✓</span>
-            饮食计划与营养分析
+            健康知识与运动指南
           </li>
           <li class="flex items-center text-gray-700">
             <span class="bg-green-100 text-green-600 rounded-full p-1 mr-3">✓</span>
@@ -115,12 +116,12 @@ const routes = [
   },
   {
     path: '/health-data',
-    component: HealthData, // 使用导入的HealthData组件
+    component: HealthData,
     meta: { requiresAuth: true },
   },
   {
-    path: '/diet',
-    component: Diet,
+    path: '/health-knowledge',
+    component: HealthKnowledge,
     meta: { requiresAuth: true },
   },
   {
