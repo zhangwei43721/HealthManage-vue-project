@@ -1,5 +1,5 @@
 <template>
-  <footer class="bg-gray-800 text-white py-6 mt-auto">
+  <footer class="footer-container">
     <div class="container mx-auto px-4">
       <div class="flex flex-col md:flex-row justify-between items-center">
         <!-- 版权信息 -->
@@ -62,5 +62,24 @@ export default {
 </script>
 
 <style scoped>
-/* 可以添加任何额外的自定义样式 */
+.footer-container {
+  background-color: #1e293b;
+  background-image: linear-gradient(to bottom, #1e293b, #0f172a);
+  color: white;
+  padding: 1.5rem 0;
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  height: var(--footer-height);
+  display: flex;
+  align-items: center;
+}
+
+@media (max-width: 768px) {
+  .footer-container {
+    height: auto;
+    min-height: var(--footer-height);
+    padding: 2rem 0;
+  }
+}
 </style>

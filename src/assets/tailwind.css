@@ -1,25 +1,25 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 @layer base {
   :root {
-    --color-primary: #2D7DFA;
-    --color-primary-light: #6BA4FF;
-    --color-primary-dark: #0E5ED9;
+    --color-primary: #2d7dfa;
+    --color-primary-light: #6ba4ff;
+    --color-primary-dark: #0e5ed9;
 
-    --color-secondary: #7F5AF0;
-    --color-secondary-light: #A98AFB;
-    --color-secondary-dark: #5E3DCB;
+    --color-secondary: #7f5af0;
+    --color-secondary-light: #a98afb;
+    --color-secondary-dark: #5e3dcb;
 
-    --color-health-success: #14B789;
-    --color-health-warning: #F7A941;
-    --color-health-danger: #F45A6B;
-    --color-health-neutral: #64748B;
+    --color-health-success: #14b789;
+    --color-health-warning: #f7a941;
+    --color-health-danger: #f45a6b;
+    --color-health-neutral: #64748b;
 
-    --color-background: #F8FAFC;
-    --color-text-primary: #1E293B;
-    --color-text-secondary: #64748B;
-    --color-text-light: #F8FAFC;
-    --color-text-dark: #0F172A;
+    --color-background: #f8fafc;
+    --color-text-primary: #1e293b;
+    --color-text-secondary: #64748b;
+    --color-text-light: #f8fafc;
+    --color-text-dark: #0f172a;
   }
 }
 
@@ -42,7 +42,9 @@ body {
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   border: 1px solid rgba(255, 255, 255, 0.3);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
 /* 文字对比度增强类 */
@@ -74,13 +76,24 @@ body {
 }
 
 .gradient-health-success {
-  background: linear-gradient(135deg, var(--color-health-success), #0C8F69);
+  background: linear-gradient(135deg, var(--color-health-success), #0c8f69);
 }
 
 .gradient-health-warning {
-  background: linear-gradient(135deg, var(--color-health-warning), #E5892B);
+  background: linear-gradient(135deg, var(--color-health-warning), #e5892b);
 }
 
 .gradient-health-danger {
-  background: linear-gradient(135deg, var(--color-health-danger), #D73747);
+  background: linear-gradient(135deg, var(--color-health-danger), #d73747);
+}
+
+/* 页面内容容器 */
+.page-container {
+  padding-top: var(--header-height);
+  min-height: calc(100vh - var(--footer-height));
+}
+
+/* 首页特殊处理，不需要顶部内边距 */
+.ai-home-page .page-container {
+  padding-top: 0;
 }

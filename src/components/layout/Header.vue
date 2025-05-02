@@ -78,63 +78,54 @@
   </header>
 </template>
 
-<script setup lang="ts">
-import { ref } from 'vue'
+<script lang="ts">
+import { Heart, HamburgerButton, Close, Home, Like, User } from '@icon-park/vue-next'
 import { useRoute } from 'vue-router'
-import {
-  Heart, HamburgerButton, Close, Home, Like, User
-} from '@icon-park/vue-next'
 
-// 导航菜单项
-const navigationItems = [
-  { name: '首页', path: '/', icon: Home },
-  { name: '健康数据', path: '/health-data', icon: Like },
-  { name: '饮食管理', path: '/diet', icon: User },
-  { name: '运动计划', path: '/exercise', icon: User },
-  { name: '关于我们', path: '/about', icon: User }
-]
-
-// 移动端菜单状态
-const isMenuOpen = ref(false)
-
-// 滚动状态
-const scrolled = ref(false)
-
-// 检测滚动改变header外观
-const handleScroll = () => {
-  scrolled.value = window.scrollY > 20
-}
-
-// 检测当前路由
-const route = useRoute()
-const isActive = (path: string) => {
-  return route.path === path
-}
-
-// 切换菜单
-const toggleMenu = () => {
-  isMenuOpen.value = !isMenuOpen.value
-}
-
-// 关闭菜单
-const closeMenu = () => {
-  isMenuOpen.value = false
-}
-
-// 监听滚动事件
-ref: {
-  const mounted = () => {
-    window.addEventListener('scroll', handleScroll)
-    handleScroll() // 初始检查
-  }
-
-  const unmounted = () => {
-    window.removeEventListener('scroll', handleScroll)
-  }
-
-  if (typeof window !== 'undefined') {
-    mounted()
-    window.addEventListener('beforeunload', unmounted)
+export default {
+  name: 'AppHeader',
+  components: {
+    Heart,
+    HamburgerButton,
+    Close,
+    Home,
+    Like,
+    User
+  },
+  data() {
+    return {
+      isMenuOpen: false,
+      scrolled: false,
+      navigationItems: [
+        { name: '首页', path: '/', icon: Home },
+        { name: '健康数据', path: '/health-data', icon: Like },
+        { name: '饮食管理', path: '/diet', icon: User },
+        { name: '运动计划', path: '/exercise', icon: User },
+        { name: '关于我们', path: '/about', icon: User }
+      ]
+    }
+  },
+  methods: {
+    handleScroll() {
+      this.scrolled = window.scrollY > 20
+    },
+    isActive(path: string) {
+      const route = useRoute()
+      return route.path === path
+    },
+    toggleMenu() {
+      this.isMenuOpen = !this.isMenuOpen
+    },
+    closeMenu() {
+      this.isMenuOpen = false
+    }
+  },
+  mounted() {
+    window.addEventListener('scroll', this.handleScroll)
+    this.handleScroll() // 初始检查
+  },
+  beforeUnmount() {
+    window.removeEventListener('scroll', this.handleScroll)
   }
 }
 </script>
@@ -148,6 +139,7 @@ ref: {
 /* 向下滚动时Header阴影加深效果 */
 header {
   transition: all 0.3s ease;
+  height: var(--header-height);
 }
 
 /* 渐变文字 */
@@ -158,9 +150,3 @@ header {
   background-image: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
 }
 </style>
-
-<script lang="ts">
-export default {
-  name: 'AppHeader'
-}
-</script>

@@ -176,31 +176,35 @@ if (typeof window !== 'undefined') {
 <style scoped>
 .ai-home-page {
   position: relative;
-  min-height: calc(100vh - 80px);
-  /* 减去footer大约高度 */
   width: 100%;
-  overflow: hidden;
+  min-height: 100vh;
+  padding-bottom: 80px;
+  /* 为Footer留出空间 */
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
   z-index: 0;
+  overflow: hidden;
+  /* 防止溢出 */
 }
 
 /* 网格背景 */
 .network-bg {
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
+  width: 100vw;
+  height: 100vh;
   background: linear-gradient(135deg, #2c5282, #3182ce);
   z-index: -2;
 }
 
 /* 网络Canvas */
 .network-canvas {
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
   width: 100%;
@@ -226,6 +230,8 @@ if (typeof window !== 'undefined') {
   width: 100%;
   padding: 0 2rem;
   z-index: 1;
+  margin-top: var(--header-height);
+  /* 为Header留出空间 */
 }
 
 /* 英雄区域 */
