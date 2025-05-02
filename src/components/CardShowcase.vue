@@ -111,28 +111,28 @@
         <div class="gradient-secondary rounded-xl shadow-lg p-6 hover:shadow-xl hover:translate-y-[-3px] transition-all duration-300 relative">
           <div class="absolute inset-0 bg-white/30 mix-blend-overlay rounded-xl"></div>
           <div class="relative z-10">
-            <div class="flex items-center mb-6">
-              <div
+          <div class="flex items-center mb-6">
+            <div
                 class="w-16 h-16 rounded-full gradient-primary flex items-center justify-center text-white text-xl font-bold">
-                张三
-              </div>
-              <div class="ml-4">
+              张三
+            </div>
+            <div class="ml-4">
                 <h4 class="text-lg font-medium text-on-dark">张三</h4>
                 <p class="text-on-dark opacity-70">健康会员 · 加入3个月</p>
-              </div>
             </div>
-            <div class="flex justify-between items-center">
-              <div>
+          </div>
+          <div class="flex justify-between items-center">
+            <div>
                 <p class="text-on-dark opacity-70">当前状态</p>
-                <div class="mt-1 flex items-center">
+              <div class="mt-1 flex items-center">
                   <span class="inline-block w-2 h-2 rounded-full bg-health-success mr-2"></span>
                   <span class="font-medium text-health-success">健康状态良好</span>
-                </div>
               </div>
-              <button
+            </div>
+            <button
                 class="px-3 py-1.5 text-sm rounded-md glass-effect text-on-glass border border-white/20 hover:bg-white/20">
-                查看详情
-              </button>
+              查看详情
+            </button>
             </div>
           </div>
         </div>

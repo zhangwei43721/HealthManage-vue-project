@@ -1,28 +1,11 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import AiHomePage from '../views/AiHomePage.vue'
-import ButtonShowcase from '../components/ButtonShowcase.vue'
-import CardShowcase from '../components/CardShowcase.vue'
 import Login from '../views/login/index.vue'
 import Register from '../views/register/register.vue'
+import HealthData from '../views/health-data.vue'
 import { isAuthenticated } from '../services/auth'
 
 // 页面组件
-const Home = {
-  template: `
-    <div class="py-8">
-      <h1 class="text-3xl font-bold text-center text-primary mb-8">健康管理系统首页</h1>
-      <p class="text-center text-text-secondary mb-8">这是使用Vue 3和Tailwind CSS v4构建的健康管理系统</p>
-      <div class="max-w-6xl mx-auto">
-        <ButtonShowcase />
-        <CardShowcase />
-      </div>
-    </div>
-  `,
-  components: {
-    ButtonShowcase,
-    CardShowcase,
-  },
-}
 
 const Features = {
   template: `
@@ -69,26 +52,7 @@ const About = {
   `,
 }
 
-// 健康数据页面
-const HealthData = {
-  template: `
-    <div class="py-8">
-      <h1 class="text-3xl font-bold text-center text-primary mb-8">健康数据</h1>
-      <div class="max-w-4xl mx-auto bg-white rounded-xl shadow-md p-6">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div class="p-4 bg-primary/10 rounded-lg">
-            <h3 class="text-lg font-medium text-primary mb-2">身体指标</h3>
-            <p class="text-text-secondary">查看和记录您的身高、体重、BMI等身体指标数据</p>
-          </div>
-          <div class="p-4 bg-secondary/10 rounded-lg">
-            <h3 class="text-lg font-medium text-secondary mb-2">健康报告</h3>
-            <p class="text-text-secondary">生成您的健康状况报告和分析</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  `,
-}
+// 注意：这里不再定义HealthData常量，因为已经从文件导入了
 
 // 饮食管理页面
 const Diet = {
@@ -151,7 +115,7 @@ const routes = [
   },
   {
     path: '/health-data',
-    component: HealthData,
+    component: HealthData, // 使用导入的HealthData组件
     meta: { requiresAuth: true },
   },
   {

@@ -1,7 +1,7 @@
 <template>
   <header class="fixed top-0 left-0 right-0 z-50 transition-all duration-300" :class="[
     isAuthPage ? 'bg-gray-900/75 backdrop-blur-lg shadow-xl' :
-      (scrolled ? 'backdrop-blur-lg bg-gray-900/40 shadow-lg' : 'bg-transparent backdrop-blur-sm bg-black/10'),
+      (scrolled ? 'backdrop-blur-lg bg-gray-900/40 shadow-lg' : 'backdrop-blur-lg bg-gray-900/40'),
     isMenuOpen ? 'h-auto' : 'h-16'
   ]">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
