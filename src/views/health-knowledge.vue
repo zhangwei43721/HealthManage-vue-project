@@ -75,9 +75,11 @@
       <!-- 运动知识列表 -->
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         <div v-for="sport in sportsList" :key="sport.id"
-          class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden transform transition-all duration-300 hover:shadow-lg hover:scale-[1.02] cursor-pointer"
-          @click="openDetailModal(sport)">
-          <div class="p-6">
+          class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden transform transition-all duration-500 h-[320px] relative"
+          :class="{ 'cursor-pointer hover:shadow-lg hover:scale-[1.02]': !sport.flipped }"
+          @click="toggleCardFlip(sport)">
+          <!-- 卡片正面 (基本信息) -->
+          <div class="p-6 h-full" v-show="!sport.flipped">
             <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2 flex items-center">
               <span
                 class="inline-flex items-center justify-center h-8 w-8 rounded-full bg-indigo-100 text-indigo-500 mr-3">
@@ -114,6 +116,52 @@
                 class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 font-medium">
                 查看详情 →
               </button>
+            </div>
+          </div>
+
+          <!-- 卡片背面 (详细信息) -->
+          <div class="p-4 h-full bg-white dark:bg-gray-800 absolute inset-0 transition-all duration-300"
+            :class="{ 'opacity-0 pointer-events-none': !sport.flipped, 'opacity-100': sport.flipped }"
+            v-if="sport.flipped">
+            <div class="flex justify-between items-center mb-3">
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ sport.sportType }}</h3>
+              <button @click.stop="toggleCardFlip(sport)"
+                class="p-1 rounded-full bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div v-if="sport.detailLoading" class="h-full flex items-center justify-center">
+              <svg class="animate-spin h-8 w-8 text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none"
+                viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                </path>
+              </svg>
+            </div>
+
+            <div v-else-if="sport.detail" class="overflow-y-auto h-[260px] pr-1 space-y-3">
+              <div class="bg-indigo-50 dark:bg-indigo-900/20 p-2 rounded">
+                <h4 class="font-medium text-indigo-700 dark:text-indigo-400 text-sm mb-1">运动方法</h4>
+                <p class="text-gray-700 dark:text-gray-300 text-sm whitespace-pre-line">{{ sport.detail.method }}</p>
+              </div>
+
+              <div class="bg-red-50 dark:bg-red-900/20 p-2 rounded">
+                <h4 class="font-medium text-red-700 dark:text-red-400 text-sm mb-1">适宜/禁忌疾病</h4>
+                <p class="text-gray-700 dark:text-gray-300 text-sm whitespace-pre-line">{{ sport.detail.disease }}</p>
+              </div>
+
+              <div class="bg-yellow-50 dark:bg-yellow-900/20 p-2 rounded">
+                <h4 class="font-medium text-yellow-700 dark:text-yellow-400 text-sm mb-1">注意事项</h4>
+                <p class="text-gray-700 dark:text-gray-300 text-sm whitespace-pre-line">{{ sport.detail.notes }}</p>
+              </div>
+            </div>
+
+            <div v-else class="h-full flex items-center justify-center">
+              <p class="text-center text-gray-500 dark:text-gray-400">未找到详情信息</p>
             </div>
           </div>
         </div>
@@ -160,50 +208,6 @@
         </nav>
       </div>
     </div>
-
-    <!-- 底部固定详情面板，替代原先的模态弹窗 -->
-    <div v-if="selectedSport" class="fixed bottom-0 left-0 right-0 bg-white p-4 shadow-lg z-50"
-      style="max-height: 60vh; overflow-y: auto;">
-      <div class="flex justify-between items-center mb-2">
-        <h3 class="text-lg font-semibold">{{ selectedSport.sportType }}</h3>
-        <button @click="closeDetailModal" class="p-1 rounded-full bg-gray-200 hover:bg-gray-300">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-      </div>
-
-      <div v-if="detailLoading" class="flex justify-center py-4">
-        <svg class="animate-spin h-6 w-6 text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none"
-          viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-          <path class="opacity-75" fill="currentColor"
-            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-          </path>
-        </svg>
-      </div>
-
-      <div v-else-if="selectedSportDetail" class="mt-4 space-y-4">
-        <div class="bg-indigo-50 p-4 rounded-lg">
-          <h4 class="font-medium text-indigo-700 mb-2">运动方法</h4>
-          <p class="text-gray-700 whitespace-pre-line">{{ selectedSportDetail.method }}</p>
-        </div>
-
-        <div class="bg-red-50 p-4 rounded-lg">
-          <h4 class="font-medium text-red-700 mb-2">适宜/禁忌疾病</h4>
-          <p class="text-gray-700 whitespace-pre-line">{{ selectedSportDetail.disease }}</p>
-        </div>
-
-        <div class="bg-yellow-50 p-4 rounded-lg">
-          <h4 class="font-medium text-yellow-700 mb-2">注意事项</h4>
-          <p class="text-gray-700 whitespace-pre-line">{{ selectedSportDetail.notes }}</p>
-        </div>
-      </div>
-
-      <div v-else class="mt-4 text-center py-4 text-gray-500">
-        未找到相关详情信息
-      </div>
-    </div>
   </div>
 </template>
 
@@ -231,11 +235,6 @@ export default {
       // 状态
       loading: false,
       error: '',
-
-      // 详情
-      selectedSport: null,
-      selectedSportDetail: null,
-      detailLoading: false,
 
       // 其他
       searchTimeout: null
@@ -284,24 +283,33 @@ export default {
         }
 
         if (response && response.data) {
+          let sportItems = [];
+
           // 检查返回的数据结构
           if (response.data.records) {
             // 如果返回的是records属性
-            this.sportsList = response.data.records || [];
+            sportItems = response.data.records || [];
             this.totalRecords = response.data.total || 0;
           } else if (response.data.rows) {
             // 如果返回的是rows属性
-            this.sportsList = response.data.rows || [];
+            sportItems = response.data.rows || [];
             this.totalRecords = response.data.total || 0;
           } else if (Array.isArray(response.data)) {
             // 如果直接返回数组
-            this.sportsList = response.data;
+            sportItems = response.data;
             this.totalRecords = response.data.length;
           } else {
             console.error('未知的响应数据格式:', response.data);
-            this.sportsList = [];
             this.totalRecords = 0;
           }
+
+          // 处理数据，添加翻转和详情属性
+          this.sportsList = sportItems.map(sport => ({
+            ...sport,
+            flipped: false,
+            detailLoading: false,
+            detail: null
+          }));
 
           // 提取所有运动类型作为分类
           if (this.sportsList.length > 0 && this.categories.length === 0) {
@@ -318,76 +326,71 @@ export default {
       }
     },
 
-    // 根据运动类型获取详细信息
-    async fetchSportDetail(sportType) {
-      try {
-        this.detailLoading = true;
-        console.log('获取运动详情:', sportType);
+    // 切换卡片翻转状态并加载详情
+    async toggleCardFlip(sport) {
+      // 翻转卡片状态
+      sport.flipped = !sport.flipped;
 
-        const response = await getDetailInfoByName(sportType);
-        console.log('获取运动详情API响应:', response); // 详细记录响应
+      // 如果是翻转到背面且还没有加载过详情，则加载详情
+      if (sport.flipped && !sport.detail && !sport.detailLoading) {
+        await this.fetchSportDetail(sport);
+      }
+    },
+
+    // 根据运动类型获取详细信息
+    async fetchSportDetail(sport) {
+      try {
+        // 设置加载状态
+        sport.detailLoading = true;
+        console.log('获取运动详情:', sport.sportType);
+
+        const response = await getDetailInfoByName(sport.sportType);
+        console.log('获取运动详情API响应:', response);
 
         if (response && response.data) {
           // 检查响应中是否包含必要的详情字段
           if (response.data.method || response.data.disease || response.data.notes) {
-            this.selectedSportDetail = response.data;
-            console.log('成功获取详情数据:', this.selectedSportDetail);
+            sport.detail = response.data;
           } else if (response.data.id) {
             // 如果没有详情字段但有ID，可能是其他格式的响应
-            this.selectedSportDetail = {
+            sport.detail = {
               id: response.data.id,
-              sportType: sportType,
+              sportType: sport.sportType,
               method: response.data.method || '暂无相关信息',
               disease: response.data.disease || '暂无相关信息',
               notes: response.data.notes || '暂无相关信息'
             };
-            console.log('收到不完整详情，已创建数据结构:', this.selectedSportDetail);
           } else {
             // 未返回有效数据
-            this.selectedSportDetail = {
-              sportType: sportType,
+            sport.detail = {
+              sportType: sport.sportType,
               method: '暂无相关信息',
               disease: '暂无相关信息',
               notes: '暂无相关信息'
             };
-            console.log('未找到详情数据，使用默认值');
           }
         } else {
           // 没有响应或响应中没有data
-          this.selectedSportDetail = {
-            sportType: sportType,
+          sport.detail = {
+            sportType: sport.sportType,
             method: '暂无相关信息',
             disease: '暂无相关信息',
             notes: '暂无相关信息'
           };
-          console.log('无效响应，使用默认值');
         }
       } catch (err) {
         console.error('获取运动详情失败:', err);
         // 错误时也显示默认数据而不是空白
-        this.selectedSportDetail = {
-          sportType: sportType,
+        sport.detail = {
+          sportType: sport.sportType,
           method: '获取详情失败，请稍后重试',
           disease: '获取详情失败，请稍后重试',
           notes: '获取详情失败，请稍后重试'
         };
         this.error = '获取运动详情失败，但已显示占位内容';
       } finally {
-        this.detailLoading = false;
+        sport.detailLoading = false;
       }
-    },
-
-    // 打开详情弹窗
-    openDetailModal(sport) {
-      console.log('打开详情:', sport);
-      this.selectedSport = sport;
-      this.fetchSportDetail(sport.sportType);
-    },
-
-    // 关闭详情弹窗
-    closeDetailModal() {
-      this.selectedSport = null;
-      this.selectedSportDetail = null;
     },
 
     // 处理搜索
