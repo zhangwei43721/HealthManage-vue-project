@@ -2,6 +2,9 @@ import { createRouter, createWebHistory } from 'vue-router'
 import AiHomePage from '../views/AiHomePage.vue'
 import ButtonShowcase from '../components/ButtonShowcase.vue'
 import CardShowcase from '../components/CardShowcase.vue'
+import Login from '../views/login/index.vue'
+import Register from '../views/register/register.vue'
+import { isAuthenticated } from '../services/auth'
 
 // 页面组件
 const Home = {
@@ -131,18 +134,77 @@ const Exercise = {
 
 // 路由配置
 const routes = [
-  { path: '/', component: AiHomePage },
-  { path: '/features', component: Features },
-  { path: '/about', component: About },
-  { path: '/health-data', component: HealthData },
-  { path: '/diet', component: Diet },
-  { path: '/exercise', component: Exercise },
+  {
+    path: '/',
+    component: AiHomePage,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/features',
+    component: Features,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/about',
+    component: About,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/health-data',
+    component: HealthData,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/diet',
+    component: Diet,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/exercise',
+    component: Exercise,
+    meta: { requiresAuth: true },
+  },
+  // 登录注册路由
+  {
+    path: '/login',
+    name: 'Login',
+    component: Login,
+    meta: { requiresAuth: false }, // 不需要身份验证
+  },
+  {
+    path: '/register',
+    name: 'Register',
+    component: Register,
+    meta: { requiresAuth: false }, // 不需要身份验证
+  },
 ]
 
 // 创建路由实例
 const router = createRouter({
   history: createWebHistory(),
   routes,
+})
+
+// 全局前置守卫
+router.beforeEach((to, from, next) => {
+  // 判断路由是否需要登录权限
+  if (to.matched.some((record) => record.meta.requiresAuth)) {
+    // 检查是否已登录
+    if (!isAuthenticated()) {
+      // 未登录则跳转到登录页
+      next({
+        path: '/login',
+        // 保存用户原本想访问的页面路径，以便登录成功后直接跳转
+        query: { redirect: to.fullPath },
+      })
+    } else {
+      // 已登录则放行
+      next()
+    }
+  } else {
+    // 不需要登录权限的页面直接放行
+    next()
+  }
 })
 
 export default router
