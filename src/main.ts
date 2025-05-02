@@ -1,5 +1,4 @@
-import './assets/main.css'
-
+import './assets/tailwind.css' // 使用新的CSS-First文件
 import { createApp } from 'vue'
 import App from './App.vue'
 import { install } from '@icon-park/vue-next/es/all'

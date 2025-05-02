@@ -12,15 +12,15 @@
 
     /* 阴影控制 */
     {
-      'shadow-md hover:shadow-lg': elevation === 'small',
-      'shadow-lg hover:shadow-xl': elevation === 'medium',
-      'shadow-xl hover:shadow-2xl': elevation === 'large',
+      'shadow-md hover:shadow-lg hover:translate-y-[-2px]': elevation === 'small',
+      'shadow-lg hover:shadow-xl hover:translate-y-[-3px]': elevation === 'medium',
+      'shadow-xl hover:shadow-2xl hover:translate-y-[-4px]': elevation === 'large',
     },
 
     /* 类型样式 */
     {
       /* 毛玻璃效果 */
-      'backdrop-blur-md bg-white/60 dark:bg-gray-800/60 border border-white/10':
+      'glass-effect border-white/20 dark:border-white/10':
         variant === 'glass',
 
       /* 普通卡片 */
@@ -28,11 +28,7 @@
         variant === 'solid',
 
       /* 渐变卡片 */
-      'bg-gradient-to-b':
-        variant === 'gradient' && !customGradient,
-
-      /* 自定义渐变 */
-      [customGradient || 'from-primary-light/20 to-primary/10']:
+      [customGradient ? customGradient : autoGradientClass]:
         variant === 'gradient',
     },
 
@@ -50,7 +46,7 @@
     className
   ]" :style="customStyles">
     <!-- 顶部条纹装饰(可选) -->
-    <div v-if="showStripe" class="h-1 -mx-8 -mt-8 mb-6" :class="[stripeColor || 'bg-primary']"></div>
+    <div v-if="showStripe" class="h-1.5 -mx-8 -mt-8 mb-6" :class="[stripeColor || 'gradient-primary']"></div>
 
     <!-- 主要内容区域 -->
     <slot></slot>
@@ -110,27 +106,51 @@ export default {
     className: {
       type: String,
       default: ''
+    },
+    // 渐变类型 (primary, secondary, success, warning, danger)
+    gradientType: {
+      type: String,
+      default: 'primary',
+      validator: (value: string) => ['primary', 'secondary', 'success', 'warning', 'danger'].includes(value)
+    }
+  },
+
+  computed: {
+    // 根据gradientType自动选择预定义的渐变类
+    autoGradientClass(): string {
+      const gradientMap: Record<string, string> = {
+        'primary': 'gradient-primary',
+        'secondary': 'gradient-secondary',
+        'success': 'gradient-health-success',
+        'warning': 'gradient-health-warning',
+        'danger': 'gradient-health-danger'
+      };
+
+      return gradientMap[this.gradientType] || 'gradient-primary';
     }
   }
 };
 </script>
 
 <style scoped>
-/* 增强玻璃效果的样式 */
-[class*="variant-glass"] {
-  position: relative;
-  backdrop-filter: blur(8px);
-  background-image: linear-gradient(to bottom right,
-      rgba(255, 255, 255, 0.2),
-      rgba(255, 255, 255, 0.05));
-}
-
-/* 扩展悬停效果的动画 */
+/* 卡片悬停动效 */
 [class*="shadow"] {
-  transition: all 0.3s ease-in-out;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-[class*="shadow"]:hover {
-  transform: translateY(-2px);
+/* 渐变卡片的文字保护 */
+[class*="gradient-"] {
+  position: relative;
+}
+
+[class*="gradient-"]::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom,
+    rgba(255, 255, 255, 0.4),
+    rgba(255, 255, 255, 0.05)
+  );
+  pointer-events: none;
 }
 </style>

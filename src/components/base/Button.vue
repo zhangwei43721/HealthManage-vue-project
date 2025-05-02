@@ -1,14 +1,14 @@
 <template>
   <button :class="[
     /* 基础样式 */
-    'inline-flex items-center justify-center whitespace-nowrap transition-all duration-200',
+    'inline-flex items-center justify-center whitespace-nowrap transition-all duration-300',
     'font-medium focus:outline-none focus:ring-2 focus:ring-offset-2',
 
     /* 尺寸控制 */
     {
-      'px-3 py-1.5 text-sm rounded-md': type === 'small',
-      'px-4 py-2 text-base rounded-lg': type === 'medium',
-      'px-5 py-2.5 text-lg rounded-xl': type === 'large',
+      'px-3 py-1.5 text-sm rounded-md': size === 'small',
+      'px-4 py-2 text-base rounded-lg': size === 'medium',
+      'px-5 py-2.5 text-lg rounded-xl': size === 'large',
     },
 
     /* 宽度控制 */
@@ -17,43 +17,43 @@
     /* 类型样式 */
     {
       /* 主要按钮 */
-      'bg-gradient-to-r from-primary to-primary-dark text-white shadow-md hover:shadow-lg hover:brightness-105 active:brightness-95 focus:ring-primary':
+      'gradient-primary text-white shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] focus:ring-primary/50':
         btnType === 'primary' && !disabled,
 
       /* 次要按钮 */
-      'bg-gradient-to-r from-secondary to-secondary-dark text-white shadow-md hover:shadow-lg hover:brightness-105 active:brightness-95 focus:ring-secondary':
+      'gradient-secondary text-white shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] focus:ring-secondary/50':
         btnType === 'secondary' && !disabled,
 
       /* 成功按钮 */
-      'bg-gradient-to-r from-health-success to-green-600 text-white shadow-md hover:shadow-lg hover:brightness-105 active:brightness-95 focus:ring-green-500':
+      'gradient-health-success text-white shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] focus:ring-health-success/50':
         btnType === 'success' && !disabled,
 
       /* 警告按钮 */
-      'bg-gradient-to-r from-health-warning to-amber-600 text-white shadow-md hover:shadow-lg hover:brightness-105 active:brightness-95 focus:ring-amber-500':
+      'gradient-health-warning text-white shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] focus:ring-health-warning/50':
         btnType === 'warning' && !disabled,
 
       /* 危险按钮 */
-      'bg-gradient-to-r from-health-danger to-red-600 text-white shadow-md hover:shadow-lg hover:brightness-105 active:brightness-95 focus:ring-red-500':
+      'gradient-health-danger text-white shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] focus:ring-health-danger/50':
         btnType === 'danger' && !disabled,
 
       /* 轮廓按钮 */
-      'bg-transparent border-2 border-primary text-primary hover:bg-primary-light hover:bg-opacity-10 active:bg-opacity-20 focus:ring-primary':
+      'bg-transparent border-2 border-primary text-primary hover:bg-primary/10 active:bg-primary/20 focus:ring-primary/30':
         btnType === 'outline' && !disabled,
 
       /* 轻量按钮 */
-      'bg-primary-light bg-opacity-10 text-primary hover:bg-opacity-20 active:bg-opacity-30 focus:ring-primary shadow-none':
+      'bg-primary/10 text-primary hover:bg-primary/20 active:bg-primary/30 focus:ring-primary/20 shadow-none':
         btnType === 'light' && !disabled,
 
       /* 文本按钮 */
-      'bg-transparent text-primary hover:underline focus:ring-primary shadow-none':
+      'bg-transparent text-primary hover:underline hover:bg-primary/5 focus:ring-primary/20 shadow-none':
         btnType === 'text' && !disabled,
 
       /* 玻璃态按钮 */
-      'bg-white bg-opacity-20 backdrop-blur-md text-white border border-white border-opacity-30 shadow-lg hover:bg-opacity-30 active:bg-opacity-40':
+      'glass-effect text-on-glass shadow-lg hover:shadow-xl hover:bg-white/40 active:bg-white/30':
         btnType === 'glass' && !disabled,
 
       /* 禁用状态 */
-      'opacity-50 cursor-not-allowed bg-gray-300 text-gray-500 shadow-none':
+      'opacity-50 cursor-not-allowed bg-gray-300 text-gray-600 shadow-none':
         disabled
     },
 
@@ -142,3 +142,15 @@ export default {
   }
 };
 </script>
+
+<style scoped>
+/* 增强按钮点击体验 */
+button {
+  transform: translateY(0);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+</style>

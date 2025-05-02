@@ -1,0 +1,86 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --color-primary: #2D7DFA;
+    --color-primary-light: #6BA4FF;
+    --color-primary-dark: #0E5ED9;
+
+    --color-secondary: #7F5AF0;
+    --color-secondary-light: #A98AFB;
+    --color-secondary-dark: #5E3DCB;
+
+    --color-health-success: #14B789;
+    --color-health-warning: #F7A941;
+    --color-health-danger: #F45A6B;
+    --color-health-neutral: #64748B;
+
+    --color-background: #F8FAFC;
+    --color-text-primary: #1E293B;
+    --color-text-secondary: #64748B;
+    --color-text-light: #F8FAFC;
+    --color-text-dark: #0F172A;
+  }
+}
+
+/* 基础样式 */
+body {
+  font-family: 'PingFang SC', 'Microsoft YaHei', 'Hiragino Sans GB', sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
+}
+
+#app {
+  min-height: 100vh;
+}
+
+/* 毛玻璃效果工具类 */
+.glass-effect {
+  background: rgba(255, 255, 255, 0.35);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* 文字对比度增强类 */
+.text-on-light {
+  color: var(--color-text-primary);
+  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.5);
+}
+
+.text-on-dark {
+  color: var(--color-text-light);
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.5);
+  font-weight: 500;
+}
+
+/* 玻璃效果上的文字 - 深色 */
+.text-on-glass {
+  color: var(--color-text-dark);
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.4);
+  font-weight: 500;
+}
+
+/* 渐变背景工具类 */
+.gradient-primary {
+  background: linear-gradient(135deg, var(--color-primary-light), var(--color-primary-dark));
+}
+
+.gradient-secondary {
+  background: linear-gradient(135deg, var(--color-secondary-light), var(--color-secondary-dark));
+}
+
+.gradient-health-success {
+  background: linear-gradient(135deg, var(--color-health-success), #0C8F69);
+}
+
+.gradient-health-warning {
+  background: linear-gradient(135deg, var(--color-health-warning), #E5892B);
+}
+
+.gradient-health-danger {
+  background: linear-gradient(135deg, var(--color-health-danger), #D73747);
+}

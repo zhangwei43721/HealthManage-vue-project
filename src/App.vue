@@ -1,40 +1,18 @@
 <script setup lang="ts">
-import { defineAsyncComponent } from 'vue';
-
-// 使用异步组件导入，防止模块加载问题
-const TailwindTest = defineAsyncComponent(() => import('./components/TailwindTest.vue'));
-const CardShowcase = defineAsyncComponent(() => import('./components/CardShowcase.vue'));
-const ButtonShowcase = defineAsyncComponent(() => import('./components/ButtonShowcase.vue'));
-const InputFieldShowcase = defineAsyncComponent(() => import('./components/InputFieldShowcase.vue'));
+import ButtonShowcase from './components/ButtonShowcase.vue';
+import CardShowcase from './components/CardShowcase.vue';
 </script>
 
 <template>
-  <div class="min-h-screen bg-gray-50">
-    <header class="bg-primary p-4 shadow-md">
-      <div class="max-w-6xl mx-auto flex items-center justify-between">
-        <h1 class="text-white text-2xl font-bold">健康管理系统</h1>
-        <nav class="flex space-x-4">
-          <a href="#" class="text-white hover:text-primary-light">首页</a>
-          <a href="#" class="text-white hover:text-primary-light">数据</a>
-          <a href="#" class="text-white hover:text-primary-light">设置</a>
-        </nav>
-      </div>
+  <div class="min-h-screen bg-background py-8 px-4 md:px-8">
+    <header class="text-center mb-10">
+      <h1 class="text-4xl font-bold text-primary mb-2">健康管理系统</h1>
+      <p class="text-text-secondary">使用Vue 3 + Tailwind CSS v4实现的组件库</p>
     </header>
 
-    <main class="max-w-6xl mx-auto py-8 px-4">
-      <TailwindTest />
-      <CardShowcase />
+    <main class="max-w-6xl mx-auto">
       <ButtonShowcase />
-      <InputFieldShowcase />
+      <CardShowcase />
     </main>
   </div>
 </template>
-
-<style>
-@import './assets/main.css';
-
-body {
-  margin: 0;
-  font-family: 'PingFang SC', 'Microsoft YaHei', 'Hiragino Sans GB', sans-serif;
-}
-</style>
