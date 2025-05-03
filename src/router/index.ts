@@ -14,6 +14,7 @@ import HealthKnowledge from '../views/health-knowledge.vue'
 import HealthLog from '../views/health/health-log.vue'
 import AiQaPage from '../views/health/ai-qa.vue'
 import SysIndex from '../views/sys/SysIndex.vue' // Import Admin Index page
+import Profile from '../views/profile/index.vue' // 导入个人中心页面
 // Admin page components (lazy loaded)
 const UserManagement = () => import('@/views/sys/user.vue')
 const RoleManagement = () => import('@/views/sys/role.vue')
@@ -64,6 +65,12 @@ const routes = [
     name: 'AiQaPage',
     component: AiQaPage,
     meta: { requiresAuth: true, title: 'AI 健康问答' },
+  },
+  {
+    path: '/profile',
+    name: 'Profile',
+    component: Profile,
+    meta: { requiresAuth: true, title: '个人中心' },
   },
   // --- Authentication Routes ---
   {

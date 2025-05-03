@@ -20,12 +20,12 @@
         <!-- 桌面端导航菜单 -->
         <nav class="hidden md:flex items-center space-x-4">
           <!-- 用户导航菜单 -->
-            <RouterLink v-for="(item, index) in userNavigationItems" :key="'user-'+index" :to="item.path"
-              class="flex items-center px-4 py-2 rounded-full text-white/90 hover:text-white hover:bg-white/10 transition-all duration-200"
-              :class="{ 'bg-white/20 text-white font-medium shadow-sm': isActive(item.path) }">
-              <component :is="item.icon" size="16" class="mr-1.5" />
-              {{ item.name }}
-            </RouterLink>
+          <RouterLink v-for="(item, index) in userNavigationItems" :key="'user-' + index" :to="item.path"
+            class="flex items-center px-4 py-2 rounded-full text-white/90 hover:text-white hover:bg-white/10 transition-all duration-200"
+            :class="{ 'bg-white/20 text-white font-medium shadow-sm': isActive(item.path) }">
+            <component :is="item.icon" size="16" class="mr-1.5" />
+            {{ item.name }}
+          </RouterLink>
 
           <!-- 管理员入口按钮 (桌面端) -->
           <RouterLink v-if="userStore.isAdmin" to="/sys"
@@ -35,13 +35,36 @@
           </RouterLink>
 
           <!-- 用户认证区域 (桌面端) -->
-          <div @click="handleAuthClick" class="flex items-center cursor-pointer bg-white/10 hover:bg-white/20 rounded-full px-3.5 py-1.5 transition-all duration-300 shadow-sm hover:shadow-md">
-            <div class="w-7 h-7 rounded-full bg-gradient-to-r from-teal-400 to-blue-500 flex items-center justify-center text-white text-xs font-medium shadow-sm">
+          <div v-if="!userStore.isAuthenticated" @click="handleAuthClick"
+            class="flex items-center cursor-pointer bg-white/10 hover:bg-white/20 rounded-full px-3.5 py-1.5 transition-all duration-300 shadow-sm hover:shadow-md">
+            <div
+              class="w-7 h-7 rounded-full bg-gradient-to-r from-teal-400 to-blue-500 flex items-center justify-center text-white text-xs font-medium shadow-sm">
+              <User theme="outline" size="16" />
+            </div>
+            <span class="ml-2 text-sm font-medium text-white">登录</span>
+          </div>
+
+          <!-- 个人信息入口 (桌面端-已登录) -->
+          <RouterLink v-if="userStore.isAuthenticated" to="/profile"
+            class="flex items-center cursor-pointer bg-white/10 hover:bg-white/20 rounded-full px-3.5 py-1.5 transition-all duration-300 shadow-sm hover:shadow-md">
+            <div
+              class="w-7 h-7 rounded-full bg-gradient-to-r from-teal-400 to-blue-500 flex items-center justify-center text-white text-xs font-medium shadow-sm">
               <!-- Display user avatar if available, otherwise default icon -->
-              <img v-if="userStore.isAuthenticated && userStore.userInfo?.avatar" :src="userStore.userInfo.avatar" alt="Avatar" class="w-full h-full rounded-full object-cover" />
+              <img v-if="userStore.userInfo?.avatar" :src="userStore.userInfo.avatar" alt="Avatar"
+                class="w-full h-full rounded-full object-cover" />
               <User v-else theme="outline" size="16" />
             </div>
-            <span class="ml-2 text-sm font-medium text-white">{{ userStore.isAuthenticated ? '退出' : '登录' }}</span>
+            <span class="ml-2 text-sm font-medium text-white">个人中心</span>
+          </RouterLink>
+
+          <!-- 退出按钮 (桌面端-已登录) -->
+          <div v-if="userStore.isAuthenticated" @click="handleLogout"
+            class="flex items-center cursor-pointer bg-white/10 hover:bg-white/20 rounded-full px-3.5 py-1.5 transition-all duration-300 shadow-sm hover:shadow-md">
+            <div
+              class="w-7 h-7 rounded-full bg-gradient-to-r from-red-400 to-pink-500 flex items-center justify-center text-white text-xs font-medium shadow-sm">
+              <Logout theme="outline" size="16" />
+            </div>
+            <span class="ml-2 text-sm font-medium text-white">退出</span>
           </div>
         </nav>
 
@@ -62,12 +85,12 @@
       :class="{ 'max-h-0 opacity-0': !isMenuOpen, 'max-h-[500px] opacity-100 shadow-lg': isMenuOpen }">
       <div class="px-4 pt-2 pb-4 space-y-1">
         <!-- 用户菜单项 (移动端) -->
-          <RouterLink v-for="(item, index) in userNavigationItems" :key="'user-m-'+index" :to="item.path"
-            class="flex items-center px-4 py-2.5 my-1 rounded-xl text-white/90 hover:text-white"
-            :class="{ 'bg-white/20 text-white font-medium shadow-sm': isActive(item.path) }" @click="closeMenu">
-            <component :is="item.icon" size="18" class="mr-2.5" />
-            {{ item.name }}
-          </RouterLink>
+        <RouterLink v-for="(item, index) in userNavigationItems" :key="'user-m-' + index" :to="item.path"
+          class="flex items-center px-4 py-2.5 my-1 rounded-xl text-white/90 hover:text-white"
+          :class="{ 'bg-white/20 text-white font-medium shadow-sm': isActive(item.path) }" @click="closeMenu">
+          <component :is="item.icon" size="18" class="mr-2.5" />
+          {{ item.name }}
+        </RouterLink>
 
         <!-- 管理员入口按钮 (移动端) -->
         <RouterLink v-if="userStore.isAdmin" to="/sys"
@@ -77,14 +100,21 @@
           进入管理后台
         </RouterLink>
 
+        <!-- 个人中心入口 (移动端-已登录) -->
+        <RouterLink v-if="userStore.isAuthenticated" to="/profile"
+          class="flex items-center px-4 py-2.5 my-1 rounded-xl text-white/90 hover:bg-white/10 hover:text-white"
+          @click="closeMenu">
+          <User size="18" class="mr-2.5" />
+          个人中心
+        </RouterLink>
+
         <!-- 分隔线 -->
         <div class="border-t border-white/10 my-2"></div>
 
         <!-- 用户认证区域 (移动端) -->
         <div
           class="flex items-center px-4 py-2.5 rounded-xl text-white/90 hover:bg-white/10 cursor-pointer hover:text-white transition-colors duration-200"
-          @click="handleAuthClickAndCloseMenu"
-        >
+          @click="handleAuthClickAndCloseMenu">
           <component :is="userStore.isAuthenticated ? Logout : User" theme="outline" size="18" class="mr-2.5" />
           {{ userStore.isAuthenticated ? '退出登录' : '登录 / 注册' }}
         </div>
@@ -154,6 +184,12 @@ const handleAuthClick = async () => {
   }
 };
 
+// 处理登出
+const handleLogout = async () => {
+  await userStore.logout();
+  router.push('/');
+};
+
 // 处理移动端认证点击并关闭菜单
 const handleAuthClickAndCloseMenu = async () => {
   await handleAuthClick();
@@ -204,9 +240,11 @@ header {
   -webkit-backdrop-filter: blur(10px);
   border-top: 1px solid rgba(200, 200, 200, 0.3);
 }
+
 .text-on-glass {
   /* 确保玻璃背景上的文字清晰 */
-  color: #333; /* 或者根据你的背景调整 */
+  color: #333;
+  /* 或者根据你的背景调整 */
 }
 
 div[v-show] {
@@ -216,6 +254,7 @@ div[v-show] {
 }
 
 div[v-show].h-auto {
-  max-height: 500px; /* 增加最大高度以容纳更多项 */
+  max-height: 500px;
+  /* 增加最大高度以容纳更多项 */
 }
 </style>
