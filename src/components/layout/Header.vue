@@ -18,25 +18,21 @@
         </div>
 
         <!-- 桌面端导航菜单 -->
-        <nav class="hidden md:flex items-center space-x-8">
-          <!-- Admin Links -->
-          <template v-if="userStore.isAdmin">
-            <RouterLink v-for="(item, index) in adminNavigationItems" :key="'admin-'+index" :to="item.path"
-              class="flex items-center px-4 py-2 rounded-full text-white/90 hover:text-white hover:bg-white/10 transition-all duration-200"
-              :class="{ 'bg-white/20 text-white font-medium shadow-sm': isActive(item.path) }">
-              <component :is="item.icon" size="16" class="mr-1.5" />
-              {{ item.name }}
-            </RouterLink>
-          </template>
-          <!-- Regular User Links -->
-          <template v-else>
-            <RouterLink v-for="(item, index) in userNavigationItems" :key="'user-'+index" :to="item.path"
-              class="flex items-center px-4 py-2 rounded-full text-white/90 hover:text-white hover:bg-white/10 transition-all duration-200"
-              :class="{ 'bg-white/20 text-white font-medium shadow-sm': isActive(item.path) }">
-              <component :is="item.icon" size="16" class="mr-1.5" />
-              {{ item.name }}
-            </RouterLink>
-          </template>
+        <nav class="hidden md:flex items-center space-x-4">
+          <!-- 用户导航菜单 -->
+          <RouterLink v-for="(item, index) in userNavigationItems" :key="'user-'+index" :to="item.path"
+            class="flex items-center px-4 py-2 rounded-full text-white/90 hover:text-white hover:bg-white/10 transition-all duration-200"
+            :class="{ 'bg-white/20 text-white font-medium shadow-sm': isActive(item.path) }">
+            <component :is="item.icon" size="16" class="mr-1.5" />
+            {{ item.name }}
+          </RouterLink>
+
+          <!-- 管理员入口按钮 (桌面端) -->
+          <RouterLink v-if="userStore.isAdmin" to="/sys"
+            class="flex items-center px-4 py-2 rounded-full text-white/90 bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 transition-all duration-300 shadow-md hover:shadow-lg">
+            <SettingTwo size="16" class="mr-1.5" />
+            进入管理后台
+          </RouterLink>
 
           <!-- 用户认证区域 (桌面端) -->
           <div @click="handleAuthClick" class="flex items-center cursor-pointer bg-white/10 hover:bg-white/20 rounded-full px-3.5 py-1.5 transition-all duration-300 shadow-sm hover:shadow-md">
@@ -65,24 +61,21 @@
     <div class="md:hidden overflow-hidden transition-all duration-300 ease-in-out backdrop-blur-2xl bg-gray-900/85"
       :class="{ 'max-h-0 opacity-0': !isMenuOpen, 'max-h-[500px] opacity-100 shadow-lg': isMenuOpen }">
       <div class="px-4 pt-2 pb-4 space-y-1">
-        <!-- Admin Links (Mobile) -->
-        <template v-if="userStore.isAdmin">
-          <RouterLink v-for="(item, index) in adminNavigationItems" :key="'admin-m-'+index" :to="item.path"
-            class="flex items-center px-4 py-2.5 my-1 rounded-xl text-white/90 hover:text-white"
-            :class="{ 'bg-white/20 text-white font-medium shadow-sm': isActive(item.path) }" @click="closeMenu">
-            <component :is="item.icon" size="18" class="mr-2.5" />
-            {{ item.name }}
-          </RouterLink>
-        </template>
-        <!-- Regular User Links (Mobile) -->
-        <template v-else>
-          <RouterLink v-for="(item, index) in userNavigationItems" :key="'user-m-'+index" :to="item.path"
-            class="flex items-center px-4 py-2.5 my-1 rounded-xl text-white/90 hover:text-white"
-            :class="{ 'bg-white/20 text-white font-medium shadow-sm': isActive(item.path) }" @click="closeMenu">
-            <component :is="item.icon" size="18" class="mr-2.5" />
-            {{ item.name }}
-          </RouterLink>
-        </template>
+        <!-- 用户菜单项 (移动端) -->
+        <RouterLink v-for="(item, index) in userNavigationItems" :key="'user-m-'+index" :to="item.path"
+          class="flex items-center px-4 py-2.5 my-1 rounded-xl text-white/90 hover:text-white"
+          :class="{ 'bg-white/20 text-white font-medium shadow-sm': isActive(item.path) }" @click="closeMenu">
+          <component :is="item.icon" size="18" class="mr-2.5" />
+          {{ item.name }}
+        </RouterLink>
+
+        <!-- 管理员入口按钮 (移动端) -->
+        <RouterLink v-if="userStore.isAdmin" to="/sys"
+          class="flex items-center px-4 py-2.5 my-1 rounded-xl text-white bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600"
+          @click="closeMenu">
+          <SettingTwo size="18" class="mr-2.5" />
+          进入管理后台
+        </RouterLink>
 
         <!-- 分隔线 -->
         <div class="border-t border-white/10 my-2"></div>
@@ -101,9 +94,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from '@/composables/vue-imports';
 import { useRoute, useRouter } from 'vue-router';
-import { Heart, HamburgerButton, Close, Home, Like, User, Logout, Key, Book, Clipboard, Robot, SettingTwo, Peoples, ChartHistogram } from '@icon-park/vue-next';
+import { Heart, HamburgerButton, Close, Home, Like, User, Logout, Book, Clipboard, Robot, SettingTwo } from '@icon-park/vue-next';
 import { useUserStore } from '@/stores/user';
 
 const route = useRoute();
@@ -119,22 +112,13 @@ const isAuthPage = computed(() => {
   return route.path === '/login' || route.path === '/register';
 });
 
-// 导航菜单项 (Corrected based on src/router/index.ts)
+// 导航菜单项 (用户菜单)
 const userNavigationItems = [
   { name: '首页', path: '/', icon: Home },
   { name: '健康数据', path: '/health-data', icon: Clipboard },
   { name: '健康知识', path: '/health-knowledge', icon: Book },
   { name: '健康日志', path: '/health-log', icon: Like },
   { name: 'AI 助手', path: '/ai-qa', icon: Robot }
-];
-
-// Admin User Navigation (Points to /sys/* routes)
-const adminNavigationItems = [
-  { name: '用户管理', path: '/sys/user', icon: User },
-  { name: '角色管理', path: '/sys/role', icon: Peoples },
-  { name: '运动信息管理', path: '/sys/knowledge-manage', icon: Book },
-  { name: '运动详情管理', path: '/sys/sport-item-manage', icon: SettingTwo },
-  { name: '用户健康数据管理', path: '/sys/user-health-manage', icon: ChartHistogram },
 ];
 
 // 监听滚动

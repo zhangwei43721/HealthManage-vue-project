@@ -2,11 +2,21 @@
 import Header from './components/layout/Header.vue';
 import Footer from './components/layout/Footer.vue';
 import AiSuggestionBubble from './components/common/AiSuggestionBubble.vue';
+import { computed } from '@/composables/vue-imports';
+import { useRoute } from 'vue-router';
+
+const route = useRoute();
+
+// 判断是否在管理后台路由下
+const isAdminRoute = computed(() => {
+  return route.path.startsWith('/sys');
+});
 </script>
 
 <template>
   <div class="app-container">
-    <Header />
+    <!-- 只在非管理后台路由下显示普通Header -->
+    <Header v-if="!isAdminRoute" />
     <main class="content-area">
       <router-view v-slot="{ Component }">
         <transition name="page" mode="out-in">
@@ -14,7 +24,8 @@ import AiSuggestionBubble from './components/common/AiSuggestionBubble.vue';
         </transition>
       </router-view>
     </main>
-    <Footer />
+    <!-- 只在非管理后台路由下显示普通Footer -->
+    <Footer v-if="!isAdminRoute" />
     <AiSuggestionBubble />
   </div>
 </template>

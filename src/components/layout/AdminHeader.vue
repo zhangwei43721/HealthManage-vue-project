@@ -14,7 +14,7 @@
             v-for="item in adminNavItems"
             :key="item.path"
             :to="item.path"
-            class="px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white"
+            class="px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white transition-all duration-200"
             :class="{ 'bg-gray-900 text-white': $route.path.startsWith(item.path) }"
           >
             <component :is="item.icon" theme="outline" size="16" class="mr-1 inline-block align-text-bottom" />
@@ -24,8 +24,8 @@
 
         <!-- Right Side Actions -->
         <div class="flex items-center space-x-4">
-          <RouterLink to="/" class="text-gray-300 hover:text-white text-sm flex items-center">
-            <Logout theme="outline" size="16" class="mr-1 transform rotate-180" /> <!-- Using Logout icon rotated for 'exit' -->
+          <RouterLink to="/" class="flex items-center rounded-md bg-teal-600 px-3 py-2 text-sm font-medium text-white hover:bg-teal-500 transition-all duration-200">
+            <Logout theme="outline" size="16" class="mr-1 transform rotate-180" /> <!-- 使用旋转的登出图标作为"返回"图标 -->
             返回前台
           </RouterLink>
           <button @click="handleLogout" class="text-gray-300 hover:text-red-400 text-sm flex items-center">
@@ -69,8 +69,41 @@ const handleLogout = async () => {
 </script>
 
 <style scoped>
-/* Add specific styles if needed */
+/* 导航菜单和按钮过渡效果 */
+a, button {
+  transition: all 0.25s ease-in-out;
+}
+
+/* 激活的导航项 */
 .router-link-active {
- /* Tailwind class used directly for active state */
+  position: relative;
+}
+
+.router-link-active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 50%;
+  height: 2px;
+  background-color: #fff;
+  transition: all 0.25s ease;
+}
+
+/* 页面进入动画 */
+@keyframes slideIn {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+header {
+  animation: slideIn 0.3s ease-out;
 }
 </style>

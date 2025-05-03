@@ -1,4 +1,5 @@
 import './assets/tailwind.css' // 使用新的CSS-First文件
+import './assets/transitions.css' // 导入全局过渡效果样式
 // import './assets/main.css' // Removed this import as @tailwindcss/vite handles CSS injection
 import { createApp } from 'vue'
 import { createPinia } from 'pinia' // 导入 createPinia
