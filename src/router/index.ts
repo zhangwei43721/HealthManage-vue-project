@@ -55,28 +55,7 @@ const About = {
   `,
 }
 
-// 注意：这里不再定义HealthData常量，因为已经从文件导入了
-
-// 饮食管理页面
-const Diet = {
-  template: `
-    <div class="py-8">
-      <h1 class="text-3xl font-bold text-center text-primary mb-8">饮食管理</h1>
-      <div class="max-w-4xl mx-auto bg-white rounded-xl shadow-md p-6">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div class="p-4 bg-primary/10 rounded-lg">
-            <h3 class="text-lg font-medium text-primary mb-2">饮食记录</h3>
-            <p class="text-text-secondary">记录每日饮食，跟踪卡路里摄入</p>
-          </div>
-          <div class="p-4 bg-secondary/10 rounded-lg">
-            <h3 class="text-lg font-medium text-secondary mb-2">营养分析</h3>
-            <p class="text-text-secondary">分析您的营养摄入情况</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  `,
-}
+// 注意：这里不再定义HealthData常量，因为已经从文件导入了health.ts
 
 // 路由配置
 const routes = [

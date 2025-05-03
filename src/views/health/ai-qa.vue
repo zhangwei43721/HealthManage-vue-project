@@ -1,3 +1,5 @@
+// eslint-disable no-this-alias
+// eslint-disable no-this-alias
 <template>
   <div
     class="ai-qa-page flex flex-col h-[calc(100vh-60px)] bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 mt-[60px]">
@@ -349,7 +351,7 @@ import { marked } from 'marked';
 import DOMPurify from 'dompurify';
 
 import { getChatHistory, resetChatHistory, initiateChatStream } from '@/services/aiService';
-import type { ChatHistory } from '@/services/aiService';
+import type { ChatHistory } from '@/types/chat';
 
 interface Message extends Partial<ChatHistory> {
   role: 'user' | 'assistant';
@@ -1060,7 +1062,6 @@ const sendMessage = async (retryCount = 0) => {
   content: "";
 }
 
-.ai-qa-page {}
 
 div[ref="messageContainer"] {
   scroll-behavior: smooth;
@@ -1157,8 +1158,7 @@ textarea:focus {
   border-color: var(--color-primary);
 }
 
-/* 针对 Markdown 内容的增强 */
-.prose h1,
+针对 Markdown 内容的增强 .prose h1,
 .prose h2,
 .prose h3 {
   margin-top: 1.2em;
@@ -1173,9 +1173,7 @@ textarea:focus {
   overflow-x: auto;
 }
 
-.dark .prose pre {
-  background-color: #1f2937;
-}
+
 
 .prose code {
   font-family: ui-monospace, monospace;
@@ -1184,9 +1182,6 @@ textarea:focus {
   border-radius: 0.25em;
 }
 
-.dark .prose code {
-  background-color: rgba(255, 255, 255, 0.1);
-}
 
 .prose img {
   border-radius: 0.375rem;

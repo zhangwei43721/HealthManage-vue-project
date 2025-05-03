@@ -69,7 +69,7 @@ export const initiateChatStream = async (formData: FormData): Promise<Response> 
     try {
       const errorData = await response.json()
       errorMsg = errorData.message || errorMsg
-    } catch (e) {
+    } catch {
       /* Ignore if response is not JSON */
     }
     throw new Error(errorMsg)
@@ -78,17 +78,7 @@ export const initiateChatStream = async (formData: FormData): Promise<Response> 
   return response // Return the raw response for stream processing
 }
 
-// Define ChatHistory type (adjust based on your actual data structure)
-// You might want to move this to a dedicated types file (e.g., src/types/chat.ts)
-export interface ChatHistory {
-  id: number
-  userId: number
-  conversationId: string
-  role: 'user' | 'assistant'
-  content: string
-  timestamp: string // ISO String
-  createdAt: string // ISO String
-}
+// ChatHistory type is now imported from '@/types/chat'
 
 // Define the raw API response type
 interface RawChatHistoryItem {
