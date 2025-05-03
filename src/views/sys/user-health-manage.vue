@@ -400,12 +400,12 @@ const getBodyDataList = async () => {
             }
         }
 
-        const response = await userHealthManageApi.getBodyList(params);
+        const response = await userHealthManageApi.getAllBodyList(params);
         if (response && response.data && Array.isArray(response.data.rows)) {
             bodyDataList.value = response.data.rows;
             total.value = response.data.total;
         } else {
-            console.error("Unexpected response structure from getBodyList:", response);
+            console.error("Unexpected response structure from getAllBodyList:", response);
             bodyDataList.value = [];
             total.value = 0;
             saveMessage.value = { type: 'error', text: '获取健康数据列表失败: 响应格式错误' };
