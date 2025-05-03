@@ -229,8 +229,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, watch, nextTick } from '../composables/vue-imports'
-import { getUserBodyInfo as getUserInfo, getHistoricalData } from '../services/health';
+import { ref, computed, onMounted, onUnmounted, watch, nextTick } from '../../composables/vue-imports.ts'
+import { getUserBodyInfo as getUserInfo, getHistoricalData } from '../../services/health.ts';
 import * as echarts from 'echarts/core';
 import { LineChart, BarChart } from 'echarts/charts';
 import {
