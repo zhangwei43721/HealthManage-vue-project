@@ -7,7 +7,7 @@
     </div>
 
     <!-- Search Card -->
-    <Card class="mb-6" variant="solid">
+    <Card class="mb-6" variant="solid" :maxWidth="false">
       <div class="flex flex-wrap gap-4 items-center">
         <div class="flex-grow flex flex-wrap gap-4 items-center">
           <InputField
@@ -40,7 +40,7 @@
     </div>
 
     <!-- User List Card -->
-    <Card variant="solid">
+    <Card variant="solid" :maxWidth="false">
         <div class="flex justify-between items-center mb-4">
             <span class="text-base font-medium text-gray-700">用户信息列表</span>
             <span class="text-sm text-gray-500">共 {{ total }} 条记录</span>

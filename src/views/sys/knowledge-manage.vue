@@ -7,7 +7,7 @@
     </div>
 
     <!-- 搜索与操作区域 -->
-    <Card class="mb-5" elevation="small">
+    <Card class="mb-5" elevation="small" :maxWidth="false">
       <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <!-- 搜索表单 -->
         <div class="flex items-center gap-2 flex-wrap">
@@ -36,7 +36,7 @@
     </Card>
 
     <!-- 结果列表 -->
-    <Card elevation="small">
+    <Card elevation="small" :maxWidth="false">
       <div class="flex justify-between items-center mb-4">
         <h2 class="text-lg font-semibold text-text-primary">运动信息列表</h2>
         <span class="text-sm text-text-secondary">共 {{ total }} 条记录</span>

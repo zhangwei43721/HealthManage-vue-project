@@ -9,7 +9,7 @@ import AiSuggestionBubble from './components/common/AiSuggestionBubble.vue';
     <Header />
     <main class="content-area">
       <router-view v-slot="{ Component }">
-        <transition name="fade" mode="out-in">
+        <transition name="page" mode="out-in">
           <component :is="Component" />
         </transition>
       </router-view>
@@ -52,7 +52,23 @@ canvas {
   display: block;
 }
 
-/* 页面过渡动画 */
+/* 页面过渡动画 - 增强版 */
+.page-enter-active,
+.page-leave-active {
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.page-enter-from {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.page-leave-to {
+  opacity: 0;
+  transform: translateY(-20px);
+}
+
+/* 兼容旧的fade动画，保留向后兼容性 */
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 0.3s ease;

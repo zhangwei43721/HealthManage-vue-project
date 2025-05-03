@@ -39,8 +39,8 @@
       'p-8': padding === 'large',
     },
 
-    /* 响应式类 */
-    'md:max-w-md lg:max-w-lg mx-auto',
+    /* 响应式类 - 只在maxWidth为true时添加限制 */
+    { 'md:max-w-md lg:max-w-lg mx-auto': maxWidth },
 
     /* 传入的自定义类 */
     className
@@ -112,6 +112,11 @@ export default {
       type: String,
       default: 'primary',
       validator: (value: string) => ['primary', 'secondary', 'success', 'warning', 'danger'].includes(value)
+    },
+    // 是否启用最大宽度限制
+    maxWidth: {
+      type: Boolean,
+      default: false
     }
   },
 
