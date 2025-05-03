@@ -1,5 +1,11 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useUserStore } from '@/stores/user' // 导入 user store
+
+// --- Layouts ---
+import AdminLayout from '@/layouts/AdminLayout.vue' // Import Admin Layout
+// Assume main layout is implicitly handled by App.vue or another mechanism
+
+// --- Page Components ---
 import AiHomePage from '../views/health/AiHomePage.vue'
 import Login from '../views/login/index.vue'
 import Register from '../views/register/register.vue'
@@ -7,73 +13,35 @@ import HealthData from '../views/health/health-data.vue'
 import HealthKnowledge from '../views/health-knowledge.vue'
 import HealthLog from '../views/health/health-log.vue'
 import AiQaPage from '../views/health/ai-qa.vue'
-import { isAuthenticated } from '../services/auth'
+import SysIndex from '../views/sys/SysIndex.vue' // Import Admin Index page
+// Admin page components (lazy loaded)
+const UserManagement = () => import('@/views/sys/user.vue')
+const RoleManagement = () => import('@/views/sys/role.vue')
+const KnowledgeManage = () => import('@/views/sys/knowledge-manage.vue')
+const SportItemManage = () => import('@/views/sys/sport-item-manage.vue')
+const UserHealthManage = () => import('@/views/sys/user-health-manage.vue')
 
-// 页面组件
-
-const Features = {
-  template: `
-    <div class="py-8">
-      <h1 class="text-3xl font-bold text-center text-primary mb-8">功能介绍</h1>
-      <div class="max-w-4xl mx-auto bg-white rounded-xl shadow-md p-6">
-        <h2 class="text-xl font-semibold mb-4">主要功能</h2>
-        <ul class="space-y-2 mb-6">
-          <li class="flex items-center text-gray-700">
-            <span class="bg-green-100 text-green-600 rounded-full p-1 mr-3">✓</span>
-            健康数据记录与追踪
-          </li>
-          <li class="flex items-center text-gray-700">
-            <span class="bg-green-100 text-green-600 rounded-full p-1 mr-3">✓</span>
-            健康知识与运动指南
-          </li>
-          <li class="flex items-center text-gray-700">
-            <span class="bg-green-100 text-green-600 rounded-full p-1 mr-3">✓</span>
-            运动计划与活动记录
-          </li>
-          <li class="flex items-center text-gray-700">
-            <span class="bg-green-100 text-green-600 rounded-full p-1 mr-3">✓</span>
-            健康报告与数据分析
-          </li>
-        </ul>
-      </div>
-    </div>
-  `,
-}
-
-const About = {
-  template: `
-    <div class="py-8">
-      <h1 class="text-3xl font-bold text-center text-primary mb-8">关于我们</h1>
-      <div class="max-w-4xl mx-auto bg-white rounded-xl shadow-md p-6">
-        <p class="text-text-secondary mb-4">
-          健康管理系统是一个专注于个人健康数据管理的平台，帮助用户记录、分析和改善健康状况。
-        </p>
-        <p class="text-text-secondary">
-          我们的使命是通过技术手段，让健康管理变得简单而有效，帮助每个人实现更健康的生活方式。
-        </p>
-      </div>
-    </div>
-  `,
-}
-
-// 注意：这里不再定义HealthData常量，因为已经从文件导入了health.ts
+// Temporary components for Features and About
+const Features = { template: '<div>Features Page (Requires Auth)</div>' }
+const About = { template: '<div>About Page (Requires Auth)</div>' }
 
 // 路由配置
 const routes = [
+  // --- Main Application Routes (using default layout in App.vue) ---
   {
     path: '/',
     component: AiHomePage,
-    meta: { requiresAuth: false },
+    meta: { requiresAuth: false }, // 首页通常不需要登录
   },
   {
     path: '/features',
     component: Features,
-    meta: { requiresAuth: true, title: '功能介绍' },
+    meta: { requiresAuth: true, title: '功能介绍' }, // 需要登录
   },
   {
     path: '/about',
     component: About,
-    meta: { requiresAuth: true, title: '关于我们' },
+    meta: { requiresAuth: true, title: '关于我们' }, // 需要登录
   },
   {
     path: '/health-data',
@@ -97,20 +65,65 @@ const routes = [
     component: AiQaPage,
     meta: { requiresAuth: true, title: 'AI 健康问答' },
   },
-  // 登录注册路由
+  // --- Authentication Routes ---
   {
     path: '/login',
     name: 'Login',
     component: Login,
-    meta: { requiresAuth: false }, // 不需要身份验证
+    meta: { requiresAuth: false },
   },
   {
     path: '/register',
     name: 'Register',
     component: Register,
-    meta: { requiresAuth: false }, // 不需要身份验证
+    meta: { requiresAuth: false },
   },
-  // 默认重定向到首页
+  // --- Admin Section Routes (using AdminLayout) ---
+  {
+    path: '/sys',
+    component: AdminLayout, // Use the admin layout for all /sys routes
+    meta: { requiresAuth: true, requiresAdmin: true }, // All admin routes require auth and admin role
+    children: [
+      {
+        path: '', // Default route for /sys
+        name: 'AdminIndex',
+        component: SysIndex,
+        meta: { title: '管理后台首页' },
+      },
+      {
+        path: 'user',
+        name: 'UserManagement',
+        component: UserManagement,
+        meta: { title: '用户管理' },
+      },
+      {
+        path: 'role',
+        name: 'RoleManagement',
+        component: RoleManagement,
+        meta: { title: '角色管理' },
+      },
+      {
+        path: 'knowledge-manage',
+        name: 'KnowledgeManage',
+        component: KnowledgeManage,
+        meta: { title: '知识管理' },
+      },
+      {
+        path: 'sport-item-manage',
+        name: 'SportItemManage',
+        component: SportItemManage,
+        meta: { title: '运动项管理' },
+      },
+      {
+        path: 'user-health-manage',
+        name: 'UserHealthManage',
+        component: UserHealthManage,
+        meta: { title: '用户健康数据' },
+      },
+      // Add other sys routes here
+    ],
+  },
+  // --- Catch-all Route ---
   {
     path: '/:pathMatch(.*)*',
     redirect: '/',

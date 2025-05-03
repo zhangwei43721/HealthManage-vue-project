@@ -1,755 +1,475 @@
 <template>
-  <div class="user-manage-container">
-    <!-- 页面标题 -->
-    <div class="page-header">
-      <h1 class="page-title">用户管理</h1>
-      <p class="page-description">管理系统用户信息，包括用户添加、编辑、删除及权限分配</p>
+  <div class="p-4 md:p-6 bg-gray-100 min-h-screen">
+    <!-- Page Header -->
+    <div class="mb-6 bg-white p-5 rounded-lg shadow border border-gray-200">
+      <h1 class="text-2xl font-semibold text-gray-800 mb-1">用户管理</h1>
+      <p class="text-sm text-gray-500">管理系统用户信息，包括用户添加、编辑、删除及权限分配</p>
     </div>
-    
-    <!-- 搜索区域 -->
-    <el-card class="search-card" shadow="hover">
-      <el-row :gutter="20">
-        <!-- 搜索输入与按钮 -->
-        <el-col :xs="24" :sm="18" :md="18">
-          <div class="search-controls">
-            <el-input
-              v-model.trim="searchModel.username"
-              placeholder="请输入用户名搜索"
-              clearable
-              prefix-icon="el-icon-user"
-              class="search-input"
-              @keyup.enter.native="getUserList"
-            ></el-input>
-            <el-input
-              v-model.trim="searchModel.phone"
-              placeholder="请输入手机号搜索"
-              clearable
-              prefix-icon="el-icon-mobile-phone"
-              class="search-input"
-              @keyup.enter.native="getUserList"
-            ></el-input>
-            <el-button
-              @click="getUserList"
-              type="primary"
-              :loading="listLoading"
-            >查询</el-button>
-            <el-button
-              @click="resetSearch"
-              plain
-              icon="el-icon-refresh"
-            >重置</el-button>
-          </div>
-        </el-col>
-        <!-- 新增按钮 -->
-        <el-col :xs="24" :sm="6" :md="6" class="action-col">
-           <el-button
-            @click="openEditUi(null)"
-            type="success"
-            icon="el-icon-plus"
-            class="add-btn"
-          >新增用户</el-button>
-        </el-col>
-      </el-row>
-    </el-card>
 
-    <!-- 结果列表 -->
-    <el-card class="data-card" shadow="hover">
-      <div slot="header" class="card-header">
-        <span>用户信息列表</span>
-        <span class="data-count">共 {{ total }} 条记录</span>
-      </div>
-      
-      <el-table 
-        :data="userList" 
-        stripe 
-        :row-class-name="tableRowClassName"
-        v-loading="listLoading" 
-        element-loading-text="加载中..."
-        element-loading-spinner="el-icon-loading"
-        element-loading-background="rgba(255, 255, 255, 0.8)"
-        style="width: 100%"
-        :header-cell-style="{backgroundColor: '#f5f7fa', color: '#606266', fontWeight: 'bold'}"
-      >
-        <el-table-column type="index" label="序号" width="60" align="center"></el-table-column>
-        <el-table-column prop="id" label="用户ID" width="80" align="center"></el-table-column>
-        <el-table-column prop="username" label="用户名" min-width="120">
-          <template slot-scope="scope">
-            <el-tag size="medium" effect="plain" type="primary">{{ scope.row.username }}</el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column prop="phone" label="电话" min-width="140" show-overflow-tooltip>
-          <template slot-scope="scope">
-            <span v-if="scope.row.phone">
-              <i class="el-icon-mobile-phone"></i> {{ scope.row.phone }}
-            </span>
-            <span v-else class="no-data">未设置</span>
-          </template>
-        </el-table-column>
-        <el-table-column prop="email" label="电子邮件" min-width="180" show-overflow-tooltip>
-          <template slot-scope="scope">
-            <span v-if="scope.row.email">
-              <i class="el-icon-message"></i> {{ scope.row.email }}
-            </span>
-            <span v-else class="no-data">未设置</span>
-          </template>
-        </el-table-column>
-        <el-table-column label="角色" min-width="120" show-overflow-tooltip>
-          <template slot-scope="scope">
-            <el-tag size="medium" type="success" effect="dark" v-if="scope.row.roleName">{{ scope.row.roleName }}</el-tag>
-            <el-tag size="medium" type="info" v-else>未分配角色</el-tag>
-          </template>
-        </el-table-column>
-        <!-- 操作列 -->
-        <el-table-column label="操作" width="160" fixed="right" align="center">
-          <template slot-scope="scope">
-            <el-tooltip content="编辑" placement="top" :enterable="false">
-              <el-button @click="openEditUi(scope.row.id)" type="primary" icon="el-icon-edit" circle size="mini"></el-button>
-            </el-tooltip>
-            <el-tooltip content="删除" placement="top" :enterable="false">
-              <el-button @click="deleteUser(scope.row)" type="danger" icon="el-icon-delete" circle size="mini"></el-button>
-            </el-tooltip>
-          </template>
-        </el-table-column>
-        <template slot="empty">
-          <div class="empty-data">
-            <i class="el-icon-user"></i>
-            <p>暂无用户数据</p>
-            <el-button type="primary" @click="openEditUi(null)">添加用户</el-button>
-          </div>
-        </template>
-      </el-table>
-
-      <!-- 分页 -->
-      <el-pagination
-        @size-change="handleSizeChange"
-        @current-change="handleCurrentChange"
-        :current-page="searchModel.pageNo"
-        :page-sizes="[5, 10, 20, 50]"
-        :page-size="searchModel.pageSize"
-        layout="total, sizes, prev, pager, next, jumper"
-        :total="total"
-        background
-        class="pagination"
-      ></el-pagination>
-    </el-card>
-
-    <!-- 用户编辑/新增 弹窗 -->
-    <el-dialog
-      @close="clearForm"
-      :title="title"
-      :visible.sync="dialogFormVisible"
-      :width="dialogWidth"
-      :fullscreen="isMobile"
-      top="5vh"
-      destroy-on-close
-      class="user-dialog"
-      :close-on-click-modal="false">
-      <el-form :model="userForm" ref="userFormRef" :rules="rules" label-width="100px" class="user-form">
-        <el-form-item label="用户名" prop="username">
-          <el-input 
-            v-model="userForm.username" 
-            autocomplete="off"
-            placeholder="请输入用户名"
-            prefix-icon="el-icon-user"
-            maxlength="20"
-            show-word-limit>
-          </el-input>
-        </el-form-item>
-        <!-- 新增时显示密码输入框 -->
-        <el-form-item v-if="!userForm.id" label="密码" prop="password">
-          <el-input 
-            type="password" 
-            v-model="userForm.password" 
-            autocomplete="off" 
-            show-password
-            placeholder="请输入密码，长度在6-20个字符"
-            prefix-icon="el-icon-lock"
-            maxlength="20">
-          </el-input>
-          <div class="password-strength" v-if="userForm.password">
-            <span>密码强度：</span>
-            <span :class="passwordStrengthClass">{{ passwordStrength }}</span>
-          </div>
-        </el-form-item>
-        <el-form-item label="联系电话" prop="phone">
-          <el-input 
-            v-model="userForm.phone" 
-            autocomplete="off"
-            placeholder="请输入手机号码"
-            prefix-icon="el-icon-mobile-phone">
-          </el-input>
-        </el-form-item>
-        <el-form-item label="电子邮件" prop="email">
-          <el-input 
-            v-model="userForm.email" 
-            autocomplete="off"
-            placeholder="请输入电子邮箱地址"
-            prefix-icon="el-icon-message">
-          </el-input>
-        </el-form-item>
-        <!-- 用户角色 -->
-        <el-form-item label="用户角色" prop="roleId">
-          <div class="role-selection">
-            <el-radio-group v-model="userForm.roleId">
-              <el-radio
-                v-for="role in allRoleList"
-                :label="role.roleId"
-                :key="role.roleId"
-                class="role-radio"
-              >
-                <span class="role-name">{{ role.roleDesc }}</span>
-              </el-radio>
-            </el-radio-group>
-          </div>
-        </el-form-item>
-        <div class="form-tips" v-if="!userForm.id">
-          <i class="el-icon-info"></i>
-          <span>用户创建后，可以通过"修改密码"功能重置密码</span>
+    <!-- Search Card -->
+    <Card class="mb-6" variant="solid">
+      <div class="flex flex-wrap gap-4 items-center">
+        <div class="flex-grow flex flex-wrap gap-4 items-center">
+          <InputField
+            v-model="searchModel.username"
+            placeholder="按用户名搜索"
+            :leftIcon="UserIcon"
+            class="w-full sm:w-auto flex-grow sm:flex-grow-0 min-w-[200px]"
+          />
+          <InputField
+            v-model="searchModel.phone"
+            placeholder="按手机号搜索"
+            :leftIcon="Iphone"
+            class="w-full sm:w-auto flex-grow sm:flex-grow-0 min-w-[200px]"
+          />
+          <Button @click="getUserList" type="primary" :icon="Search" :disabled="listLoading">查询</Button>
+          <Button @click="resetSearch" type="outline" :icon="Refresh" :disabled="listLoading">重置</Button>
         </div>
-      </el-form>
-      <!-- 弹窗底部按钮 -->
-      <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogFormVisible = false">取 消</el-button>
-        <el-button type="primary" @click="saveUser" :loading="saveLoading">确 定</el-button>
+        <div class="flex-shrink-0">
+          <Button @click="openDialog(null)" type="success" :icon="Plus">新增用户</Button>
+          </div>
       </div>
-    </el-dialog>
+    </Card>
+
+    <!-- Success/Error Messages -->
+    <div v-if="saveMessage" :class="[
+        'mb-4 p-3 rounded-md text-sm',
+        saveMessage.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+        ]">
+        {{ saveMessage.text }}
+    </div>
+
+    <!-- User List Card -->
+    <Card variant="solid">
+        <div class="flex justify-between items-center mb-4">
+            <span class="text-base font-medium text-gray-700">用户信息列表</span>
+            <span class="text-sm text-gray-500">共 {{ total }} 条记录</span>
+        </div>
+
+        <!-- Loading Indicator -->
+        <div v-if="listLoading" class="text-center py-10 text-gray-500">
+            <p>数据加载中...</p>
+        </div>
+
+        <!-- User Table (Custom Implementation) -->
+        <div v-else-if="userList.length > 0" class="overflow-x-auto">
+            <div class="min-w-full divide-y divide-gray-200">
+                <!-- Table Header -->
+                <div class="bg-gray-50 hidden md:flex">
+                    <div class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-16 text-center">序号</div>
+                    <div class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20 text-center">ID</div>
+                    <div class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider flex-1 min-w-[120px]">用户名</div>
+                    <div class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider flex-1 min-w-[140px]">电话</div>
+                    <div class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider flex-1 min-w-[180px]">邮箱</div>
+                    <div class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider flex-1 min-w-[150px]">角色</div>
+                    <div class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-32">操作</div>
+                </div>
+                <!-- Table Body -->
+                <div class="bg-white divide-y divide-gray-200">
+                    <div v-for="(user, index) in userList" :key="user.id" class="flex flex-col md:flex-row hover:bg-gray-50 items-start md:items-center">
+                        <div class="px-4 py-3 w-full md:w-16 text-center text-sm text-gray-500 md:text-gray-900"><span class="font-bold md:hidden">序号: </span>{{ index + 1 + (searchModel.pageNo - 1) * searchModel.pageSize }}</div>
+                        <div class="px-4 py-3 w-full md:w-20 text-center text-sm text-gray-500 md:text-gray-900"><span class="font-bold md:hidden">ID: </span>{{ user.id }}</div>
+                        <div class="px-4 py-3 flex-1 min-w-[120px] text-sm font-medium text-primary"><span class="font-bold md:hidden text-gray-500">用户名: </span>{{ user.username }}</div>
+                        <div class="px-4 py-3 flex-1 min-w-[140px] text-sm text-gray-700"><span class="font-bold md:hidden text-gray-500">电话: </span>
+                             <span v-if="user.phone" class="flex items-center"><Iphone class="w-4 h-4 mr-1 inline-block text-gray-400"/> {{ user.phone }}</span>
+                             <span v-else class="text-gray-400 text-xs italic">未设置</span>
+                        </div>
+                        <div class="px-4 py-3 flex-1 min-w-[180px] text-sm text-gray-700"><span class="font-bold md:hidden text-gray-500">邮箱: </span>
+                            <span v-if="user.email" class="flex items-center"><Message class="w-4 h-4 mr-1 inline-block text-gray-400"/> {{ user.email }}</span>
+                            <span v-else class="text-gray-400 text-xs italic">未设置</span>
+                        </div>
+                        <div class="px-4 py-3 flex-1 min-w-[150px] text-sm text-gray-700"><span class="font-bold md:hidden text-gray-500">角色: </span>
+                           <span class="inline-block px-2 py-0.5 rounded bg-green-100 text-green-800 text-xs font-medium">{{ getRoleNames(user.roleIdList) }}</span>
+                        </div>
+                        <div class="px-4 py-3 w-full md:w-32 text-center space-x-2">
+                            <Button @click="openDialog(user.id)" type="secondary" size="small" :icon="Edit" iconOnly title="编辑"></Button>
+                            <Button @click="deleteUser(user)" type="danger" size="small" :icon="Delete" iconOnly title="删除"></Button>
+                             <!-- Add Change Password Button if needed -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+      </div>
+
+        <!-- Empty State -->
+        <div v-else class="text-center py-10 text-gray-500">
+            <p>暂无用户数据</p>
+            <Button @click="openDialog(null)" type="primary" class="mt-4">立即添加</Button>
+        </div>
+
+        <!-- Pagination -->
+        <div v-if="total > 0" class="mt-6 flex justify-between items-center">
+            <span class="text-sm text-gray-600">共 {{ total }} 条记录</span>
+            <div class="flex items-center space-x-2">
+                <Button @click="goToPage(searchModel.pageNo - 1)" type="outline" size="small" :icon="Left" :disabled="searchModel.pageNo <= 1">上一页</Button>
+                <span class="text-sm text-gray-700">第 {{ searchModel.pageNo }} / {{ totalPages }} 页</span>
+                <Button @click="goToPage(searchModel.pageNo + 1)" type="outline" size="small" :icon="Right" :disabled="searchModel.pageNo >= totalPages">下一页</Button>
+            </div>
+        </div>
+    </Card>
+
+    <!-- Add/Edit User Modal -->
+    <div v-if="dialogFormVisible" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+      <Card class="w-full max-w-lg bg-white" variant="solid" elevation="large">
+        <div class="flex justify-between items-center mb-4 border-b pb-3">
+          <h3 class="text-lg font-semibold text-gray-800">{{ dialogTitle }}</h3>
+          <Button @click="closeDialog" type="text" :icon="Close" iconOnly size="small" title="关闭"></Button>
+        </div>
+
+        <form @submit.prevent="saveUser" class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">用户名 <span class="text-red-500">*</span></label>
+            <InputField
+              v-model="userForm.username"
+              placeholder="请输入用户名 (2-20字符)"
+              :leftIcon="UserIcon"
+              :error="!!formErrors.username"
+              :errorMessage="formErrors.username"
+              @update:modelValue="formErrors.username = ''"
+            />
+          </div>
+
+          <div v-if="!isEditMode">
+            <label class="block text-sm font-medium text-gray-700 mb-1">密码 <span class="text-red-500">*</span></label>
+            <InputField
+            type="password"
+            v-model="userForm.password"
+              placeholder="请输入密码 (6-20字符)"
+              :leftIcon="Lock"
+              :error="!!formErrors.password"
+              :errorMessage="formErrors.password"
+               @update:modelValue="formErrors.password = ''"
+            />
+            <!-- Basic password strength indicator could be added here if needed -->
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">联系电话</label>
+            <InputField
+            v-model="userForm.phone"
+              placeholder="请输入手机号码 (选填)"
+              :leftIcon="Iphone"
+              :error="!!formErrors.phone"
+              :errorMessage="formErrors.phone"
+              @update:modelValue="formErrors.phone = ''"
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">电子邮件</label>
+             <InputField
+            v-model="userForm.email"
+              placeholder="请输入电子邮箱地址 (选填)"
+              :leftIcon="Message"
+              :error="!!formErrors.email"
+              :errorMessage="formErrors.email"
+              @update:modelValue="formErrors.email = ''"
+            />
+          </div>
+
+          <div>
+             <label class="block text-sm font-medium text-gray-700 mb-1">用户角色 <span class="text-red-500">*</span></label>
+             <!-- Basic Multi-Select using Checkboxes -->
+             <div class="border rounded-md p-2 max-h-40 overflow-y-auto">
+                 <div v-if="allRoleList.length > 0">
+                     <label v-for="role in allRoleList" :key="role.roleId" class="flex items-center space-x-2 p-1 hover:bg-gray-100 rounded cursor-pointer">
+                        <input type="checkbox" :value="role.roleId" v-model="userForm.roleIdList" class="rounded border-gray-300 text-primary focus:ring-primary">
+                        <span>{{ role.roleName }} ({{ role.roleDesc }})</span>
+                    </label>
+                 </div>
+                 <p v-else class="text-xs text-gray-500">没有可用的角色</p>
+             </div>
+             <p v-if="formErrors.roleIdList" class="text-xs text-red-500 mt-1">{{ formErrors.roleIdList }}</p>
+          </div>
+
+           <div v-if="!isEditMode" class="text-xs text-gray-500 flex items-center">
+               <Info class="w-4 h-4 mr-1 text-blue-500"/>
+               <span>用户创建后，可通过"修改密码"功能重置密码 (需另行实现)</span>
+           </div>
+
+          <!-- Save/Cancel Buttons -->
+          <div class="flex justify-end space-x-3 pt-4 border-t mt-6">
+            <Button type="outline" @click="closeDialog">取消</Button>
+            <Button type="primary" native-type="submit" :loading="saveLoading">确定</Button>
+        </div>
+        </form>
+      </Card>
+      </div>
+
   </div>
 </template>
 
-<script>
-import userApi from "@/api/userManage"; // 用户API
-import roleApi from "@/api/roleManage"; // 角色API
+<script setup lang="ts">
+import { ref, reactive, onMounted, computed } from 'vue';
+import userApi from "@/services/userManage";
+import roleApi from "@/services/roleManage";
+import type { User } from '@/types/user';
+import type { Role } from '@/types/role';
 
-// 手机号简单校验正则 (可根据实际需求调整)
+// Import custom base components
+import Button from '@/components/base/Button.vue';
+import Card from '@/components/base/Card.vue';
+import InputField from '@/components/base/InputField.vue';
+
+// Import Icons from IconPark
+import { Search, Refresh, Plus, User as UserIcon, Iphone, Message, Edit, Delete, Lock, Info, Close, Left, Right } from '@icon-park/vue-next';
+
+// --- Reactive State ---
+const searchModel = reactive({
+  username: '',
+  phone: '',
+  pageNo: 1,
+  pageSize: 10, // Default page size
+});
+
+const listLoading = ref(false);
+const userList = ref<User[]>([]);
+const total = ref(0);
+
+const dialogFormVisible = ref(false);
+const saveLoading = ref(false);
+const isEditMode = ref(false); // Track if dialog is for editing
+const userForm = reactive<Partial<User>>({
+  id: undefined,
+  username: '',
+  password: '',
+  phone: '',
+  email: '',
+  roleIdList: [],
+});
+const formErrors = reactive<Record<string, string>>({}); // For basic validation messages
+const saveMessage = ref<{ type: 'success' | 'error'; text: string } | null>(null);
+
+const allRoleList = ref<Role[]>([]);
+
+// --- Computed Properties ---
+const totalPages = computed(() => {
+  return Math.ceil(total.value / searchModel.pageSize);
+});
+
+const dialogTitle = computed(() => (isEditMode.value ? '编辑用户' : '新增用户'));
+
+// --- Validation Logic (Basic) ---
 const phoneReg = /^1[3-9]\d{9}$/;
-// 邮箱校验正则
 const emailReg = /^([a-zA-Z0-9_\-\.]+)@([a-zA-Z0-9_\-\.]+)\.([a-zA-Z]{2,5})$/;
 
-export default {
-  name: 'UserManagement', // 组件名称
-  data() {
-    // 自定义校验函数
-    const validateUsername = (rule, value, callback) => {
-      if (!value) return callback(new Error('请输入用户名'));
-      if (value.length < 2 || value.length > 20) return callback(new Error('长度需在 2 到 20 个字符'));
-      callback();
-    };
-    const validatePassword = (rule, value, callback) => {
-      // 密码只在新增时校验
-      if (!this.userForm.id) {
-         if (!value) return callback(new Error('请输入密码'));
-         if (value.length < 6 || value.length > 20) return callback(new Error('长度需在 6 到 20 个字符'));
-      }
-      callback(); // 修改时不校验密码，直接通过
-    };
-     const validatePhone = (rule, value, callback) => {
-      if (value && !phoneReg.test(value)) { // 允许为空，但如果不为空则校验格式
-        return callback(new Error('请输入有效的手机号'));
-      }
-      callback();
-    };
-    const validateEmail = (rule, value, callback) => {
-      if (!value) return callback(new Error('请输入电子邮件'));
-      if (!emailReg.test(value)) return callback(new Error('请输入有效的电子邮件地址'));
-      callback();
-    };
-     const validateRole = (rule, value, callback) => {
-        if (!value) {
-            return callback(new Error('请为用户分配角色'));
-        }
-        callback();
-     };
+const validateForm = (): boolean => {
+  let isValid = true;
+  formErrors.username = '';
+  formErrors.password = '';
+  formErrors.email = '';
+  formErrors.phone = '';
+  formErrors.roleIdList = '';
 
-    return {
-      isMobile: false, // 是否移动端视图
-      listLoading: false, // 列表加载状态
-      saveLoading: false, // 保存按钮加载状态
-      userForm: { // 用户表单数据模型
-        id: null,
-        username: '',
-        password: '',
-        phone: '',
-        email: '',
-        roleId: null, // 改为单选，存储单个 roleId
-      },
-      allRoleList: [], // 所有角色列表 (用于弹窗选择)
-      userList: [], // 用户列表数据 (表格)
-      dialogFormVisible: false, // 弹窗可见性
-      title: "", // 弹窗标题
-      total: 0, // 总记录数
-      searchModel: { // 搜索条件
-        username: '',
-        phone: '',
-        pageNo: 1,
-        pageSize: 10,
-      },
-      rules: { // 表单校验规则
-        username: [ { required: true, validator: validateUsername, trigger: "blur" } ],
-        password: [ { validator: validatePassword, trigger: "blur" } ], // 密码根据情况校验
-        phone: [ { validator: validatePhone, trigger: "blur" } ],
-        email: [ { required: true, validator: validateEmail, trigger: "blur" } ],
-        roleId: [ { required: true, validator: validateRole, trigger: "change" } ], // 使用 change 触发器
-      },
-    };
-  },
-  computed: {
-      // 动态计算弹窗宽度
-      dialogWidth() {
-          return this.isMobile ? '95%' : '50%';
-      },
-      // 计算密码强度
-      passwordStrength() {
-          const password = this.userForm.password || '';
-          if (!password) return '';
-          
-          // 计算密码强度
-          let score = 0;
-          
-          // 长度得分
-          if (password.length >= 8) score += 1;
-          if (password.length >= 12) score += 1;
-          
-          // 复杂度得分
-          if (/[A-Z]/.test(password)) score += 1; // 大写字母
-          if (/[a-z]/.test(password)) score += 1; // 小写字母
-          if (/[0-9]/.test(password)) score += 1; // 数字
-          if (/[^A-Za-z0-9]/.test(password)) score += 1; // 特殊字符
-          
-          // 返回强度级别
-          if (score <= 2) return '弱';
-          if (score <= 4) return '中';
-          return '强';
-      },
-      // 密码强度对应的样式类
-      passwordStrengthClass() {
-          const strength = this.passwordStrength;
-          if (strength === '弱') return 'strength-weak';
-          if (strength === '中') return 'strength-medium';
-          if (strength === '强') return 'strength-strong';
-          return '';
-      }
-  },
-  methods: {
-    // 表格行样式
-    tableRowClassName({row, rowIndex}) {
-      return rowIndex % 2 === 0 ? 'even-row' : 'odd-row';
-    },
-    // 重置搜索条件
-    resetSearch() {
-      this.searchModel.username = '';
-      this.searchModel.phone = '';
-      this.searchModel.pageNo = 1;
-      this.getUserList();
-    },
-    // 检查屏幕宽度
-    checkScreenWidth() {
-        this.isMobile = window.innerWidth < 768;
-    },
-    // 获取所有角色列表 (用于弹窗内选择)
-    async getAllRoleList() {
-      try {
-        // 通常获取所有角色不需要分页
-        const response = await roleApi.getAllRoleList(); // 假设有这个接口
-        this.allRoleList = response.data || [];
-      } catch (error) {
-        console.error("获取所有角色列表失败:", error);
-        this.$message.error('获取角色数据失败');
-        this.allRoleList = []; // 出错时清空
-      }
-    },
-    // 保存用户信息 (新增或修改)
-    async saveUser() {
-      try {
-        // 1. 表单校验
-        await this.$refs.userFormRef.validate();
-        this.saveLoading = true;
+  if (!userForm.username || userForm.username.length < 2 || userForm.username.length > 20) {
+    formErrors.username = '用户名长度需在 2 到 20 个字符';
+    isValid = false;
+  }
+  if (!isEditMode.value && (!userForm.password || userForm.password.length < 6 || userForm.password.length > 20)) {
+    formErrors.password = '密码长度需在 6 到 20 个字符';
+    isValid = false;
+  }
+  if (userForm.email && !emailReg.test(userForm.email)) {
+    formErrors.email = '请输入有效的邮箱地址';
+    isValid = false;
+  }
+  if (userForm.phone && !phoneReg.test(userForm.phone)) {
+    formErrors.phone = '请输入有效的手机号';
+    isValid = false;
+  }
+  if (!userForm.roleIdList || userForm.roleIdList.length === 0) {
+    formErrors.roleIdList = '请至少选择一个角色';
+    isValid = false;
+  }
+  return isValid;
+};
 
-        // 2. 准备提交的数据 (如果API需要roleIdList，需要转换)
-        let dataToSave = { ...this.userForm };
-        // **重要:** 确认后端 `saveUser` 接口需要的是 `roleId` 还是 `roleIdList`
-        // 假设后端需要的是 `roleIdList` (即使只有一个角色)
-        if (dataToSave.roleId) {
-            dataToSave.roleIdList = [dataToSave.roleId]; // 将 roleId 包装成列表
-            // delete dataToSave.roleId; // 可选：如果接口不接受 roleId 字段，则删除
-        } else {
-            dataToSave.roleIdList = [];
-        }
+const clearFormErrors = () => {
+  Object.keys(formErrors).forEach(key => formErrors[key] = '');
+  saveMessage.value = null;
+};
 
-        // 3. 调用API保存
-        // 注意：这里传递的是 dataToSave 而不是 this.userForm
-        const response = await userApi.saveUser(dataToSave);
-        this.$message({
-          message: response.message || (this.userForm.id ? '修改成功' : '新增成功'),
-          type: "success",
-        });
-        this.dialogFormVisible = false;
-        this.getUserList(); // 刷新列表
-
-      } catch (error) {
-        if (error === false) { // validate Promise reject(false)
-          console.log("表单验证失败");
-        } else {
-           console.error("保存用户信息失败:", error);
-           this.$message.error('操作失败，请稍后重试');
-        }
-      } finally {
-        this.saveLoading = false;
-      }
-    },
-    // 清空表单 (主要由 destroy-on-close 处理)
-    clearForm() {
-      this.userForm = { id: null, username: '', password: '', phone: '', email: '', roleId: null };
-    },
-    // 处理每页显示条数变化
-    handleSizeChange(pageSize) {
-      this.searchModel.pageSize = pageSize;
-      this.searchModel.pageNo = 1;
-      this.getUserList();
-    },
-    // 处理当前页码变化
-    handleCurrentChange(pageNo) {
-      this.searchModel.pageNo = pageNo;
-      this.getUserList();
-    },
-    // 获取用户列表数据
-    async getUserList() {
-      this.listLoading = true;
-      try {
-        const response = await userApi.getUserList(this.searchModel);
-        this.userList = response.data.rows;
-        this.total = response.data.total;
-      } catch (error) {
-        console.error("获取用户列表失败:", error);
-        this.$message.error('获取用户列表失败');
-        this.userList = [];
-        this.total = 0;
-      } finally {
-        this.listLoading = false;
-      }
-    },
-    // 打开新增/编辑弹窗
-    async openEditUi(id) {
-      // 确保角色列表已加载
-      if (this.allRoleList.length === 0) {
-          await this.getAllRoleList();
-      }
-
-      if (id == null) {
-        this.title = "新增用户";
-        // 重置表单为初始状态
-        this.userForm = { id: null, username: '', password: '', phone: '', email: '', roleId: null };
-        this.dialogFormVisible = true;
-      } else {
-        this.title = "修改用户";
-        try {
-          const response = await userApi.getUserById(id);
-          // **重要:** 确认后端返回的数据结构
-          // 假设后端返回的数据包含 roleIdList (即使只有一个元素)
-          let userData = { ...response.data };
-          // 如果后端返回 roleIdList，取第一个作为 roleId 用于单选框
-          if (userData.roleIdList && userData.roleIdList.length > 0) {
-              userData.roleId = userData.roleIdList[0];
-          } else {
-              userData.roleId = null; // 或者根据业务设置默认值
-          }
-          this.userForm = userData;
-          // 密码字段在修改时不显示，也不需要从后端获取和填充
-          this.userForm.password = '';
-
-          this.dialogFormVisible = true;
-        } catch (error) {
-          console.error("获取用户详情失败:", error);
-          this.$message.error('获取用户详情失败');
-        }
-      }
-    },
-    // 删除用户
-    async deleteUser(user) {
-      try {
-        await this.$confirm(`确认删除用户 "${user.username}" 吗？`, "提示", {
-          confirmButtonText: "确定",
-          cancelButtonText: "取消",
-          type: "warning",
-          confirmButtonClass: 'el-button--danger'
-        });
-        this.listLoading = true;
-        try {
-           const response = await userApi.deleteUserById(user.id);
-           this.$message({ type: "success", message: response.message || "删除成功" });
-           // 如果删除的是最后一页的唯一数据，可能需要跳转到前一页
-            if (this.userList.length === 1 && this.searchModel.pageNo > 1) {
-                this.searchModel.pageNo--;
-            }
-           this.getUserList();
-        } catch (apiError) {
-           console.error("删除用户失败:", apiError);
-           this.$message.error('删除失败');
-        } finally {
-           this.listLoading = false;
-        }
-      } catch (cancel) {
-        this.$message({ type: "info", message: "已取消删除" });
-      }
-    },
-  },
-  // 组件创建时执行
-  created() {
-    this.checkScreenWidth();
-    window.addEventListener('resize', this.checkScreenWidth);
-    this.getUserList(); // 加载用户列表
-    this.getAllRoleList(); // 加载所有角色数据 (用于弹窗)
-  },
-  // 组件销毁前执行
-  beforeDestroy() {
-      window.removeEventListener('resize', this.checkScreenWidth);
+// --- Methods ---
+const getUserList = async () => {
+  listLoading.value = true;
+  saveMessage.value = null; // Clear previous messages
+  try {
+    const response = await userApi.getUserList(searchModel);
+    if (response && response.data) {
+      userList.value = response.data.rows;
+      total.value = response.data.total;
+    } else {
+      userList.value = [];
+      total.value = 0;
+      saveMessage.value = { type: 'error', text: '获取用户列表失败: 无效响应' };
+    }
+  } catch (error) {
+    console.error("Error fetching user list:", error);
+    userList.value = [];
+    total.value = 0;
+    saveMessage.value = { type: 'error', text: `获取用户列表失败: ${error instanceof Error ? error.message : '未知错误'}` };
+  } finally {
+    listLoading.value = false;
   }
 };
+
+const getAllRoles = async () => {
+  try {
+    const response = await roleApi.getAllRoles();
+    if (response && Array.isArray(response.data)) { // Adjust check based on actual API response
+      allRoleList.value = response.data;
+    } else {
+      console.error("Invalid response structure from getAllRoles:", response);
+      allRoleList.value = [];
+    }
+  } catch (error) {
+    console.error("Error fetching roles:", error);
+    saveMessage.value = { type: 'error', text: '获取角色列表失败' };
+  }
+};
+
+const resetSearch = () => {
+  searchModel.username = '';
+  searchModel.phone = '';
+  searchModel.pageNo = 1;
+  getUserList();
+};
+
+const goToPage = (page: number) => {
+  if (page >= 1 && page <= totalPages.value) {
+      searchModel.pageNo = page;
+      getUserList();
+  }
+};
+
+const openDialog = async (id: number | null | undefined) => {
+  clearFormErrors();
+  await getAllRoles(); // Load roles first
+
+  if (id) {
+    isEditMode.value = true;
+    try {
+      const response = await userApi.getUserById(id);
+      if (response && response.data) {
+        Object.assign(userForm, response.data);
+        userForm.password = ''; // Don't show password in edit mode
+        userForm.roleIdList = response.data.roleIdList || [];
+      } else {
+        saveMessage.value = { type: 'error', text: '获取用户信息失败' };
+        return;
+      }
+      } catch (error) {
+      console.error("Error fetching user by ID:", error);
+      saveMessage.value = { type: 'error', text: '获取用户信息失败' };
+      return;
+    }
+  } else {
+    isEditMode.value = false;
+    Object.assign(userForm, {
+      id: undefined, username: '', password: '', phone: '', email: '', roleIdList: [],
+    });
+  }
+  dialogFormVisible.value = true;
+};
+
+const closeDialog = () => {
+  dialogFormVisible.value = false;
+  clearFormErrors();
+};
+
+const saveUser = async () => {
+  clearFormErrors();
+  if (!validateForm()) {
+    return;
+  }
+
+  saveLoading.value = true;
+  saveMessage.value = null;
+  try {
+    let result: any;
+    if (isEditMode.value) {
+      // Don't send password on update if it wasn't meant to be changed
+      const { password, ...updateData } = userForm;
+      result = await userApi.updateUser(updateData as User);
+        } else {
+      const { id, ...addData } = userForm;
+      result = await userApi.addUser(addData);
+    }
+
+    if (result && result.code === 20000) {
+      saveMessage.value = { type: 'success', text: isEditMode.value ? '用户更新成功' : '用户添加成功' };
+      closeDialog();
+      await getUserList(); // Refresh list
+        } else {
+      saveMessage.value = { type: 'error', text: result?.message || (isEditMode.value ? '更新失败' : '添加失败') };
+        }
+  } catch (error) {
+    console.error("Save user error:", error);
+    saveMessage.value = { type: 'error', text: `操作失败: ${error instanceof Error ? error.message : '未知错误'}` };
+      } finally {
+    saveLoading.value = false;
+  }
+};
+
+const deleteUser = async (user: User) => {
+  if (window.confirm(`您确定要删除用户【${user.username}】吗？`)) {
+    listLoading.value = true; // Indicate loading state for delete
+    saveMessage.value = null;
+    try {
+      const result = await userApi.deleteUser(user.id); // Use deleteUser, not deleteUserById
+      if (result && result.code === 20000) {
+        saveMessage.value = { type: 'success', text: '用户删除成功' };
+        // Adjust page number if the last item on a page was deleted
+        if (userList.value.length === 1 && searchModel.pageNo > 1) {
+          searchModel.pageNo--;
+        }
+        await getUserList(); // Refresh list
+      } else {
+        saveMessage.value = { type: 'error', text: result?.message || '删除失败' };
+      }
+    } catch (error) {
+      console.error("Delete user error:", error);
+      saveMessage.value = { type: 'error', text: `删除用户时出错: ${error instanceof Error ? error.message : '未知错误'}` };
+        } finally {
+      listLoading.value = false;
+    }
+  }
+};
+
+// Helper to get role names for display
+const getRoleNames = (roleIdList: number[] | undefined): string => {
+    if (!roleIdList || roleIdList.length === 0) return '未分配角色';
+    return allRoleList.value
+        .filter(role => roleIdList.includes(role.roleId))
+        .map(role => role.roleName)
+        .join(', ') || '未知角色';
+};
+
+// --- Lifecycle Hooks ---
+onMounted(() => {
+  getUserList();
+  getAllRoles(); // Fetch roles initially
+});
 </script>
 
 <style scoped>
-.user-manage-container {
-  padding: 20px;
-  background-color: #f5f7fa;
-  min-height: calc(100vh - 84px);
+/* Basic scoped styles - Tailwind handles most styling */
+.password-strength-indicator span {
+    display: inline-block;
+    width: 30px;
+    height: 5px;
+    margin-right: 2px;
+    border-radius: 2px;
+    background-color: #eee;
 }
-
-/* 页面标题样式 */
-.page-header {
-  margin-bottom: 24px;
-  text-align: center;
+.password-strength-indicator .strength-weak {
+    background-color: #F56C6C;
 }
-
-.page-title {
-  font-size: 28px;
-  font-weight: 600;
-  color: #2c3e50;
-  margin-bottom: 8px;
+.password-strength-indicator .strength-medium {
+    background-color: #E6A23C;
 }
-
-.page-description {
-  font-size: 14px;
-  color: #606266;
-  margin: 0;
+.password-strength-indicator .strength-strong {
+    background-color: #67C23A;
 }
-
-/* 搜索区域样式 */
-.search-card {
-  margin-bottom: 20px;
-  border-radius: 8px;
-  transition: box-shadow 0.3s;
-}
-
-.search-controls {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-}
-
-.search-input {
-  width: 220px;
-  margin-right: 10px;
-  margin-bottom: 10px;
-}
-
-.action-col {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-}
-
-/* 数据卡片样式 */
-.data-card {
-  border-radius: 8px;
-  margin-bottom: 20px;
-  transition: box-shadow 0.3s;
-}
-
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.data-count {
-  font-size: 14px;
-  color: #909399;
-}
-
-/* 表格样式 */
-:deep(.even-row) {
-  background-color: #fafafa;
-}
-
-:deep(.odd-row) {
-  background-color: #ffffff;
-}
-
-:deep(.el-table__row:hover) {
-  background-color: #ecf5ff !important;
-}
-
-.empty-data {
-  padding: 40px 0;
-  text-align: center;
-  color: #909399;
-}
-
-.empty-data i {
-  font-size: 48px;
-  margin-bottom: 16px;
-}
-
-.empty-data p {
-  margin-bottom: 16px;
-}
-
-.no-data {
-  color: #c0c4cc;
-  font-style: italic;
-  font-size: 13px;
-}
-
-/* 弹窗样式 */
-.user-dialog :deep(.el-dialog__title) {
-  font-weight: 600;
-  color: #2c3e50;
-}
-
-.user-dialog :deep(.el-dialog__body) {
-  padding: 20px 30px;
-}
-
-.user-form :deep(.el-form-item__label) {
-  font-weight: 500;
-}
-
-.user-form :deep(.el-input__count) {
-  background: transparent;
-  font-size: 12px;
-  color: #909399;
-}
-
-/* 密码强度样式 */
-.password-strength {
-  margin-top: 8px;
-  font-size: 13px;
-  color: #606266;
-}
-
-.strength-weak {
-  color: #f56c6c;
-  font-weight: bold;
-}
-
-.strength-medium {
-  color: #e6a23c;
-  font-weight: bold;
-}
-
-.strength-strong {
-  color: #67c23a;
-  font-weight: bold;
-}
-
-/* 角色选择样式 */
-.role-selection {
-  display: flex;
-  flex-wrap: wrap;
-}
-
-.role-radio {
-  margin-right: 20px;
-  margin-bottom: 10px;
-}
-
-.role-name {
-  font-size: 14px;
-}
-
-.form-tips {
-  background-color: #f0f9eb;
-  border-radius: 4px;
-  padding: 10px 15px;
-  margin-top: 10px;
-  display: flex;
-  align-items: center;
-  color: #67c23a;
-}
-
-.form-tips i {
-  margin-right: 8px;
-  font-size: 16px;
-}
-
-.add-btn {
-  width: auto;
-  min-width: 100px;
-  margin-left: 10px;
-  transition: transform 0.2s;
-}
-
-.add-btn:hover {
-  transform: scale(1.05);
-}
-
-/* 分页样式 */
-.pagination {
-  padding: 15px 0;
-  text-align: right;
-  margin-top: 10px;
-}
-
-:deep(.el-pagination__sizes) {
-  margin: 0 10px 0 0;
-}
-
-:deep(.el-pagination.is-background .el-pager li:not(.disabled).active) {
-  background-color: #409eff;
-  color: #fff;
-}
-
-:deep(.el-pagination.is-background .el-pager li:not(.disabled):hover) {
-  color: #409eff;
-}
-
-/* 响应式调整 */
-@media (max-width: 767px) {
-  .page-title {
-    font-size: 24px;
-  }
-  
-  .search-card .el-col {
-    margin-bottom: 15px;
-  }
-  
-  .search-controls {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  
-  .search-input {
-    width: 100%;
-    margin-right: 0;
-  }
-  
-  .action-col {
-    justify-content: flex-start;
-  }
-  
-  .add-btn {
-    width: 100%;
-  }
-  
-  .user-dialog :deep(.el-dialog__body) {
-    padding: 15px 20px;
-  }
-  
-  .user-form :deep(.el-form-item) {
-    margin-bottom: 18px;
-  }
-  
-  .pagination {
-    text-align: center;
-  }
-}
+/* Add more specific styles if needed */
 </style>

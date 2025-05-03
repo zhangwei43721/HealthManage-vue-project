@@ -29,13 +29,17 @@ export const useUserStore = defineStore('user', () => {
       return null
     }
     try {
+      // Revert: Expect the full response object
       const response = await api.get<any>('/user/info') // API 返回结构根据后端调整
-      if (response && response.data) {
-        const userData = response.data // 直接取 data 部分
+      // Revert: Check response.data for user info
+      if (response && response.data && response.data.roles) {
+        // Check for roles within response.data
+        const userData = response.data // Extract data part
         userInfo.value = userData // 存储整个用户信息对象
-        roles.value = userData.roles || [] // 存储角色列表
+        roles.value = userData.roles // 存储角色列表
         return userData
       } else {
+        // Log the full response if structure is invalid
         console.error('Invalid user info response structure:', response)
         resetState()
         return null
@@ -50,12 +54,15 @@ export const useUserStore = defineStore('user', () => {
   // 登录
   async function login(credentials: { username: string; password: string }) {
     try {
+      // Revert: Expect the full response object
       const response = await api.post<any>('/user/login', credentials)
+      // Revert: Check response.data.token
       if (response && response.data && response.data.token) {
         setToken(response.data.token)
         await fetchUserInfo() // 登录成功后立即获取用户信息
         return true
       } else {
+        // Log the full response if token not found
         console.error('Login failed: Token not found in response', response)
         return false
       }

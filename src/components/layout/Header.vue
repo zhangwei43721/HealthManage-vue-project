@@ -19,23 +19,24 @@
 
         <!-- 桌面端导航菜单 -->
         <nav class="hidden md:flex items-center space-x-8">
-          <RouterLink v-for="(item, index) in navigationItems" :key="index" :to="item.path"
-            class="flex items-center px-4 py-2 rounded-full text-white/90 hover:text-white hover:bg-white/10 transition-all duration-200"
-            :class="{ 'bg-white/20 text-white font-medium shadow-sm': isActive(item.path) }"
-            >
-            <component :is="item.icon" size="16" class="mr-1.5" />
-            {{ item.name }}
-          </RouterLink>
-
-          <!-- 管理员入口 (桌面端) -->
-          <RouterLink
-            v-if="userStore.isAdmin"
-            to="/sys/user"
-            class="text-red-400 hover:text-red-300 px-3 py-1.5 text-sm font-medium transition-colors duration-200 border border-red-400/50 hover:border-red-400/80 rounded-full bg-red-900/20 hover:bg-red-900/30"
-          >
-            <Key theme="outline" size="16" class="mr-1 inline-block align-text-bottom" />
-            管理后台
-          </RouterLink>
+          <!-- Admin Links -->
+          <template v-if="userStore.isAdmin">
+            <RouterLink v-for="(item, index) in adminNavigationItems" :key="'admin-'+index" :to="item.path"
+              class="flex items-center px-4 py-2 rounded-full text-white/90 hover:text-white hover:bg-white/10 transition-all duration-200"
+              :class="{ 'bg-white/20 text-white font-medium shadow-sm': isActive(item.path) }">
+              <component :is="item.icon" size="16" class="mr-1.5" />
+              {{ item.name }}
+            </RouterLink>
+          </template>
+          <!-- Regular User Links -->
+          <template v-else>
+            <RouterLink v-for="(item, index) in userNavigationItems" :key="'user-'+index" :to="item.path"
+              class="flex items-center px-4 py-2 rounded-full text-white/90 hover:text-white hover:bg-white/10 transition-all duration-200"
+              :class="{ 'bg-white/20 text-white font-medium shadow-sm': isActive(item.path) }">
+              <component :is="item.icon" size="16" class="mr-1.5" />
+              {{ item.name }}
+            </RouterLink>
+          </template>
 
           <!-- 用户认证区域 (桌面端) -->
           <div @click="handleAuthClick" class="flex items-center cursor-pointer bg-white/10 hover:bg-white/20 rounded-full px-3.5 py-1.5 transition-all duration-300 shadow-sm hover:shadow-md">
@@ -62,25 +63,26 @@
 
     <!-- 移动端下拉菜单 -->
     <div class="md:hidden overflow-hidden transition-all duration-300 ease-in-out backdrop-blur-2xl bg-gray-900/85"
-      :class="{ 'max-h-0 opacity-0': !isMenuOpen, 'max-h-96 opacity-100 shadow-lg': isMenuOpen }">
+      :class="{ 'max-h-0 opacity-0': !isMenuOpen, 'max-h-[500px] opacity-100 shadow-lg': isMenuOpen }">
       <div class="px-4 pt-2 pb-4 space-y-1">
-        <RouterLink v-for="(item, index) in navigationItems" :key="index" :to="item.path"
-          class="flex items-center px-4 py-2.5 my-1 rounded-xl text-white/90 hover:text-white"
-          :class="{ 'bg-white/20 text-white font-medium shadow-sm': isActive(item.path) }" @click="closeMenu">
-          <component :is="item.icon" size="18" class="mr-2.5" />
-          {{ item.name }}
-        </RouterLink>
-
-        <!-- 管理员入口 (移动端) -->
-        <RouterLink
-          v-if="userStore.isAdmin"
-          to="/sys/user"
-          class="flex items-center px-4 py-2.5 rounded-xl text-white/90 hover:bg-white/10 cursor-pointer hover:text-white transition-colors duration-200"
-          @click="closeMenu"
-        >
-          <Key theme="outline" size="18" class="mr-2.5" />
-          管理后台
-        </RouterLink>
+        <!-- Admin Links (Mobile) -->
+        <template v-if="userStore.isAdmin">
+          <RouterLink v-for="(item, index) in adminNavigationItems" :key="'admin-m-'+index" :to="item.path"
+            class="flex items-center px-4 py-2.5 my-1 rounded-xl text-white/90 hover:text-white"
+            :class="{ 'bg-white/20 text-white font-medium shadow-sm': isActive(item.path) }" @click="closeMenu">
+            <component :is="item.icon" size="18" class="mr-2.5" />
+            {{ item.name }}
+          </RouterLink>
+        </template>
+        <!-- Regular User Links (Mobile) -->
+        <template v-else>
+          <RouterLink v-for="(item, index) in userNavigationItems" :key="'user-m-'+index" :to="item.path"
+            class="flex items-center px-4 py-2.5 my-1 rounded-xl text-white/90 hover:text-white"
+            :class="{ 'bg-white/20 text-white font-medium shadow-sm': isActive(item.path) }" @click="closeMenu">
+            <component :is="item.icon" size="18" class="mr-2.5" />
+            {{ item.name }}
+          </RouterLink>
+        </template>
 
         <!-- 分隔线 -->
         <div class="border-t border-white/10 my-2"></div>
@@ -101,7 +103,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { Heart, HamburgerButton, Close, Home, Like, User, Logout, Key, Book, Clipboard, Robot } from '@icon-park/vue-next';
+import { Heart, HamburgerButton, Close, Home, Like, User, Logout, Key, Book, Clipboard, Robot, SettingTwo, Peoples, ChartHistogram } from '@icon-park/vue-next';
 import { useUserStore } from '@/stores/user';
 
 const route = useRoute();
@@ -118,12 +120,21 @@ const isAuthPage = computed(() => {
 });
 
 // 导航菜单项 (Corrected based on src/router/index.ts)
-const navigationItems = [
+const userNavigationItems = [
   { name: '首页', path: '/', icon: Home },
   { name: '健康数据', path: '/health-data', icon: Clipboard },
   { name: '健康知识', path: '/health-knowledge', icon: Book },
   { name: '健康日志', path: '/health-log', icon: Like },
   { name: 'AI 助手', path: '/ai-qa', icon: Robot }
+];
+
+// Admin User Navigation (Points to /sys/* routes)
+const adminNavigationItems = [
+  { name: '用户管理', path: '/sys/user', icon: User },
+  { name: '角色管理', path: '/sys/role', icon: Peoples },
+  { name: '运动信息管理', path: '/sys/knowledge-manage', icon: Book },
+  { name: '运动详情管理', path: '/sys/sport-item-manage', icon: SettingTwo },
+  { name: '用户健康数据管理', path: '/sys/user-health-manage', icon: ChartHistogram },
 ];
 
 // 监听滚动
@@ -136,7 +147,7 @@ const isActive = (path: string) => {
   if (path === '/') {
     return route.path === '/';
   }
-  return route.path.startsWith(path);
+  return route.path === path || (path !== '/' && route.path.startsWith(path));
 };
 
 // 切换菜单显示状态

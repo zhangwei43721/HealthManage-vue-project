@@ -75,7 +75,7 @@ api.interceptors.response.use(
       // 成功状态 (code === 20000)
       // console.log('标准成功响应 (code=20000)，返回整个响应对象:', res); // Removed this log
       // 只返回 data 部分，或者根据需要返回整个 res
-      return res // Or return res.data if you only need the data payload
+      return res // Revert: Return the full response object (res = response.data)
     }
   },
   (error) => {
