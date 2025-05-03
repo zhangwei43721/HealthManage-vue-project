@@ -1,527 +1,411 @@
 <template>
-  <div class="details-manage-container">
-    <div class="page-header">
-      <h1 class="page-title">运动详情管理</h1>
-      <p class="page-description">管理各类运动的详细信息，包括运动方法、禁忌疾病和注意事项</p>
+  <div class="sport-detail-manage-container p-5 bg-background-DEFAULT min-h-[calc(100vh-84px)]">
+    <!-- 页面标题 -->
+    <div class="text-center mb-6">
+      <h1 class="text-3xl font-bold text-text-primary mb-2">运动详情管理</h1>
+      <p class="text-base text-text-secondary">管理各类运动的详细信息，包括运动方法、禁忌疾病和注意事项</p>
     </div>
 
-    <!-- 搜索区域 -->
-    <el-card class="search-card" shadow="hover">
-      <el-row :gutter="20" type="flex" align="middle" justify="space-between">
-        <el-col :xs="24" :sm="16" :md="18" :lg="18">
-          <div class="search-controls">
-            <el-input 
-              v-model="searchModel.sportType" 
-              placeholder="输入运动类型搜索" 
-              prefix-icon="el-icon-search"
-              clearable 
-              size="medium"
-              class="search-input">
-            </el-input>
-            <el-button @click="getDetailList" type="primary" size="medium">查询</el-button>
-            <el-button @click="resetSearch" plain icon="el-icon-refresh" size="medium">重置</el-button>
-          </div>
-        </el-col>
-        <el-col :xs="24" :sm="8" :md="6" :lg="6" class="action-col">
-           <el-button @click="openEditUi(null)" type="primary" icon="el-icon-plus" size="medium" class="add-btn">新增运动</el-button>
-        </el-col>
-      </el-row>
-    </el-card>
+    <!-- 搜索与操作区域 -->
+    <Card class="mb-5" elevation="small">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <!-- 搜索表单 -->
+        <div class="flex items-center gap-2 flex-wrap">
+          <InputField
+            v-model="searchModel.sportType"
+            placeholder="输入运动类型搜索"
+            :leftIcon="Search"
+            size="medium"
+            class="w-full md:w-60"
+            @keyup.enter="getDetailList"
+          />
+          <Button @click="getDetailList" type="primary" :icon="Search" :loading="listLoading">
+            查询
+          </Button>
+          <Button @click="resetSearch" type="outline" :icon="Refresh">
+            重置
+          </Button>
+        </div>
+        <!-- 操作按钮 -->
+        <div class="flex-shrink-0">
+          <Button @click="openDialog()" type="secondary" :icon="Plus">
+            新增运动详情
+          </Button>
+        </div>
+      </div>
+    </Card>
 
     <!-- 结果列表 -->
-    <el-card class="data-card" shadow="hover">
-      <div slot="header" class="card-header">
-        <span>运动详情列表</span>
-        <span class="data-count">共 {{total}} 条记录</span>
+    <Card elevation="small">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-lg font-semibold text-text-primary">运动详情列表</h2>
+        <span class="text-sm text-text-secondary">共 {{ total }} 条记录</span>
       </div>
 
-      <el-table 
-        :data="detailList" 
-        stripe 
-        v-loading="listLoading" 
-        element-loading-text="加载中..."
-        element-loading-spinner="el-icon-loading"
-        element-loading-background="rgba(255, 255, 255, 0.8)"
-        style="width: 100%"
-        :header-cell-style="{backgroundColor: '#f5f7fa', color: '#606266', fontWeight: 'bold'}"
-        :row-class-name="tableRowClassName"
-        empty-text="暂无数据">
-        <el-table-column type="index" label="序号" width="60" align="center"></el-table-column>
-        <el-table-column prop="id" label="ID" width="80" align="center"></el-table-column>
-        <el-table-column prop="sportType" label="运动类型" width="150">
-          <template v-slot="{row}">
-            <el-tag size="medium">{{row.sportType}}</el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column prop="disease" label="禁忌疾病" min-width="150" show-overflow-tooltip></el-table-column>
-        <el-table-column prop="method" label="运动方法" min-width="200" show-overflow-tooltip></el-table-column>
-        <el-table-column prop="notes" label="注意事项" min-width="180" show-overflow-tooltip></el-table-column>
-        <!-- 操作列 -->
-        <el-table-column label="操作" width="150" fixed="right" align="center">
-          <template v-slot="{ row }">
-            <el-tooltip content="编辑" placement="top" :enterable="false">
-              <el-button @click="openEditUi(row.id)" type="primary" icon="el-icon-edit" circle size="mini"></el-button>
-            </el-tooltip>
-            <el-tooltip content="删除" placement="top" :enterable="false">
-              <el-button @click="deleteDetail(row)" type="danger" icon="el-icon-delete" circle size="mini"></el-button>
-            </el-tooltip>
-          </template>
-        </el-table-column>
-        <template slot="empty">
-          <div class="empty-data">
-            <i class="el-icon-document"></i>
-            <p>暂无运动详情数据</p>
-            <el-button type="primary" size="small" @click="openEditUi(null)">添加第一条</el-button>
+      <!-- 加载状态 -->
+       <div v-if="listLoading" class="text-center py-10 text-text-secondary">
+          加载中...
+       </div>
+
+      <!-- 表格 -->
+       <div v-else-if="detailList.length > 0" class="overflow-x-auto">
+        <table class="w-full table-auto border-collapse text-left">
+          <thead class="bg-gray-100 border-b">
+            <tr>
+              <th class="px-4 py-3 text-sm font-medium text-text-secondary uppercase tracking-wider">ID</th>
+              <th class="px-4 py-3 text-sm font-medium text-text-secondary uppercase tracking-wider">运动类型</th>
+              <th class="px-4 py-3 text-sm font-medium text-text-secondary uppercase tracking-wider">禁忌疾病</th>
+              <th class="px-4 py-3 text-sm font-medium text-text-secondary uppercase tracking-wider">运动方法</th>
+              <th class="px-4 py-3 text-sm font-medium text-text-secondary uppercase tracking-wider">注意事项</th>
+              <th class="px-4 py-3 text-sm font-medium text-text-secondary uppercase tracking-wider text-center">操作</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            <tr v-for="detail in detailList" :key="detail.id" class="hover:bg-background-light transition-colors duration-150">
+              <td class="px-4 py-3 text-sm text-text-primary align-middle">{{ detail.id }}</td>
+              <td class="px-4 py-3 text-sm text-text-primary align-middle">
+                 <span class="inline-block px-2 py-1 text-xs font-semibold text-secondary bg-secondary/10 rounded">
+                   {{ detail.sportType }}
+                 </span>
+              </td>
+              <td class="px-4 py-3 text-sm text-text-secondary align-middle max-w-xs truncate" :title="detail.disease">{{ detail.disease }}</td>
+              <td class="px-4 py-3 text-sm text-text-secondary align-middle max-w-sm truncate" :title="detail.method">{{ detail.method }}</td>
+              <td class="px-4 py-3 text-sm text-text-secondary align-middle max-w-xs truncate" :title="detail.notes">{{ detail.notes }}</td>
+              <td class="px-4 py-3 text-center align-middle">
+                <div class="flex justify-center items-center gap-2">
+                  <Button @click="openDialog(detail.id)" type="primary" :icon="Edit" size="small" iconOnly tooltip="编辑"></Button>
+                  <Button @click="deleteDetail(detail)" type="danger" :icon="Delete" size="small" iconOnly tooltip="删除"></Button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- 空状态 -->
+       <div v-else class="text-center py-10 text-text-secondary">
+         <Clipboard theme="outline" size="48" class="mx-auto mb-4 text-gray-400"/>
+         <p class="mb-4">暂无运动详情数据</p>
+         <Button type="primary" size="small" @click="openDialog()">添加第一条运动详情</Button>
+       </div>
+
+      <!-- 分页 -->
+      <div v-if="total > 0 && !listLoading" class="mt-5 flex flex-col md:flex-row justify-between items-center">
+          <span class="text-sm text-text-secondary mb-2 md:mb-0">
+              共 {{ total }} 条记录，当前第 {{ searchModel.pageNo }} / {{ totalPages }} 页
+          </span>
+          <div class="flex items-center gap-2">
+              <Button
+                  type="outline"
+                  size="small"
+                  :disabled="searchModel.pageNo <= 1"
+                  @click="goToPage(searchModel.pageNo - 1)"
+              >
+                  上一页
+              </Button>
+              <Button
+                  type="outline"
+                  size="small"
+                  :disabled="searchModel.pageNo >= totalPages"
+                  @click="goToPage(searchModel.pageNo + 1)"
+              >
+                  下一页
+              </Button>
+              <select
+                  v-model="searchModel.pageSize"
+                  @change="getDetailList"
+                  class="px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
+               >
+                  <option value="5">5 条/页</option>
+                  <option value="10">10 条/页</option>
+                  <option value="20">20 条/页</option>
+                  <option value="50">50 条/页</option>
+              </select>
           </div>
-        </template>
-      </el-table>
-    </el-card>
-
-    <!-- 分页 -->
-    <el-pagination
-      @size-change="handleSizeChange"
-      @current-change="handleCurrentChange"
-      :current-page="searchModel.pageNo"
-      :page-sizes="[5, 10, 20, 50]"
-      :page-size="searchModel.pageSize"
-      layout="total, sizes, prev, pager, next, jumper"
-      :total="total"
-      :background="true"
-      :small="isMobile"  
-      style="margin-top: 20px; text-align: right;">
-    </el-pagination>
-
-    <!-- 新增/编辑 弹窗 -->
-    <el-dialog
-      @close="clearForm"
-      :title="title"
-      :visible.sync="dialogFormVisible"
-      :width="dialogWidth"
-      :fullscreen="isMobile" 
-      top="5vh"
-      class="detail-dialog"
-      :close-on-click-modal="false">
-      <el-form :model="detailForm" ref="detailFormRef" :rules="rules" label-width="100px" class="detail-form">
-        <el-form-item label="运动类型" prop="sportType">
-          <el-input 
-            v-model="detailForm.sportType" 
-            autocomplete="off" 
-            placeholder="请输入运动类型"
-            maxlength="50"
-            show-word-limit>
-          </el-input>
-        </el-form-item>
-        <el-form-item label="禁忌疾病" prop="disease">
-          <el-input 
-            v-model="detailForm.disease" 
-            autocomplete="off" 
-            type="textarea" 
-            :rows="3"
-            placeholder="请输入不适合此运动的疾病类型"
-            maxlength="500"
-            show-word-limit>
-          </el-input>
-        </el-form-item>
-        <el-form-item label="运动方法" prop="method">
-          <el-input 
-            v-model="detailForm.method" 
-            autocomplete="off" 
-            type="textarea" 
-            :rows="5"
-            placeholder="请详细描述运动方法和步骤"
-            maxlength="1000"
-            show-word-limit>
-          </el-input>
-        </el-form-item>
-        <el-form-item label="注意事项" prop="notes">
-          <el-input 
-            v-model="detailForm.notes" 
-            autocomplete="off" 
-            type="textarea" 
-            :rows="4"
-            placeholder="请输入进行此运动时的注意事项"
-            maxlength="500"
-            show-word-limit>
-          </el-input>
-        </el-form-item>
-      </el-form>
-      <!-- 弹窗底部按钮 -->
-      <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogFormVisible = false">取 消</el-button>
-        <el-button type="primary" @click="saveDetail" :loading="saveLoading">确 定</el-button>
       </div>
-    </el-dialog>
+
+    </Card>
+
+    <!-- 运动详情编辑/新增弹窗 -->
+    <div v-if="dialogFormVisible" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4" @click.self="closeDialog">
+      <Card class="w-full max-w-xl max-h-[90vh] overflow-y-auto bg-white" elevation="large">
+        <div class="flex justify-between items-center mb-5 pb-3 border-b">
+          <h3 class="text-xl font-semibold text-text-primary">{{ dialogTitle }}</h3>
+          <Button type="text" :icon="Close" @click="closeDialog" iconOnly tooltip="关闭"></Button>
+        </div>
+
+        <!-- 保存消息提示 -->
+        <div v-if="saveMessage" :class="['mb-4 p-3 rounded text-sm', saveMessage.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700']">
+          {{ saveMessage.text }}
+        </div>
+
+        <!-- 表单 -->
+        <form @submit.prevent="saveDetail" class="space-y-4">
+          <div>
+            <label for="detailSportType" class="block text-sm font-medium text-text-secondary mb-1">运动类型 <span class="text-red-500">*</span></label>
+            <InputField
+              id="detailSportType"
+              v-model="detailForm.sportType"
+              placeholder="例如：跑步、游泳"
+              :error="!!formErrors.sportType"
+              :errorMessage="formErrors.sportType"
+              required
+            />
+          </div>
+          <div>
+            <label for="detailDisease" class="block text-sm font-medium text-text-secondary mb-1">禁忌疾病</label>
+            <InputField
+              id="detailDisease"
+              v-model="detailForm.disease"
+              placeholder="例如：心脏病、高血压患者不宜剧烈运动"
+              type="textarea"
+              :rows="3"
+              :error="!!formErrors.disease"
+              :errorMessage="formErrors.disease"
+            />
+          </div>
+           <div>
+            <label for="detailMethod" class="block text-sm font-medium text-text-secondary mb-1">运动方法 <span class="text-red-500">*</span></label>
+            <InputField
+              id="detailMethod"
+              v-model="detailForm.method"
+              placeholder="详细描述运动步骤、技巧等"
+              type="textarea"
+              :rows="5"
+              :error="!!formErrors.method"
+              :errorMessage="formErrors.method"
+              required
+            />
+          </div>
+           <div>
+            <label for="detailNotes" class="block text-sm font-medium text-text-secondary mb-1">注意事项</label>
+            <InputField
+              id="detailNotes"
+              v-model="detailForm.notes"
+              placeholder="例如：运动前热身、运动后拉伸"
+              type="textarea"
+              :rows="4"
+              :error="!!formErrors.notes"
+              :errorMessage="formErrors.notes"
+            />
+          </div>
+
+          <!-- 弹窗底部按钮 -->
+          <div class="flex justify-end gap-3 pt-4 border-t">
+            <Button type="outline" @click="closeDialog">取 消</Button>
+            <Button type="primary" nativeType="submit" :loading="saveLoading">确 定</Button>
+          </div>
+        </form>
+      </Card>
+    </div>
   </div>
 </template>
 
-<script>
-import sportApi from "@/api/Function_Menu"; // 引入API模块
+<script setup lang="ts">
+import { ref, reactive, onMounted, computed } from 'vue';
+// --- Type Imports ---
+import type { Detail } from '@/types/sport'; // Import Detail type
 
-export default {
-  name: 'SportDetailManagement', // 组件名
-  data() {
-    return {
-      isMobile: false, // 是否为移动设备视图
-      listLoading: false, // 表格加载状态
-      saveLoading: false, // 保存按钮加载状态
-      detailForm: { // 表单数据模型
-        id: null,
-        sportType: '',
-        disease: '',
-        method: '',
-        notes: ''
-      },
-      detailList: [], // 表格数据
-      dialogFormVisible: false, // 弹窗可见性
-      title: "", // 弹窗标题
-      total: 0, // 总记录数
-      searchModel: { // 搜索条件
-        sportType: '',
-        pageNo: 1,
-        pageSize: 10,
-      },
-      rules: { // 表单校验规则
-        sportType: [
-          { required: true, message: "请输入运动类型", trigger: "blur" },
-          { min: 2, max: 50, message: "长度在2到50个字符之间", trigger: "blur" }
-        ],
-        method: [
-          { required: true, message: "请输入运动方法", trigger: "blur" }
-        ]
-      },
-    };
-  },
-  computed: {
-      // 计算弹窗宽度
-      dialogWidth() {
-          return this.isMobile ? '95%' : '60%';
-      }
-  },
-  methods: {
-    // 表格行样式
-    tableRowClassName({row, rowIndex}) {
-      return rowIndex % 2 === 0 ? 'even-row' : 'odd-row';
-    },
-    // 重置搜索条件
-    resetSearch() {
-      this.searchModel.sportType = '';
-      this.searchModel.pageNo = 1;
-      this.getDetailList();
-    },
-    // 检查屏幕宽度，设置isMobile状态
-    checkScreenWidth() {
-        this.isMobile = window.innerWidth < 768; // 阈值可调整
-    },
-    // 保存数据 (新增或修改)
-    async saveDetail() {
-      this.$refs.detailFormRef.validate(async (valid) => {
-        if (valid) {
-          this.saveLoading = true; // 开始加载
-          try {
-            const response = await sportApi.saveDetail(this.detailForm);
-            this.$message({
-              message: response.message || (this.detailForm.id ? '修改成功' : '新增成功'),
-              type: "success",
-            });
-            this.dialogFormVisible = false;
-            this.getDetailList(); // 刷新列表
-          } catch (error) {
-            console.error("保存失败:", error);
-            this.$message.error('操作失败，请稍后重试');
-          } finally {
-            this.saveLoading = false; // 结束加载
-          }
-        } else {
-          console.log("表单验证失败");
-          return false;
-        }
-      });
-    },
-    // 关闭弹窗时清空表单
-    clearForm() {
-      this.detailForm = { id: null, sportType: '', disease: '', method: '', notes: '' };
-      this.$nextTick(() => {
-        this.$refs.detailFormRef.clearValidate();
-      });
-    },
-    // 处理每页显示条数变化
-    handleSizeChange(pageSize) {
-      this.searchModel.pageSize = pageSize;
-      this.searchModel.pageNo = 1;
-      this.getDetailList();
-    },
-    // 处理当前页码变化
-    handleCurrentChange(pageNo) {
-      this.searchModel.pageNo = pageNo;
-      this.getDetailList();
-    },
-    // 获取列表数据
-    async getDetailList() {
-      this.listLoading = true;
-      try {
-        const response = await sportApi.getDetailList(this.searchModel);
-        this.detailList = response.data.rows;
-        this.total = response.data.total;
-      } catch (error) {
-        console.error("获取列表失败:", error);
-        this.$message.error('获取列表失败');
-        this.detailList = [];
-        this.total = 0;
-      } finally {
-        this.listLoading = false;
-      }
-    },
-    // 打开新增/编辑弹窗
-    async openEditUi(id) {
-      this.clearForm();
-      if (id == null) {
-        this.title = "新增运动详情";
-        this.dialogFormVisible = true;
-      } else {
-        this.title = "修改运动详情";
-        try {
-          // 可以添加一个小的加载状态指示
-          const response = await sportApi.getDetailById(id);
-          this.detailForm = { ...response.data };
-          this.dialogFormVisible = true;
-        } catch (error) {
-          console.error("获取详情失败:", error);
-          this.$message.error('获取详情失败');
-        }
-      }
-    },
-    // 删除数据
-    async deleteDetail(detail) {
-      try {
-        await this.$confirm(`确认删除 "${detail.sportType}" 吗？`, "提示", {
-          confirmButtonText: "确定",
-          cancelButtonText: "取消",
-          type: "warning",
-          confirmButtonClass: 'el-button--danger' // 强调删除按钮
-        });
-        // 用户确认删除
-        try {
-           this.listLoading = true; // 防止快速重复点击
-           const response = await sportApi.deleteDetailById(detail.id);
-           this.$message({ type: "success", message: response.message || "删除成功" });
-           this.getDetailList(); // 重新加载列表
-        } catch (apiError) {
-           console.error("删除失败:", apiError);
-           this.$message.error('删除失败');
-           this.listLoading = false;
-        }
-      } catch (cancel) {
-        this.$message({ type: "info", message: "已取消删除" });
-      }
-    },
-  },
-  // 组件创建时执行
-  created() {
-    this.checkScreenWidth(); // 首次检查屏幕宽度
-    window.addEventListener('resize', this.checkScreenWidth); // 监听窗口大小变化
-    this.getDetailList(); // 加载初始数据
-  },
-  // 组件销毁前执行
-  beforeDestroy() {
-      window.removeEventListener('resize', this.checkScreenWidth); // 移除监听器
-  }
+// --- API Service Imports ---
+import sportItemManageApi from "@/services/sportItemManage";
+
+// --- Custom Base Component Imports ---
+import Button from '@/components/base/Button.vue';
+import Card from '@/components/base/Card.vue';
+import InputField from '@/components/base/InputField.vue';
+
+// --- Icon Imports ---
+import { Search, Refresh, Plus, Edit, Delete, Close, Clipboard } from '@icon-park/vue-next';
+
+// --- Reactive State ---
+const searchModel = reactive({
+    sportType: '', // Search by sport type
+    pageNo: 1,
+    pageSize: 10,
+});
+
+const listLoading = ref(false);
+const detailList = ref<Detail[]>([]);
+const total = ref(0);
+
+const dialogFormVisible = ref(false);
+const saveLoading = ref(false);
+const isEditMode = ref(false);
+// Form data model
+const detailForm = reactive<Partial<Detail>>({
+    id: undefined,
+    sportType: '',
+    disease: '',
+    method: '',
+    notes: ''
+});
+// Form errors
+const formErrors = reactive<Record<keyof Omit<Detail, 'id'>, string>>({
+    sportType: '',
+    disease: '',
+    method: '',
+    notes: ''
+});
+// Save status message
+const saveMessage = ref<{ type: 'success' | 'error'; text: string } | null>(null);
+
+// --- Computed Properties ---
+const dialogTitle = computed(() => (isEditMode.value ? '编辑运动详情' : '新增运动详情'));
+const totalPages = computed(() => Math.ceil(total.value / searchModel.pageSize));
+
+// --- Validation Logic ---
+const validateForm = (): boolean => {
+    clearFormErrors();
+    let isValid = true;
+    // Required fields
+    if (!detailForm.sportType?.trim()) {
+        formErrors.sportType = '运动类型不能为空';
+        isValid = false;
+    }
+    if (!detailForm.method?.trim()) {
+        formErrors.method = '运动方法不能为空';
+        isValid = false;
+    }
+    // Optional fields validation (e.g., length limits) can be added here if needed
+
+    return isValid;
 };
+
+const clearFormErrors = () => {
+    // Use 'as' to cast keys if TypeScript complains about index signature
+    (Object.keys(formErrors) as Array<keyof typeof formErrors>).forEach(key => {
+        formErrors[key] = '';
+    });
+    saveMessage.value = null;
+};
+
+// --- API Methods ---
+const getDetailList = async () => {
+    listLoading.value = true;
+    saveMessage.value = null;
+    try {
+        const response = await sportItemManageApi.getDetailList(searchModel);
+        if (response && response.data && Array.isArray(response.data.rows)) {
+            detailList.value = response.data.rows;
+            total.value = response.data.total;
+        } else {
+            console.error("Unexpected response structure from getDetailList:", response);
+            detailList.value = [];
+            total.value = 0;
+            saveMessage.value = { type: 'error', text: '获取运动详情列表失败: 响应格式错误' };
+        }
+    } catch (error) {
+        console.error("Error fetching detail list:", error);
+        detailList.value = [];
+        total.value = 0;
+        saveMessage.value = { type: 'error', text: `获取运动详情列表失败: ${error instanceof Error ? error.message : '未知错误'}` };
+    } finally {
+        listLoading.value = false;
+    }
+};
+
+const openDialog = async (id?: number) => {
+    clearFormErrors();
+    if (id) {
+        isEditMode.value = true;
+        try {
+            const response = await sportItemManageApi.getDetailById(id);
+            const formData = response.data as Detail;
+            if (formData && typeof formData === 'object' && 'id' in formData) {
+                Object.assign(detailForm, formData);
+            } else {
+                throw new Error("获取的运动详情格式无效");
+            }
+        } catch (error) {
+            console.error("Error fetching detail by ID:", error);
+            saveMessage.value = { type: 'error', text: `获取运动详情失败: ${error instanceof Error ? error.message : '未知错误'}` };
+            return;
+        }
+    } else {
+        isEditMode.value = false;
+        Object.assign(detailForm, {
+            id: undefined,
+            sportType: '',
+            disease: '',
+            method: '',
+            notes: ''
+        });
+    }
+    dialogFormVisible.value = true;
+};
+
+const closeDialog = () => {
+    dialogFormVisible.value = false;
+};
+
+const saveDetail = async () => {
+    if (!validateForm()) {
+        return;
+    }
+    saveLoading.value = true;
+    saveMessage.value = null;
+    try {
+        if (isEditMode.value && detailForm.id) {
+            await sportItemManageApi.updateDetail(detailForm as Detail);
+            saveMessage.value = { type: 'success', text: '运动详情更新成功' };
+        } else {
+            const { id, ...addData } = detailForm;
+            await sportItemManageApi.addDetail(addData as Omit<Detail, 'id'>);
+            saveMessage.value = { type: 'success', text: '运动详情添加成功' };
+        }
+        closeDialog();
+        await getDetailList();
+    } catch (error) {
+        console.error("Save detail error:", error);
+        saveMessage.value = { type: 'error', text: `操作失败: ${error instanceof Error ? error.message : '未知错误'}` };
+    } finally {
+        saveLoading.value = false;
+    }
+};
+
+const deleteDetail = async (detail: Detail) => {
+    if (window.confirm(`确定要删除运动类型【${detail.sportType}】的详情吗？`)) {
+        listLoading.value = true;
+        saveMessage.value = null;
+        try {
+            await sportItemManageApi.deleteDetailById(detail.id);
+            saveMessage.value = { type: 'success', text: '运动详情删除成功' };
+            if (detailList.value.length === 1 && searchModel.pageNo > 1) {
+                searchModel.pageNo--;
+            }
+            await getDetailList();
+        } catch (error) {
+            console.error("Delete detail error:", error);
+            saveMessage.value = { type: 'error', text: `删除失败: ${error instanceof Error ? error.message : '未知错误'}` };
+            listLoading.value = false;
+        }
+    }
+};
+
+// --- UI Methods ---
+const resetSearch = () => {
+    searchModel.sportType = '';
+    searchModel.pageNo = 1;
+    getDetailList();
+};
+
+const goToPage = (page: number) => {
+    if (page >= 1 && page <= totalPages.value) {
+        searchModel.pageNo = page;
+        getDetailList();
+    }
+};
+
+// --- Lifecycle Hooks ---
+onMounted(() => {
+    getDetailList();
+});
+
 </script>
 
 <style scoped>
-.details-manage-container {
-  padding: 20px;
-  background-color: #f5f7fa;
-  min-height: calc(100vh - 84px);
-}
-
-/* 页面标题样式 */
-.page-header {
-  margin-bottom: 24px;
-  text-align: center;
-}
-
-.page-title {
-  font-size: 28px;
-  font-weight: 600;
-  color: #2c3e50;
-  margin-bottom: 8px;
-}
-
-.page-description {
-  font-size: 14px;
-  color: #606266;
-  margin: 0;
-}
-
-/* 搜索区域样式 */
-.search-card {
-  margin-bottom: 20px;
-  border-radius: 8px;
-  transition: box-shadow 0.3s;
-}
-
-.search-controls {
-  display: flex;
-  align-items: center;
-  flex-wrap: nowrap;
-}
-
-.search-input {
-  width: 240px;
-  margin-right: 10px;
-}
-
-.action-col {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-}
-
-.add-btn {
-  background: linear-gradient(90deg, #4f8cff 0%, #6fc3ff 100%);
-  border: none;
-  transition: transform 0.3s, box-shadow 0.3s;
-}
-
-.add-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(79, 140, 255, 0.2);
-}
-
-/* 数据卡片样式 */
-.data-card {
-  border-radius: 8px;
-  margin-bottom: 20px;
-  transition: box-shadow 0.3s;
-}
-
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.data-count {
-  font-size: 14px;
-  color: #909399;
-}
-
-/* 表格样式 */
-:deep(.even-row) {
-  background-color: #fafafa;
-}
-
-:deep(.odd-row) {
-  background-color: #ffffff;
-}
-
-:deep(.el-table__row:hover) {
-  background-color: #f0f7ff !important;
-}
-
-.empty-data {
-  padding: 40px 0;
-  text-align: center;
-  color: #909399;
-}
-
-.empty-data i {
-  font-size: 48px;
-  margin-bottom: 16px;
-}
-
-.empty-data p {
-  margin-bottom: 16px;
-}
-
-/* 弹窗样式 */
-.detail-dialog :deep(.el-dialog__title) {
-  font-weight: 600;
-  color: #2c3e50;
-}
-
-.detail-dialog :deep(.el-dialog__body) {
-  padding: 20px 30px;
-}
-
-.detail-form :deep(.el-form-item__label) {
-  font-weight: 500;
-}
-
-.detail-form :deep(.el-textarea__inner) {
-  font-family: 'Segoe UI', Arial, sans-serif;
-  line-height: 1.6;
-  padding: 10px 12px;
-}
-
-.detail-form :deep(.el-input__count) {
-  background: transparent;
-  font-size: 12px;
-  color: #909399;
-}
-
-/* 分页样式 */
-.el-pagination {
-  padding: 15px 0;
-  text-align: right;
-  margin-top: 10px;
-}
-
-:deep(.el-pagination__sizes) {
-  margin: 0 10px 0 0;
-}
-
-:deep(.el-pagination__jump) {
-  margin-left: 10px;
-}
-
-:deep(.el-pagination.is-background .el-pager li:not(.disabled).active) {
-  background-color: #409EFF;
-  color: #fff;
-}
-
-:deep(.el-pagination.is-background .el-pager li:not(.disabled):hover) {
-  color: #409EFF;
-}
-
-/* 响应式调整 */
-@media (max-width: 767px) {
-  .page-title {
-    font-size: 24px;
-  }
-  
-  .search-card .el-col {
-    margin-bottom: 15px;
-  }
-  
-  .search-controls {
-    flex-wrap: wrap;
-  }
-  
-  .search-input {
-    width: 100%;
-    margin-bottom: 10px;
-  }
-  
-  .action-col {
-    justify-content: flex-start;
-  }
-  
-  .add-btn {
-    width: 100%;
-  }
-  
-  .detail-dialog :deep(.el-dialog__body) {
-    padding: 15px 20px;
-  }
-  
-  .detail-form :deep(.el-form-item) {
-    margin-bottom: 18px;
-  }
-  
-  .el-pagination {
-    text-align: center;
-  }
+/* Add any specific scoped styles if needed */
+.sport-detail-manage-container :deep(textarea) {
+    min-height: 80px; /* Adjust min height for textareas */
 }
 </style>

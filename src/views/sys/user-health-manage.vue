@@ -1,897 +1,518 @@
 <template>
-  <div class="body-manage-container">
+  <div class="user-health-manage-container p-5 bg-background-DEFAULT min-h-[calc(100vh-84px)]">
     <!-- 页面标题 -->
-    <div class="page-header">
-      <h1 class="page-title">用户身体数据管理</h1>
-      <p class="page-description">管理用户的身体健康数据，包括身高、体重、血压、血糖等各项指标</p>
+    <div class="text-center mb-6">
+      <h1 class="text-3xl font-bold text-text-primary mb-2">用户健康数据管理</h1>
+      <p class="text-base text-text-secondary">管理所有用户的身体健康数据，支持筛选、查看和维护</p>
     </div>
-    
-    <!-- 搜索区域 -->
-    <el-card class="search-card" shadow="hover">
-      <div class="search-area">
-        <div class="search-title">
-          <i class="el-icon-search"></i>
-          <span>搜索过滤</span>
+
+    <!-- 搜索与操作区域 -->
+    <Card class="mb-5" elevation="small">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <!-- 搜索表单 -->
+        <div class="flex items-center gap-3 flex-wrap">
+          <InputField
+            v-model="searchModel.name"
+            placeholder="输入用户姓名"
+            :leftIcon="UserIcon"
+            size="medium"
+            class="w-full sm:w-auto"
+            @keyup.enter="getBodyDataList"
+          />
+           <InputField
+            v-model="searchModel.id"
+            placeholder="输入用户ID"
+            type="number"
+            :leftIcon="IdCardH"
+            size="medium"
+            class="w-full sm:w-auto"
+            @keyup.enter="getBodyDataList"
+          />
+           <!-- Add other search fields like gender if needed -->
+          <Button @click="getBodyDataList" type="primary" :icon="Search" :loading="listLoading">
+            查询
+          </Button>
+          <Button @click="resetSearch" type="outline" :icon="Refresh">
+            重置
+          </Button>
+           <!-- Removed Add button as per API spec (admin adds via BodyNotes?) -->
+           <!-- <Button @click="openDialog()" type="secondary" :icon="Plus">
+            新增记录
+          </Button> -->
         </div>
-        <el-form :inline="true" :model="searchModel" class="search-form" @keyup.enter.native="getBodyList">
-          <el-form-item label="昵称">
-            <el-input
-              v-model.trim="searchModel.name"
-              placeholder="请输入用户昵称"
-              prefix-icon="el-icon-user"
-              clearable
-            ></el-input>
-          </el-form-item>
-          <el-form-item label="ID">
-            <el-input
-              placeholder="请输入用户ID"
-              v-model="searchModel.id"
-              prefix-icon="el-icon-key"
-              clearable
-            ></el-input>
-          </el-form-item>
-          <el-form-item label="性别">
-            <el-select v-model="searchModel.gender" placeholder="请选择性别" clearable>
-              <el-option label="男" value="男"></el-option>
-              <el-option label="女" value="女"></el-option>
-            </el-select>
-          </el-form-item>
-          <el-form-item label="健康状态">
-            <el-select v-model="searchModel.healthStatus" placeholder="请选择健康状态" clearable>
-              <el-option label="良好" value="good"></el-option>
-              <el-option label="一般" value="normal"></el-option>
-              <el-option label="需注意" value="warning"></el-option>
-            </el-select>
-          </el-form-item>
-          <el-form-item class="search-buttons">
-            <el-button
-              type="primary"
-              @click="getBodyList"
-              :loading="listLoading"
-            >查询</el-button>
-            <el-button
-              type="info"
-              @click="resetSearch"
-              icon="el-icon-refresh"
-            >重置</el-button>
-            <el-button
-              type="success"
-              @click="openAddUi"
-              icon="el-icon-plus"
-            >添加</el-button>
-          </el-form-item>
-        </el-form>
       </div>
-    </el-card>
+    </Card>
 
     <!-- 结果列表 -->
-    <el-card class="data-card" shadow="hover">
-      <div slot="header" class="card-header">
-        <span>用户身体数据列表</span>
-        <span class="data-count">共 {{ total }} 条记录</span>
+    <Card elevation="small">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-lg font-semibold text-text-primary">健康数据列表</h2>
+        <span class="text-sm text-text-secondary">共 {{ total }} 条记录</span>
       </div>
-      
-      <el-table 
-        :data="bodyList" 
-        stripe 
-        :row-class-name="tableRowClassName"
-        v-loading="listLoading" 
-        element-loading-text="加载中..."
-        element-loading-spinner="el-icon-loading"
-        element-loading-background="rgba(255, 255, 255, 0.8)"
-        style="width: 100%"
-        :header-cell-style="{background:'#f5f7fa', color:'#606266', fontWeight: 'bold'}"
-      >
-        <el-table-column type="expand">
-          <template slot-scope="props">
-            <el-row :gutter="20" class="expanded-row">
-              <el-col :span="24">
-                <div class="health-summary">
-                  <h4>健康指标概要</h4>
-                  <el-tag :type="getHealthStatus(props.row)" effect="plain" class="health-tag">
-                    {{ getHealthStatus(props.row) === 'success' ? '健康状态良好' : 
-                       getHealthStatus(props.row) === 'warning' ? '健康状态一般' : '健康状态需注意' }}
-                  </el-tag>
+
+      <!-- 加载状态 -->
+       <div v-if="listLoading" class="text-center py-10 text-text-secondary">
+          加载中...
+       </div>
+
+      <!-- 表格 -->
+       <div v-else-if="bodyDataList.length > 0" class="overflow-x-auto">
+        <table class="w-full table-auto border-collapse text-left text-sm">
+          <thead class="bg-gray-100 border-b">
+            <tr>
+              <th class="p-3 font-medium text-text-secondary uppercase tracking-wider">ID</th>
+              <th class="p-3 font-medium text-text-secondary uppercase tracking-wider">姓名</th>
+              <th class="p-3 font-medium text-text-secondary uppercase tracking-wider">年龄</th>
+              <th class="p-3 font-medium text-text-secondary uppercase tracking-wider">性别</th>
+              <th class="p-3 font-medium text-text-secondary uppercase tracking-wider">身高(cm)</th>
+              <th class="p-3 font-medium text-text-secondary uppercase tracking-wider">体重(kg)</th>
+              <th class="p-3 font-medium text-text-secondary uppercase tracking-wider">血糖</th>
+              <th class="p-3 font-medium text-text-secondary uppercase tracking-wider">血压</th>
+              <th class="p-3 font-medium text-text-secondary uppercase tracking-wider">血脂</th>
+              <th class="p-3 font-medium text-text-secondary uppercase tracking-wider">心率</th>
+              <th class="p-3 font-medium text-text-secondary uppercase tracking-wider">视力</th>
+              <th class="p-3 font-medium text-text-secondary uppercase tracking-wider">睡眠时长(h)</th>
+              <th class="p-3 font-medium text-text-secondary uppercase tracking-wider">睡眠质量</th>
+              <th class="p-3 font-medium text-text-secondary uppercase tracking-wider">吸烟</th>
+              <th class="p-3 font-medium text-text-secondary uppercase tracking-wider">饮酒</th>
+              <th class="p-3 font-medium text-text-secondary uppercase tracking-wider">运动</th>
+              <th class="p-3 font-medium text-text-secondary uppercase tracking-wider text-center">操作</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            <tr v-for="bodyData in bodyDataList" :key="bodyData.id" class="hover:bg-background-light transition-colors duration-150">
+              <td class="p-3 text-text-primary align-middle">{{ bodyData.id }}</td>
+              <td class="p-3 text-text-primary align-middle">{{ bodyData.name }}</td>
+              <td class="p-3 text-text-secondary align-middle">{{ bodyData.age }}</td>
+              <td class="p-3 text-text-secondary align-middle">{{ bodyData.gender }}</td>
+              <td class="p-3 text-text-secondary align-middle">{{ bodyData.height }}</td>
+              <td class="p-3 text-text-secondary align-middle">{{ bodyData.weight }}</td>
+              <td class="p-3 text-text-secondary align-middle">{{ bodyData.bloodSugar }}</td>
+              <td class="p-3 text-text-secondary align-middle">{{ bodyData.bloodPressure }}</td>
+              <td class="p-3 text-text-secondary align-middle">{{ bodyData.bloodLipid }}</td>
+              <td class="p-3 text-text-secondary align-middle">{{ bodyData.heartRate }}</td>
+              <td class="p-3 text-text-secondary align-middle">{{ formatVision(bodyData.vision) }}</td>
+              <td class="p-3 text-text-secondary align-middle">{{ bodyData.sleepDuration }}</td>
+              <td class="p-3 text-text-secondary align-middle">
+                 <span :class="getQualityClass(bodyData.sleepQuality)">{{ bodyData.sleepQuality }}</span>
+              </td>
+               <td class="p-3 text-center align-middle">
+                 <span :class="['px-2 py-0.5 rounded-full text-xs font-medium', bodyData.smoking ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700']">
+                   {{ bodyData.smoking ? '是' : '否' }}
+                 </span>
+              </td>
+               <td class="p-3 text-center align-middle">
+                 <span :class="['px-2 py-0.5 rounded-full text-xs font-medium', bodyData.drinking ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700']">
+                   {{ bodyData.drinking ? '是' : '否' }}
+                 </span>
+               </td>
+               <td class="p-3 text-center align-middle">
+                 <span :class="['px-2 py-0.5 rounded-full text-xs font-medium', bodyData.exercise ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700']">
+                    {{ bodyData.exercise ? '是' : '否' }}
+                 </span>
+              </td>
+              <td class="p-3 text-center align-middle">
+                <div class="flex justify-center items-center gap-2">
+                  <Button @click="openDialog(bodyData.id)" type="primary" :icon="Edit" size="small" iconOnly tooltip="编辑"></Button>
+                   <Button @click="confirmDelete(bodyData)" type="danger" :icon="Delete" size="small" iconOnly tooltip="删除"></Button>
+                   <!-- View Logs Button could be added here -->
+                   <!-- <Button @click="viewLogs(bodyData.id)" type="secondary" :icon="DocDetail" size="small" iconOnly tooltip="查看记录"></Button> -->
                 </div>
-              </el-col>
-              <el-col :xs="24" :sm="8">
-                <div class="detail-item">
-                  <span class="detail-label">血糖：</span>
-                  <span class="detail-value">{{ props.row.bloodSugar || '-' }}</span>
-                </div>
-              </el-col>
-              <el-col :xs="24" :sm="8">
-                <div class="detail-item">
-                  <span class="detail-label">血压：</span>
-                  <span class="detail-value">{{ props.row.bloodPressure || '-' }}</span>
-                </div>
-              </el-col>
-              <el-col :xs="24" :sm="8">
-                <div class="detail-item">
-                  <span class="detail-label">血脂：</span>
-                  <span class="detail-value">{{ props.row.bloodLipid || '-' }}</span>
-                </div>
-              </el-col>
-              <el-col :xs="24" :sm="8">
-                <div class="detail-item">
-                  <span class="detail-label">视力：</span>
-                  <span class="detail-value">{{ props.row.vision || '-' }}</span>
-                </div>
-              </el-col>
-              <el-col :xs="24" :sm="8">
-                <div class="detail-item">
-                  <span class="detail-label">饮水量：</span>
-                  <span class="detail-value">{{ props.row.waterConsumption ? props.row.waterConsumption + ' ml' : '-' }}</span>
-                </div>
-              </el-col>
-              <el-col :xs="24" :sm="8">
-                <div class="detail-item">
-                  <span class="detail-label">喜好食物：</span>
-                  <span class="detail-value">{{ props.row.foodTypes || '-' }}</span>
-                </div>
-              </el-col>
-            </el-row>
-          </template>
-        </el-table-column>
-        <el-table-column type="index" label="序号" width="60" align="center" fixed="left"></el-table-column>
-        <el-table-column prop="id" label="ID" width="60" align="center" fixed="left"></el-table-column>
-        <el-table-column prop="name" label="昵称" min-width="100" fixed="left">
-          <template slot-scope="scope">
-            <div class="user-info">
-              <el-avatar :size="30" icon="el-icon-user"></el-avatar>
-              <span class="user-name">{{ scope.row.name }}</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- 空状态 -->
+       <div v-else class="text-center py-10 text-text-secondary">
+         <ChartHistogram theme="outline" size="48" class="mx-auto mb-4 text-gray-400"/>
+         <p class="mb-4">暂无用户健康数据</p>
+         <!-- <Button type="primary" size="small" @click="openDialog()">添加第一条记录</Button> -->
+       </div>
+
+      <!-- 分页 -->
+      <div v-if="total > 0 && !listLoading" class="mt-5 flex flex-col md:flex-row justify-between items-center">
+          <span class="text-sm text-text-secondary mb-2 md:mb-0">
+              共 {{ total }} 条记录，当前第 {{ searchModel.pageNo }} / {{ totalPages }} 页
+          </span>
+          <div class="flex items-center gap-2">
+              <Button
+                  type="outline"
+                  size="small"
+                  :disabled="searchModel.pageNo <= 1"
+                  @click="goToPage(searchModel.pageNo - 1)"
+              >
+                  上一页
+              </Button>
+              <Button
+                  type="outline"
+                  size="small"
+                  :disabled="searchModel.pageNo >= totalPages"
+                  @click="goToPage(searchModel.pageNo + 1)"
+              >
+                  下一页
+              </Button>
+              <select
+                  v-model="searchModel.pageSize"
+                  @change="getBodyDataList"
+                  class="px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
+               >
+                  <option value="5">5 条/页</option>
+                  <option value="10">10 条/页</option>
+                  <option value="20">20 条/页</option>
+                  <option value="50">50 条/页</option>
+              </select>
+          </div>
+      </div>
+
+    </Card>
+
+    <!-- 健康数据编辑弹窗 (No Add for admin on Body table) -->
+    <div v-if="dialogFormVisible" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4 overflow-y-auto" @click.self="closeDialog">
+      <Card class="w-full max-w-3xl max-h-[90vh] overflow-y-auto bg-white" elevation="large">
+        <div class="flex justify-between items-center mb-5 pb-3 border-b">
+          <h3 class="text-xl font-semibold text-text-primary">{{ dialogTitle }}</h3>
+          <Button type="text" :icon="Close" @click="closeDialog" iconOnly tooltip="关闭"></Button>
+        </div>
+
+        <!-- 保存消息提示 -->
+        <div v-if="saveMessage" :class="['mb-4 p-3 rounded text-sm', saveMessage.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700']">
+          {{ saveMessage.text }}
+        </div>
+
+        <!-- 表单 -->
+        <form @submit.prevent="saveBodyData" class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+          <!-- Basic Info -->
+          <div class="md:col-span-2 font-medium text-text-primary border-b pb-1 mb-2">基本信息</div>
+          <div>
+            <label for="bodyName" class="block text-sm font-medium text-text-secondary mb-1">姓名 <span class="text-red-500">*</span></label>
+            <InputField id="bodyName" v-model="bodyForm.name" placeholder="用户姓名" :error="!!formErrors.name" :errorMessage="formErrors.name" required />
+          </div>
+          <div>
+            <label for="bodyAge" class="block text-sm font-medium text-text-secondary mb-1">年龄 <span class="text-red-500">*</span></label>
+            <InputField id="bodyAge" v-model.number="bodyForm.age" type="number" placeholder="年龄" :error="!!formErrors.age" :errorMessage="formErrors.age" required />
+          </div>
+          <div>
+             <label for="bodyGender" class="block text-sm font-medium text-text-secondary mb-1">性别 <span class="text-red-500">*</span></label>
+             <select id="bodyGender" v-model="bodyForm.gender" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm rounded-md" :class="{'border-red-500': !!formErrors.gender}">
+                 <option value="男">男</option>
+                 <option value="女">女</option>
+             </select>
+              <p v-if="formErrors.gender" class="mt-1 text-xs text-red-600">{{ formErrors.gender }}</p>
+          </div>
+
+           <!-- Body Metrics -->
+           <div class="md:col-span-2 font-medium text-text-primary border-b pb-1 mb-2 mt-4">身体指标</div>
+           <div>
+             <label for="bodyHeight" class="block text-sm font-medium text-text-secondary mb-1">身高 (cm) <span class="text-red-500">*</span></label>
+             <InputField id="bodyHeight" v-model.number="bodyForm.height" type="number" placeholder="身高" :error="!!formErrors.height" :errorMessage="formErrors.height" required />
+           </div>
+           <div>
+             <label for="bodyWeight" class="block text-sm font-medium text-text-secondary mb-1">体重 (kg) <span class="text-red-500">*</span></label>
+             <InputField id="bodyWeight" v-model.number="bodyForm.weight" type="number" placeholder="体重" :error="!!formErrors.weight" :errorMessage="formErrors.weight" required />
+           </div>
+            <div>
+             <label for="bodyHeartRate" class="block text-sm font-medium text-text-secondary mb-1">心率 (次/分) <span class="text-red-500">*</span></label>
+             <InputField id="bodyHeartRate" v-model.number="bodyForm.heartRate" type="number" placeholder="静息心率" :error="!!formErrors.heartRate" :errorMessage="formErrors.heartRate" required />
+           </div>
+           <div>
+             <label for="bodyVision" class="block text-sm font-medium text-text-secondary mb-1">视力 (5.0记为50) <span class="text-red-500">*</span></label>
+             <InputField id="bodyVision" v-model.number="bodyForm.vision" type="number" placeholder="视力" :error="!!formErrors.vision" :errorMessage="formErrors.vision" required />
+           </div>
+
+           <!-- Health Indicators -->
+            <div class="md:col-span-2 font-medium text-text-primary border-b pb-1 mb-2 mt-4">健康指标</div>
+             <div>
+               <label for="bodyBloodSugar" class="block text-sm font-medium text-text-secondary mb-1">血糖 (mmol/L) <span class="text-red-500">*</span></label>
+               <InputField id="bodyBloodSugar" v-model.number="bodyForm.bloodSugar" type="number" step="0.1" placeholder="血糖值" :error="!!formErrors.bloodSugar" :errorMessage="formErrors.bloodSugar" required />
             </div>
-          </template>
-        </el-table-column>
-        <el-table-column label="基本信息" align="center">
-          <el-table-column prop="age" label="年龄" width="70" align="center"></el-table-column>
-          <el-table-column prop="gender" label="性别" width="70" align="center">
-            <template slot-scope="scope">
-              <i :class="scope.row.gender === '男' ? 'el-icon-male' : 'el-icon-female'" 
-                 :style="{color: scope.row.gender === '男' ? '#409EFF' : '#F56C6C', fontSize: '18px'}"></i>
-              {{ scope.row.gender }}
-            </template>
-          </el-table-column>
-        </el-table-column>
-        <el-table-column label="身体指标" align="center">
-          <el-table-column prop="height" label="身高" width="90" align="center">
-            <template slot-scope="scope">
-              <el-tooltip :content="'身高: ' + scope.row.height + ' cm'" placement="top" effect="light">
-                <span>{{ scope.row.height }} cm</span>
-              </el-tooltip>
-            </template>
-          </el-table-column>
-          <el-table-column prop="weight" label="体重" width="90" align="center">
-            <template slot-scope="scope">
-              <el-tooltip :content="'体重: ' + scope.row.weight + ' kg'" placement="top" effect="light">
-                <span>{{ scope.row.weight }} kg</span>
-              </el-tooltip>
-            </template>
-          </el-table-column>
-          <el-table-column prop="heartRate" label="心率" width="90" align="center">
-            <template slot-scope="scope">
-              <el-tooltip :content="'心率: ' + scope.row.heartRate + ' 次/分'" placement="top" effect="light">
-                <span>{{ scope.row.heartRate || '-' }} <small v-if="scope.row.heartRate">次/分</small></span>
-              </el-tooltip>
-            </template>
-          </el-table-column>
-        </el-table-column>
-        <el-table-column label="生活习惯" align="center">
-          <el-table-column prop="sleepDuration" label="睡眠时长" width="100" align="center">
-            <template slot-scope="scope">
-              <span>{{ scope.row.sleepDuration || '-' }} <small v-if="scope.row.sleepDuration">h</small></span>
-            </template>
-          </el-table-column>
-          <el-table-column prop="sleepQuality" label="睡眠质量" width="100" align="center">
-            <template slot-scope="scope">
-              <el-tag
-                :type="getSleepQualityType(scope.row.sleepQuality)"
-                effect="light"
-                size="small"
-              >
-                {{ getSleepQualityText(scope.row.sleepQuality) }}
-              </el-tag>
-            </template>
-          </el-table-column>
-        </el-table-column>
-        <el-table-column label="健康习惯" align="center">
-          <el-table-column prop="smoking" label="吸烟" width="80" align="center">
-            <template slot-scope="scope">
-              <el-tag
-                :type="scope.row.smoking ? 'danger' : 'success'"
-                effect="plain"
-                size="small"
-              >
-                {{ scope.row.smoking ? "是" : "否" }}
-              </el-tag>
-            </template>
-          </el-table-column>
-          <el-table-column prop="drinking" label="饮酒" width="80" align="center">
-            <template slot-scope="scope">
-              <el-tag
-                :type="scope.row.drinking ? 'danger' : 'success'"
-                effect="plain"
-                size="small"
-              >
-                {{ scope.row.drinking ? "是" : "否" }}
-              </el-tag>
-            </template>
-          </el-table-column>
-          <el-table-column prop="exercise" label="运动" width="80" align="center">
-            <template slot-scope="scope">
-              <el-tag
-                :type="scope.row.exercise ? 'success' : 'danger'"
-                effect="plain"
-                size="small"
-              >
-                {{ scope.row.exercise ? "是" : "否" }}
-              </el-tag>
-            </template>
-          </el-table-column>
-        </el-table-column>
-          <el-table-column label="操作" width="120" align="center" fixed="right">
-            <template slot-scope="scope">
-              <el-tooltip content="编辑" placement="top" :enterable="false">
-                <el-button @click="openEditUi(scope.row.id)" type="primary" icon="el-icon-edit" circle size="mini"></el-button>
-              </el-tooltip>
-              <el-tooltip content="删除" placement="top" :enterable="false">
-                <el-button @click="deleteBody(scope.row)" type="danger" icon="el-icon-delete" circle size="mini"></el-button>
-              </el-tooltip>
-            </template>
-          </el-table-column>
-        </el-table>
-      
-      <!-- 分页功能 -->
-      <el-pagination
-        @size-change="handleSizeChange"
-        @current-change="handleCurrentChange"
-        :current-page="searchModel.pageNo"
-        :page-sizes="[5, 10, 20, 30]"
-        :page-size="searchModel.pageSize"
-        layout="total, sizes, prev, pager, next, jumper"
-        :total="total"
-        background
-        class="pagination"
-      >
-      </el-pagination>
-    </el-card>
+            <div>
+               <label for="bodyBloodPressure" class="block text-sm font-medium text-text-secondary mb-1">血压 (mmHg) <span class="text-red-500">*</span></label>
+               <InputField id="bodyBloodPressure" v-model="bodyForm.bloodPressure" placeholder="例如: 120/80" :error="!!formErrors.bloodPressure" :errorMessage="formErrors.bloodPressure" required />
+            </div>
+             <div>
+               <label for="bodyBloodLipid" class="block text-sm font-medium text-text-secondary mb-1">血脂 <span class="text-red-500">*</span></label>
+               <InputField id="bodyBloodLipid" v-model="bodyForm.bloodLipid" placeholder="例如: 正常 / 偏高" :error="!!formErrors.bloodLipid" :errorMessage="formErrors.bloodLipid" required />
+             </div>
 
-    <!-- 用户身体数据编辑弹出框 -->
-    <el-dialog
-      @close="clearForm"
-      :title="title"
-      :visible.sync="dialogFormVisible"
-      :width="dialogWidth"
-      :fullscreen="isMobile"
-      top="5vh"
-      destroy-on-close
-      class="body-dialog"
-      :close-on-click-modal="false"
-    >
-      <el-form :model="bodyForm" ref="bodyFormRef" :rules="rules" label-width="100px" class="body-form">
-        <div class="form-section">
-          <h3 class="section-title">基本信息</h3>
-          <el-row :gutter="20">
-            <el-col :xs="24" :sm="12">
-              <el-form-item label="昵称" prop="name">
-                <el-input 
-                  v-model="bodyForm.name" 
-                  autocomplete="off"
-                  placeholder="请输入用户昵称"
-                  prefix-icon="el-icon-user"
-                ></el-input>
-              </el-form-item>
-            </el-col>
-            <el-col :xs="24" :sm="12">
-              <el-form-item label="年龄" prop="age">
-                <el-input-number 
-                  v-model="bodyForm.age" 
-                  :min="1" 
-                  :max="120"
-                  controls-position="right"
-                  style="width: 100%"
-                ></el-input-number>
-              </el-form-item>
-            </el-col>
-          </el-row>
-          
-          <el-form-item label="性别" prop="gender">
-            <el-radio-group v-model="bodyForm.gender">
-              <el-radio label="男">男</el-radio>
-              <el-radio label="女">女</el-radio>
-            </el-radio-group>
-          </el-form-item>
-        </div>
-        
-        <div class="form-section">
-          <h3 class="section-title">身体指标</h3>
-          <el-row :gutter="20">
-            <el-col :xs="24" :sm="12">
-              <el-form-item label="身高" prop="height">
-                <el-input v-model="bodyForm.height" autocomplete="off">
-                  <template slot="append">cm</template>
-                </el-input>
-              </el-form-item>
-            </el-col>
-            <el-col :xs="24" :sm="12">
-              <el-form-item label="体重" prop="weight">
-                <el-input v-model="bodyForm.weight" autocomplete="off">
-                  <template slot="append">kg</template>
-                </el-input>
-              </el-form-item>
-            </el-col>
-          </el-row>
-          
-          <el-row :gutter="20">
-            <el-col :xs="24" :sm="12">
-              <el-form-item label="血糖" prop="bloodSugar">
-                <el-input v-model="bodyForm.bloodSugar" autocomplete="off" placeholder="请输入血糖指标"></el-input>
-              </el-form-item>
-            </el-col>
-            <el-col :xs="24" :sm="12">
-              <el-form-item label="血压" prop="bloodPressure">
-                <el-input v-model="bodyForm.bloodPressure" autocomplete="off" placeholder="例如: 120/80 mmHg"></el-input>
-              </el-form-item>
-            </el-col>
-          </el-row>
-          
-          <el-row :gutter="20">
-            <el-col :xs="24" :sm="12">
-              <el-form-item label="血脂" prop="bloodLipid">
-                <el-input v-model="bodyForm.bloodLipid" autocomplete="off" placeholder="请输入血脂指标"></el-input>
-              </el-form-item>
-            </el-col>
-            <el-col :xs="24" :sm="12">
-              <el-form-item label="心率" prop="heartRate">
-                <el-input v-model="bodyForm.heartRate" autocomplete="off">
-                  <template slot="append">次/分</template>
-                </el-input>
-              </el-form-item>
-            </el-col>
-          </el-row>
-          
-          <el-row :gutter="20">
-            <el-col :xs="24" :sm="12">
-              <el-form-item label="视力" prop="vision">
-                <el-input v-model="bodyForm.vision" autocomplete="off" placeholder="例如: 5.0/5.0"></el-input>
-              </el-form-item>
-            </el-col>
-          </el-row>
-        </div>
-        
-        <div class="form-section">
-          <h3 class="section-title">生活习惯</h3>
-          <el-row :gutter="20">
-            <el-col :xs="24" :sm="12">
-              <el-form-item label="睡眠时长" prop="sleepDuration">
-                <el-input v-model="bodyForm.sleepDuration" autocomplete="off">
-                  <template slot="append">h</template>
-                </el-input>
-              </el-form-item>
-            </el-col>
-            <el-col :xs="24" :sm="12">
-              <el-form-item label="睡眠质量" prop="sleepQuality">
-                <el-radio-group v-model="bodyForm.sleepQuality">
-                  <el-radio :label="1" :value="1">好</el-radio>
-                  <el-radio :label="2" :value="2">一般</el-radio>
-                  <el-radio :label="3" :value="3">差</el-radio>
-                </el-radio-group>
-              </el-form-item>
-            </el-col>
-          </el-row>
-          
-          <el-row :gutter="20">
-            <el-col :xs="24" :sm="8">
-              <el-form-item label="是否吸烟" prop="smoking">
-                <el-switch
-                  v-model="bodyForm.smoking"
-                  active-color="#ff4949"
-                  inactive-color="#13ce66"
-                  active-text="是"
-                  inactive-text="否"
-                ></el-switch>
-              </el-form-item>
-            </el-col>
-            <el-col :xs="24" :sm="8">
-              <el-form-item label="是否饮酒" prop="drinking">
-                <el-switch
-                  v-model="bodyForm.drinking"
-                  active-color="#ff4949"
-                  inactive-color="#13ce66"
-                  active-text="是"
-                  inactive-text="否"
-                ></el-switch>
-              </el-form-item>
-            </el-col>
-            <el-col :xs="24" :sm="8">
-              <el-form-item label="是否运动" prop="exercise">
-                <el-switch 
-                  v-model="bodyForm.exercise"
-                  active-color="#13ce66"
-                  inactive-color="#ff4949"
-                  active-text="是"
-                  inactive-text="否"
-                ></el-switch>
-              </el-form-item>
-            </el-col>
-          </el-row>
-          
-          <el-row :gutter="20">
-            <el-col :xs="24" :sm="12">
-              <el-form-item label="喜好食物" prop="foodTypes">
-                <el-select
-                  v-model="bodyForm.foodTypes"
-                  placeholder="请选择摄入较多的食物种类"
-                  style="width: 100%"
-                >
-                  <el-option label="蔬菜" value="蔬菜"></el-option>
-                  <el-option label="水果" value="水果"></el-option>
-                  <el-option label="肉类" value="肉类"></el-option>
-                  <el-option label="鱼类" value="鱼类"></el-option>
-                  <el-option label="豆类" value="豆类"></el-option>
-                  <el-option label="谷物" value="谷物"></el-option>
-                </el-select>
-              </el-form-item>
-            </el-col>
-            <el-col :xs="24" :sm="12">
-              <el-form-item label="饮水量" prop="waterConsumption">
-                <el-input v-model="bodyForm.waterConsumption" autocomplete="off">
-                  <template slot="append">ml</template>
-                </el-input>
-              </el-form-item>
-            </el-col>
-          </el-row>
-        </div>
-        
-        <div class="form-tips">
-          <i class="el-icon-info"></i>
-          <span>请填写准确的身体数据，以便系统提供更精准的健康建议</span>
-        </div>
-      </el-form>
+           <!-- Lifestyle -->
+            <div class="md:col-span-2 font-medium text-text-primary border-b pb-1 mb-2 mt-4">生活习惯</div>
+            <div>
+               <label for="bodySleepDuration" class="block text-sm font-medium text-text-secondary mb-1">睡眠时长 (h) <span class="text-red-500">*</span></label>
+               <InputField id="bodySleepDuration" v-model.number="bodyForm.sleepDuration" type="number" step="0.5" placeholder="小时" :error="!!formErrors.sleepDuration" :errorMessage="formErrors.sleepDuration" required />
+            </div>
+             <div>
+               <label for="bodySleepQuality" class="block text-sm font-medium text-text-secondary mb-1">睡眠质量 <span class="text-red-500">*</span></label>
+               <InputField id="bodySleepQuality" v-model="bodyForm.sleepQuality" placeholder="例如: 良好 / 一般 / 差" :error="!!formErrors.sleepQuality" :errorMessage="formErrors.sleepQuality" required />
+             </div>
+             <div>
+               <label for="bodyWaterConsumption" class="block text-sm font-medium text-text-secondary mb-1">日均饮水量 (L) <span class="text-red-500">*</span></label>
+               <InputField id="bodyWaterConsumption" v-model.number="bodyForm.waterConsumption" type="number" step="0.1" placeholder="升" :error="!!formErrors.waterConsumption" :errorMessage="formErrors.waterConsumption" required />
+             </div>
+             <div>
+               <label for="bodyFoodTypes" class="block text-sm font-medium text-text-secondary mb-1">主要食物类型</label>
+               <InputField id="bodyFoodTypes" v-model="bodyForm.foodTypes" placeholder="简单描述饮食习惯" :error="!!formErrors.foodTypes" :errorMessage="formErrors.foodTypes" />
+             </div>
+             <div class="flex items-center gap-4">
+                 <label class="flex items-center">
+                     <input type="checkbox" v-model="bodyForm.smoking" class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"/>
+                     <span class="ml-2 text-sm text-text-secondary">是否吸烟</span>
+                 </label>
+                 <label class="flex items-center">
+                     <input type="checkbox" v-model="bodyForm.drinking" class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"/>
+                     <span class="ml-2 text-sm text-text-secondary">是否饮酒</span>
+                 </label>
+                 <label class="flex items-center">
+                     <input type="checkbox" v-model="bodyForm.exercise" class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"/>
+                     <span class="ml-2 text-sm text-text-secondary">规律运动</span>
+                 </label>
+             </div>
 
-      <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogFormVisible = false">取 消</el-button>
-        <el-button type="primary" @click="updateBody" :loading="saveLoading">确 定</el-button>
-      </div>
-    </el-dialog>
+          <!-- 弹窗底部按钮 -->
+          <div class="md:col-span-2 flex justify-end gap-3 pt-5 border-t mt-4">
+            <Button type="outline" @click="closeDialog">取 消</Button>
+            <Button type="primary" nativeType="submit" :loading="saveLoading">保 存</Button>
+          </div>
+        </form>
+      </Card>
+    </div>
   </div>
 </template>
 
-<script>
-import userApi from "@/api/userManage";
-export default {
-  data() {
-    return {
-      bodyForm: {}, // 初始化为一个空对象
-      bodyList: [],
-      isMobile: false, // 是否移动端视图
-      listLoading: false, // 列表加载状态
-      saveLoading: false, // 保存按钮加载状态
-      dialogFormVisible: false, // 弹窗可见性
-      title: "", // 弹窗标题
-      total: 0, // 总记录数
-      searchModel: {
-        name: '',
-        id: '',
-        pageNo: 1,
-        pageSize: 10,
-      },
-      // 表单验证规则
-      rules: {
-        name: [
-          { required: true, message: "请输入用户昵称", trigger: "blur" },
-        ],
-        age: [
-          { required: true, message: "请输入年龄", trigger: "blur" },
-          { type: 'number', message: '年龄必须为数字', trigger: 'blur' }
-        ],
-        gender: [
-          { required: true, message: "请选择性别", trigger: "change" },
-        ],
-        height: [
-          { required: true, message: "请输入身高", trigger: "blur" },
-        ],
-        weight: [
-          { required: true, message: "请输入体重", trigger: "blur" },
-        ],
-      },
-    };
-  },
-  
-  computed: {
-    // 动态计算弹窗宽度
-    dialogWidth() {
-      return this.isMobile ? '95%' : '65%';
-    }
-  },
+<script setup lang="ts">
+import { ref, reactive, onMounted, computed } from 'vue';
+// --- Type Imports ---
+import type { Body } from '@/types/health';
 
-  methods: {
-    // 检测窗口大小以适应响应式设计
-    checkWindowSize() {
-      this.isMobile = window.innerWidth < 768;
-    },
-    
-    // 重置搜索条件
-    resetSearch() {
-      this.searchModel = {
-        name: '',
-        id: '',
-        gender: '',
-        healthStatus: '',
-        pageNo: 1,
-        pageSize: 10
-      };
-      this.getBodyList();
-    },
-    
-    // 表格行样式
-    tableRowClassName({row, rowIndex}) {
-      // 根据健康指标设置行样式
-      if (row.smoking || row.drinking) {
-        return 'warning-row';
-      }
-      if (row.sleepQuality === 3) {
-        return 'warning-row';
-      }
-      if (row.exercise) {
-        return 'success-row';
-      }
-      return '';
-    },
-    
-    // 获取健康状态标签类型
-    getHealthStatus(row) {
-      // 根据多个指标综合评估健康状态
-      if (row.smoking || row.drinking || row.sleepQuality === 3) {
-        return 'danger';
-      } else if (!row.exercise || row.sleepQuality === 2) {
-        return 'warning';
-      } else {
-        return 'success';
-      }
-    },
-    
-    // 保存用户身体数据
-    updateBody() {
-      this.saveLoading = true;
-      this.$refs.bodyFormRef.validate((valid) => {
-        if (valid) {
-          // 提交数据给后台
-          userApi.updateBody(this.bodyForm).then((response) => {
-            // 成功提示
-            this.$message({
-              message: response.message || '保存成功',
-              type: "success",
-            });
-            // 关闭对话框
-            this.dialogFormVisible = false;
-            // 刷新表格数据
-            this.getBodyList();
-            this.saveLoading = false;
-          }).catch(error => {
-            this.$message.error("保存失败: " + (error.message || "未知错误"));
-            this.saveLoading = false;
-          });
-        } else {
-          this.$message.warning("请填写必要的信息");
-          this.saveLoading = false;
-          return false;
-        }
-      });
-    },
+// --- API Service Imports ---
+import userHealthManageApi from "@/services/userHealthManage";
 
-    // 清理表单数据
-    clearForm() {
-      this.bodyForm = {};
-      // 清除表单校验的提示信息
-      this.$nextTick(() => {
-        this.$refs.bodyFormRef && this.$refs.bodyFormRef.clearValidate();
-      });
-    },
-    
-    // 处理每页显示数量变化
-    handleSizeChange(pageSize) {
-      this.searchModel.pageSize = pageSize;
-      this.getBodyList();
-    },
-    
-    // 处理页码变化
-    handleCurrentChange(pageNo) {
-      this.searchModel.pageNo = pageNo;
-      this.getBodyList();
-    },
+// --- Custom Base Component Imports ---
+import Button from '@/components/base/Button.vue';
+import Card from '@/components/base/Card.vue';
+import InputField from '@/components/base/InputField.vue';
 
-    // 获取用户身体数据列表
-    getBodyList() {
-      this.listLoading = true;
-      
-      // 创建一个新的搜索对象，只包含后端支持的字段
-      const searchParams = {
-        pageNo: this.searchModel.pageNo,
-        pageSize: this.searchModel.pageSize
-      };
-      
-      // 添加名称搜索
-      if (this.searchModel.name) {
-        searchParams.name = this.searchModel.name.trim();
-      }
-      
-      // 添加ID搜索
-      if (this.searchModel.id) {
-        searchParams.id = this.searchModel.id.trim();
-      }
-      
-      // 调用API获取数据
-      userApi.getBodyList(searchParams).then((response) => {
-        let filteredData = response.data.rows;
-        
-        // 客户端过滤性别
-        if (this.searchModel.gender) {
-          filteredData = filteredData.filter(item => item.gender === this.searchModel.gender);
-        }
-        
-        // 客户端过滤健康状态
-        if (this.searchModel.healthStatus) {
-          filteredData = filteredData.filter(item => {
-            const status = this.getHealthStatus(item);
-            if (this.searchModel.healthStatus === 'good') return status === 'success';
-            if (this.searchModel.healthStatus === 'normal') return status === 'warning';
-            if (this.searchModel.healthStatus === 'warning') return status === 'danger';
-            return true;
-          });
-        }
-        
-        this.bodyList = filteredData;
-        this.total = filteredData.length;
-        this.listLoading = false;
-      }).catch(error => {
-        this.$message.error("获取数据失败: " + (error.message || "未知错误"));
-        this.listLoading = false;
-      });
-    },
+// --- Icon Imports ---
+import { Search, Refresh, Plus, Edit, Delete, Close, ChartHistogram, User as UserIcon, IdCardH, DocDetail } from '@icon-park/vue-next';
 
-    // 打开编辑弹窗
-    openEditUi(id) {
-      this.title = "修改身体信息";
-      this.listLoading = true;
-      // 根据id查询用户数据
-      userApi.getBodyById(id).then((response) => {
-        // 获取数据
-        const data = response.data;
-        
-        // 确保睡眠质量是数字类型
-        if (data.sleepQuality !== undefined) {
-          data.sleepQuality = parseInt(data.sleepQuality, 10) || 2; // 如果转换失败，默认为一般(2)
-        }
-        
-        // 确保布尔值正确
-        data.smoking = !!data.smoking;
-        data.drinking = !!data.drinking;
-        data.exercise = !!data.exercise;
-        
-        this.bodyForm = data;
-        this.dialogFormVisible = true;
-        this.listLoading = false;
-      }).catch(error => {
-        this.$message.error("获取数据失败: " + (error.message || "未知错误"));
-        this.listLoading = false;
-      });
-    },
-    
-    // 打开新增弹窗
-    openAddUi() {
-      this.title = "添加身体信息";
-      this.bodyForm = {
-        gender: '男',
-        sleepQuality: 2,
-        smoking: false,
-        drinking: false,
-        exercise: false
-      };
-      this.dialogFormVisible = true;
-    },
+// --- Reactive State ---
+const searchModel = reactive({
+    name: '',
+    id: '', // ID is usually number, but input can be string initially
+    // Add other filters like gender if needed
+    // gender: '',
+    pageNo: 1,
+    pageSize: 10,
+});
 
-    // 删除用户身体数据
-    deleteBody(body) {
-      this.$confirm(`确认删除 ${body.name || 'ID: ' + body.id} 的身体信息吗？`, "删除确认", {
-        confirmButtonText: "确定删除",
-        cancelButtonText: "取消",
-        type: "warning",
-        center: true
-      })
-        .then(() => {
-          this.listLoading = true;
-          userApi.deleteBodyById(body.id).then((response) => {
-            this.$message({
-              type: "success",
-              message: response.message || '删除成功',
-              duration: 2000
-            });
-            this.getBodyList();
-          }).catch(error => {
-            this.$message.error("删除失败: " + (error.message || "未知错误"));
-            this.listLoading = false;
-          });
-        })
-        .catch(() => {
-          this.$message({
-            type: "info",
-            message: "已取消删除操作",
-          });
-        });
-    },
-    
-    // 格式化日期显示
-    formatDate(dateStr) {
-      if (!dateStr) return '-';
-      const date = new Date(dateStr);
-      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-    },
-    
-    // 获取睡眠质量的标签类型
-    getSleepQualityType(quality) {
-      // 将输入转换为数字
-      const qualityNum = parseInt(quality, 10);
-      
-      if (qualityNum === 1) return 'success';
-      if (qualityNum === 2) return 'warning';
-      return 'danger';
-    },
-    
-    // 获取睡眠质量的显示文本
-    getSleepQualityText(quality) {
-      // 将输入转换为数字
-      const qualityNum = parseInt(quality, 10);
-      
-      if (qualityNum === 1) return '好';
-      if (qualityNum === 2) return '一般';
-      return '差';
-    }
-  },
+const listLoading = ref(false);
+const bodyDataList = ref<Body[]>([]);
+const total = ref(0);
 
-  // 生命周期钩子
-  created() {
-    // 初始化加载数据
-    this.getBodyList();
-    // 检测窗口大小
-    this.checkWindowSize();
-  },
-  
-  mounted() {
-    // 添加窗口大小变化监听器
-    window.addEventListener('resize', this.checkWindowSize);
-  },
-  
-  beforeDestroy() {
-    // 移除窗口大小变化监听器
-    window.removeEventListener('resize', this.checkWindowSize);
-  },
+const dialogFormVisible = ref(false);
+const saveLoading = ref(false);
+const isEditMode = ref(false); // Always edit mode for Body table via admin
+// Form data model
+const bodyForm = reactive<Partial<Body>>({});
+// Form errors (Define keys based on Body interface)
+const formErrors = reactive<Record<keyof Omit<Body, 'id'>, string>>({
+    name: '', age: '', gender: '', height: '', weight: '', bloodSugar: '',
+    bloodPressure: '', bloodLipid: '', heartRate: '', vision: '', sleepDuration: '',
+    sleepQuality: '', smoking: '', drinking: '', exercise: '', foodTypes: '',
+    waterConsumption: ''
+});
+// Save status message
+const saveMessage = ref<{ type: 'success' | 'error'; text: string } | null>(null);
+
+// --- Computed Properties ---
+const dialogTitle = computed(() => '编辑用户健康数据'); // Always edit for Body
+const totalPages = computed(() => Math.ceil(total.value / searchModel.pageSize));
+
+// --- Helper Functions ---
+const formatVision = (visionValue: number | undefined | null): string => {
+    if (visionValue == null) return '-';
+    // Assuming vision is stored as integer (e.g., 50 for 5.0)
+    return (visionValue / 10).toFixed(1);
 };
+
+const getQualityClass = (quality: string | undefined | null): string => {
+    if (!quality) return 'text-gray-500';
+    quality = quality.toLowerCase();
+    if (quality.includes('良好') || quality.includes('good')) return 'text-green-600 font-medium';
+    if (quality.includes('一般') || quality.includes('normal') || quality.includes('fair')) return 'text-yellow-600';
+    if (quality.includes('差') || quality.includes('poor')) return 'text-red-600';
+    return 'text-gray-500'; // Default
+};
+
+// --- Validation Logic ---
+const validateForm = (): boolean => {
+    clearFormErrors();
+    let isValid = true;
+    const requiredFields: (keyof typeof formErrors)[] = [
+        'name', 'age', 'gender', 'height', 'weight', 'bloodSugar',
+        'bloodPressure', 'bloodLipid', 'heartRate', 'vision', 'sleepDuration',
+        'sleepQuality', 'waterConsumption'
+        // smoking, drinking, exercise are boolean, no check needed unless specific rules apply
+        // foodTypes is optional
+    ];
+
+    requiredFields.forEach(field => {
+        const value = bodyForm[field];
+        if (value === undefined || value === null || String(value).trim() === '') {
+             // Simple label mapping
+            const labelMap: Record<string, string> = {
+                 name: '姓名', age: '年龄', gender: '性别', height: '身高', weight: '体重',
+                 bloodSugar: '血糖', bloodPressure: '血压', bloodLipid: '血脂', heartRate: '心率',
+                 vision: '视力', sleepDuration: '睡眠时长', sleepQuality: '睡眠质量',
+                 waterConsumption: '日均饮水量'
+             };
+            formErrors[field] = `${labelMap[field] || field}不能为空`;
+            isValid = false;
+        }
+        // Add specific type/range checks if needed (e.g., age > 0)
+        if ((field === 'age' || field === 'height' || field === 'weight' || field === 'heartRate' || field === 'vision' || field === 'sleepDuration' || field === 'waterConsumption' || field === 'bloodSugar') && typeof value === 'number' && value < 0) {
+             formErrors[field] = '不能为负数';
+             isValid = false;
+        }
+    });
+    return isValid;
+};
+
+const clearFormErrors = () => {
+    (Object.keys(formErrors) as Array<keyof typeof formErrors>).forEach(key => {
+        formErrors[key] = '';
+    });
+    saveMessage.value = null;
+};
+
+// --- API Methods ---
+const getBodyDataList = async () => {
+    listLoading.value = true;
+    saveMessage.value = null;
+    try {
+        // Prepare search params, convert id if present
+        const params: any = { ...searchModel };
+        if (params.id) {
+            params.id = parseInt(params.id, 10);
+            if (isNaN(params.id)) {
+                delete params.id; // Remove if not a valid number
+            }
+        }
+
+        const response = await userHealthManageApi.getBodyList(params);
+        if (response && response.data && Array.isArray(response.data.rows)) {
+            bodyDataList.value = response.data.rows;
+            total.value = response.data.total;
+        } else {
+            console.error("Unexpected response structure from getBodyList:", response);
+            bodyDataList.value = [];
+            total.value = 0;
+            saveMessage.value = { type: 'error', text: '获取健康数据列表失败: 响应格式错误' };
+        }
+    } catch (error) {
+        console.error("Error fetching body data list:", error);
+        bodyDataList.value = [];
+        total.value = 0;
+        saveMessage.value = { type: 'error', text: `获取健康数据列表失败: ${error instanceof Error ? error.message : '未知错误'}` };
+    } finally {
+        listLoading.value = false;
+    }
+};
+
+const openDialog = async (id?: number) => {
+    if (!id) return; // Admin can only edit existing Body records, not add
+    clearFormErrors();
+    isEditMode.value = true; // Always edit mode
+    try {
+        const response = await userHealthManageApi.getBodyById(id);
+        const formData = response.data as Body;
+        if (formData && typeof formData === 'object' && 'id' in formData) {
+            // Convert boolean fields to boolean type if they are 0/1 from backend
+            Object.assign(bodyForm, {
+                ...formData,
+                smoking: !!formData.smoking,
+                drinking: !!formData.drinking,
+                exercise: !!formData.exercise,
+            });
+             dialogFormVisible.value = true;
+        } else {
+            throw new Error("获取的健康数据格式无效");
+        }
+    } catch (error) {
+        console.error("Error fetching body data by ID:", error);
+        saveMessage.value = { type: 'error', text: `获取健康数据失败: ${error instanceof Error ? error.message : '未知错误'}` };
+    }
+};
+
+const closeDialog = () => {
+    dialogFormVisible.value = false;
+    // Reset form to avoid showing old data briefly on next open
+    Object.keys(bodyForm).forEach(key => delete bodyForm[key as keyof Body]);
+};
+
+const saveBodyData = async () => {
+    if (!validateForm() || !bodyForm.id) { // Ensure ID exists for update
+        return;
+    }
+    saveLoading.value = true;
+    saveMessage.value = null;
+    try {
+        // Admin uses updateBody API
+        await userHealthManageApi.updateBody(bodyForm as Body);
+        saveMessage.value = { type: 'success', text: '健康数据更新成功' };
+        closeDialog();
+        await getBodyDataList();
+    } catch (error) {
+        console.error("Save body data error:", error);
+        saveMessage.value = { type: 'error', text: `操作失败: ${error instanceof Error ? error.message : '未知错误'}` };
+    } finally {
+        saveLoading.value = false;
+    }
+};
+
+const confirmDelete = async (bodyData: Body) => {
+    if (window.confirm(`确定要删除用户【${bodyData.name}】(ID: ${bodyData.id}) 的这条健康数据吗？`)) {
+        listLoading.value = true;
+        saveMessage.value = null;
+        try {
+            // Admin uses deleteBodyById API
+            await userHealthManageApi.deleteBodyById(bodyData.id);
+            saveMessage.value = { type: 'success', text: '健康数据删除成功' };
+            if (bodyDataList.value.length === 1 && searchModel.pageNo > 1) {
+                searchModel.pageNo--;
+            }
+            await getBodyDataList();
+        } catch (error) {
+            console.error("Delete body data error:", error);
+            saveMessage.value = { type: 'error', text: `删除失败: ${error instanceof Error ? error.message : '未知错误'}` };
+            listLoading.value = false;
+        }
+    }
+};
+
+// --- UI Methods ---
+const resetSearch = () => {
+    searchModel.name = '';
+    searchModel.id = '';
+    searchModel.pageNo = 1;
+    getBodyDataList();
+};
+
+const goToPage = (page: number) => {
+    if (page >= 1 && page <= totalPages.value) {
+        searchModel.pageNo = page;
+        getBodyDataList();
+    }
+};
+
+// --- Lifecycle Hooks ---
+onMounted(() => {
+    getBodyDataList();
+});
+
 </script>
 
 <style scoped>
-.search-area {
-  padding: 10px;
-}
-.search-title {
-  margin-bottom: 15px;
-  font-size: 16px;
-  font-weight: 500;
-  color: #303133;
-  display: flex;
-  align-items: center;
-}
-.search-title i {
-  margin-right: 5px;
-  color: #409EFF;
-}
-.search-form .el-form-item {
-  margin-bottom: 10px;
-  margin-right: 15px;
-}
-.search-buttons {
-  margin-left: auto;
-}
-.el-table {
-  margin-bottom: 15px;
-}
-.el-table .warning-row {
-  background-color: rgba(245, 108, 108, 0.1);
-}
-.el-table .success-row {
-  background-color: rgba(103, 194, 58, 0.1);
-}
-.user-info {
-  display: flex;
-  align-items: center;
-}
-.user-name {
-  margin-left: 10px;
-  font-weight: 500;
-}
-.expanded-row {
-  padding: 15px;
-  background-color: #f9fafc;
-  border-radius: 4px;
-  margin: 10px;
-}
-.health-summary {
-  margin-bottom: 15px;
-  padding-bottom: 10px;
-  border-bottom: 1px dashed #dcdfe6;
-}
-.health-summary h4 {
-  margin: 0 0 10px 0;
-  font-size: 16px;
-  color: #303133;
-}
-.health-tag {
-  margin-right: 10px;
-}
-.detail-item {
-  margin-bottom: 10px;
-  padding: 8px;
-  background-color: white;
-  border-radius: 4px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
-}
-.detail-label {
-  font-weight: 500;
-  color: #606266;
-  margin-right: 5px;
-}
-.detail-value {
-  color: #303133;
-}
-.body-dialog .el-dialog__body {
-  padding: 20px 30px;
-}
-.body-form .form-section {
-  margin-bottom: 25px;
-  padding-bottom: 15px;
-  border-bottom: 1px dashed #ebeef5;
-}
-.body-form .section-title {
-  font-size: 16px;
-  color: #409EFF;
-  margin: 0 0 15px 0;
-  padding-left: 10px;
-  border-left: 3px solid #409EFF;
-}
-.form-tips {
-  background-color: #f0f9eb;
-  padding: 10px 15px;
-  border-radius: 4px;
-  color: #67c23a;
-  display: flex;
-  align-items: center;
-  margin-top: 15px;
-}
-.form-tips i {
-  margin-right: 5px;
-  font-size: 16px;
-}
-@media screen and (max-width: 768px) {
-  .search-form {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  .search-form .el-form-item {
-    margin-right: 0;
-  }
-  .search-buttons {
-    margin-left: 0;
-    display: flex;
-    justify-content: space-between;
-  }
-  .body-form .el-form-item__label {
-    float: none;
-    display: block;
-    text-align: left;
-    padding: 0 0 10px;
-  }
-  .body-form .el-form-item__content {
-    margin-left: 0 !important;
-  }
-}
+/* Add any specific scoped styles if needed */
 </style>
