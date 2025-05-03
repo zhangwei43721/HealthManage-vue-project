@@ -1,5 +1,5 @@
 import api from './api'
-import type { BodyNotes } from '@/types/health' // Assuming types are defined here
+import type { Body } from '@/types/health' // Assuming types are defined here
 
 // 获取用户的健康信息 (可能指最新的那条，与日志列表不同)
 export const getUserBodyInfo = () => {
@@ -23,12 +23,12 @@ export const getUserBodyList = (params: { pageNo: number; pageSize: number; name
 
 // 用户新增自己的体征记录
 // 注意：API文档将 POST /user/BodyInformationNotes 描述为管理员接口，但DELETE/PUT存在用户接口，此处假设此POST也供用户使用
-export const addBodyInformationNotes = (data: Partial<BodyNotes>) => {
+export const addBodyInformationNotes = (data: Partial<Body>) => {
   return api.post('/user/BodyInformationNotes', data)
 }
 
 // 用户修改自己的指定体征记录
-export const updateUserBody = (data: Partial<BodyNotes>) => {
+export const updateUserBody = (data: Partial<Body>) => {
   // 需要确保 data 中包含 notesid
   return api.put('/user/updateUserBody', data)
 }

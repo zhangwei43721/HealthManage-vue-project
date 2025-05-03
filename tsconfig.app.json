@@ -3,6 +3,7 @@
   "include": ["env.d.ts", "src/**/*", "src/**/*.vue", "src/vite-env.d.ts"], // 确保包含 vite-env.d.ts
   "exclude": [
     "src/**/__tests__/*",
+    "src/views/ComponentTest.vue",
     "src/components/ButtonDemo.vue",
     "src/components/CardDemo.vue",
     "src/components/HelloWorld.vue",

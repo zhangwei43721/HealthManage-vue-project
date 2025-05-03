@@ -1,9 +1,25 @@
 import api from './api'
-import type { BodyData } from '@/types/health' // Assuming types exist, renamed from Body
+
+// 定义 BodyData 接口，因为找不到 @/types/health 模块
+interface BodyData {
+  id: number // 记录ID
+  name: string // 用户名
+  age?: number
+  gender?: string
+  height?: number
+  weight?: number
+  bloodSugar?: number
+  bloodPressure?: string
+  bloodLipid?: string
+  heartRate?: number
+  vision?: number
+  sleepDuration?: number
+  // 其他可能的健康数据字段
+}
 
 interface ListParams {
   name?: string
-  id?: number // Assuming this is userId
+  id?: number // 假设这是用户ID
   pageNo: number
   pageSize: number
 }
@@ -24,11 +40,13 @@ export default {
   },
   updateBody(data: BodyData) {
     // id must exist for update
-    return api.put<any>('/user/updateBody', data)
+    // 假设成功时返回更新的 BodyData
+    return api.put<BodyData>('/user/updateBody', data)
   },
   deleteBodyById(id: number) {
     // Assuming this id is the body record id
-    return api.delete<any>(`/user/deleteBodyById/${id}`)
+    // 假设成功时没有特定的返回数据
+    return api.delete<void>(`/user/deleteBodyById/${id}`)
   },
   // Note: Add BodyNotes functionality if needed by the admin page
   // addBodyNotes(data: BodyNotes) {

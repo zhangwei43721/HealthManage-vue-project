@@ -20,17 +20,20 @@ export default {
   },
   addRole(data: Omit<Role, 'roleId'>) {
     // Exclude roleId for adding
-    return api.post<any>('/role', data)
+    // 假设成功时返回创建的 Role
+    return api.post<Role>('/role', data)
   },
   updateRole(data: Role) {
     // Require roleId for updating
-    return api.put<any>('/role', data)
+    // 假设成功时返回更新的 Role
+    return api.put<Role>('/role', data)
   },
   getRoleById(id: number) {
     return api.get<Role>(`/role/${id}`)
   },
   deleteRole(id: number) {
-    return api.delete<any>(`/role/${id}`)
+    // 假设成功时没有特定的返回数据
+    return api.delete<void>(`/role/${id}`)
   },
   getAllRoles() {
     // Assuming the response data is directly List<Role>

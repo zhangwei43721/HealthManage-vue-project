@@ -17,7 +17,8 @@ export interface Menu {
     icon?: string
     requiresAuth?: boolean
     requiresAdmin?: boolean
-    [key: string]: any
+    // Use unknown instead of any for better type safety
+    [key: string]: unknown
   }
 }
 

@@ -1,5 +1,17 @@
 import api from './api'
-import type { User } from '@/types/user' // Assuming types exist
+
+// 定义用户类型
+export interface User {
+  id: number
+  username: string
+  password?: string // 密码可能不总是存在或需要
+  email?: string
+  phone?: string
+  status?: number
+  avatar?: string
+  deleted?: number
+  roleIdList?: number[] // 可能需要用于添加/更新请求
+}
 
 // Define a type for list parameters
 interface UserListParams {
@@ -23,21 +35,25 @@ export default {
   addUser(data: Omit<User, 'id'>) {
     // Exclude id for adding
     // Ensure response type matches expected success/error message structure
-    return api.post<any>('/user/add', data)
+    // 假设成功时返回创建的 User
+    return api.post<User>('/user/add', data)
   },
   updateUser(data: User) {
     // Require id for updating
-    return api.put<any>('/user/update', data)
+    // 假设成功时返回更新的 User
+    return api.put<User>('/user/update', data)
   },
   getUserById(id: number) {
     return api.get<User>(`/user/${id}`)
   },
   deleteUser(id: number) {
-    return api.delete<any>(`/user/${id}`)
+    // 假设成功时没有特定的返回数据
+    return api.delete<void>(`/user/${id}`)
   },
   changePassword(data: { id: number; newPassword: string }) {
     // Assuming the backend expects this specific shape for password change
-    return api.put<any>('/user/changePassword', data)
+    // 假设成功时没有特定的返回数据
+    return api.put<void>('/user/changePassword', data)
   },
 }
 

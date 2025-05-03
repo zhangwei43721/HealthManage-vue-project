@@ -1,5 +1,13 @@
 import api from './api'
-import type { SportDetail } from '@/types/health' // Assuming types exist, renamed from Detail
+
+// 定义SportDetail接口，因为无法导入@/types/health
+interface SportDetail {
+  id: number
+  sportType: string
+  disease: string
+  method: string
+  notes: string
+}
 
 interface ListParams {
   sportType?: string
@@ -17,16 +25,16 @@ export default {
     return api.get<ListResponse>('/detail/getDetailList', { params })
   },
   addDetail(data: Omit<SportDetail, 'id'>) {
-    return api.post<any>('/detail/addDetail', data)
+    return api.post<SportDetail>('/detail/addDetail', data)
   },
   updateDetail(data: SportDetail) {
-    return api.put<any>('/detail/updateDetail', data)
+    return api.put<SportDetail>('/detail/updateDetail', data)
   },
   getDetailById(id: number) {
     return api.get<SportDetail>(`/detail/getDetailById/${id}`)
   },
   deleteDetail(id: number) {
-    return api.delete<any>(`/detail/deleteDetailById/${id}`)
+    return api.delete<void>(`/detail/deleteDetailById/${id}`)
   },
   // getDetailInfoByName might be needed if there's a use case for it
   // getDetailInfoByName(sportName: string) {

@@ -1,12 +1,24 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import api from '@/services/api' // 假设你的axios实例封装在 @/services/api
-import type { UserInfo } from '@/types/user' // 假设你有一个类型定义文件
+// 定义用户信息接口
+interface UserInfo {
+  id: string
+  name: string
+  email: string
+  roles: string[]
+  // 其他用户信息字段
+}
 import {
   isAuthenticated as checkAuth,
   clearAuth as clearLocalAuth,
   setAuth as setLocalAuth,
 } from '@/utils/auth' // 假设你有 auth 工具函数
+
+// 定义登录响应接口
+interface LoginResponse {
+  token: string
+}
 
 export const useUserStore = defineStore('user', () => {
   const token = ref<string | null>(localStorage.getItem('token'))
@@ -29,12 +41,13 @@ export const useUserStore = defineStore('user', () => {
       return null
     }
     try {
-      // Revert: Expect the full response object
-      const response = await api.get<any>('/user/info') // API 返回结构根据后端调整
+      // 指定返回类型为 UserInfo，并访问 response.data
+      const response = await api.get<UserInfo>('/user/info') // API 返回结构根据后端调整
       // Revert: Check response.data for user info
       if (response && response.data && response.data.roles) {
+        // 检查 response.data.roles
         // Check for roles within response.data
-        const userData = response.data // Extract data part
+        const userData = response.data // 从 response.data 提取
         userInfo.value = userData // 存储整个用户信息对象
         roles.value = userData.roles // 存储角色列表
         return userData
@@ -54,11 +67,12 @@ export const useUserStore = defineStore('user', () => {
   // 登录
   async function login(credentials: { username: string; password: string }) {
     try {
-      // Revert: Expect the full response object
-      const response = await api.post<any>('/user/login', credentials)
+      // 指定返回类型为 LoginResponse，并访问 response.data
+      const response = await api.post<LoginResponse>('/user/login', credentials)
       // Revert: Check response.data.token
       if (response && response.data && response.data.token) {
-        setToken(response.data.token)
+        // 检查 response.data.token
+        setToken(response.data.token) // 从 response.data 获取 token
         await fetchUserInfo() // 登录成功后立即获取用户信息
         return true
       } else {
