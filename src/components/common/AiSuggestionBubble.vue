@@ -121,7 +121,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from '@/composables/vue-imports'
 import { useRoute } from 'vue-router'
-import { Robot, Close, Refresh, CloseSmall, Info, Clipboard } from '@icon-park/vue-next'
+import { Robot, Close, Refresh, CloseSmall, Clipboard } from '@icon-park/vue-next'
 import { marked } from 'marked' // Popular Markdown parser
 import DOMPurify from 'dompurify' // For sanitizing HTML
 import api from '@/services/api' // API service
@@ -129,6 +129,8 @@ import { isAuthenticated } from '@/services/auth' // Auth helpers
 
 // --- Types ---
 type SuggestionType = 'current' | 'historical' | 'sport' | null;
+// 定义 ROUTES_CONFIG 的键类型
+type RouteKey = keyof typeof ROUTES_CONFIG;
 
 // --- Reactive State ---
 const route = useRoute()
@@ -139,6 +141,7 @@ const generatedAt = ref<string | null>(null)
 const showBubble = ref(false)
 const hasNewSuggestion = ref(false)
 const errorMessage = ref('')
+// 使用 ref 代替 shallowRef (因为 vue-imports 没有导出 shallowRef)
 const markedInstance = ref(marked)
 
 // --- Configuration ---
@@ -146,20 +149,23 @@ const ROUTES_CONFIG = {
   '/health-data': { type: 'current' as SuggestionType, autoExpand: false },
   '/health-knowledge': { type: 'sport' as SuggestionType, autoExpand: true },
   '/health-log': { type: 'historical' as SuggestionType, autoExpand: false },
-};
+} as const; // 使用 as const 确保键是字面量类型
 
 // --- Computed Properties ---
 const isLoggedIn = computed(() => isAuthenticated())
 
-const targetRoutes = Object.keys(ROUTES_CONFIG)
+// 使用定义的 RouteKey 类型
+const targetRoutes = Object.keys(ROUTES_CONFIG) as RouteKey[];
 
 const currentSuggestionType = computed<SuggestionType>(() => {
   const matchedRoute = targetRoutes.find(target => route.path.startsWith(target));
+  // 确保 matchedRoute 是有效的 RouteKey
   return matchedRoute ? ROUTES_CONFIG[matchedRoute].type : null;
 })
 
 const shouldAutoExpand = computed(() => {
   const matchedRoute = targetRoutes.find(target => route.path.startsWith(target));
+  // 确保 matchedRoute 是有效的 RouteKey
   return matchedRoute ? ROUTES_CONFIG[matchedRoute].autoExpand : false;
 })
 
@@ -189,7 +195,7 @@ const formattedTimestamp = computed(() => {
 
     // Format to YYYY-MM-DD HH:mm
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
-  } catch (e) {
+  } catch /*(e)*/ { // 移除了未使用的变量 e
     return "时间格式错误";
   }
 })
@@ -257,9 +263,16 @@ const fetchCurrentPageSuggestion = async () => {
       errorMessage.value = '暂无建议';
       currentSuggestion.value = '';
     }
-  } catch (error: any) {
+  } catch (error: unknown) { // 使用 unknown 类型
     console.error('获取健康建议失败:', error);
-    errorMessage.value = error?.message || '获取建议失败，请稍后再试';
+    // 添加类型检查来安全地访问 message 属性
+    if (error instanceof Error) {
+      errorMessage.value = error.message;
+    } else if (typeof error === 'string') {
+      errorMessage.value = error;
+    } else {
+      errorMessage.value = '获取建议失败，请稍后再试';
+    }
     currentSuggestion.value = '';
   } finally {
     loading.value = false;
@@ -283,7 +296,7 @@ onMounted(() => {
 })
 
 // --- Watchers ---
-watch(() => route.path, (newPath, oldPath) => {
+watch(() => route.path, (newPath: string, oldPath: string | undefined | null) => { // 添加类型
   const wasVisible = shouldShowBubble(oldPath);
   const isVisible = shouldShowBubble(newPath);
 
@@ -306,7 +319,7 @@ watch(() => route.path, (newPath, oldPath) => {
 }, { immediate: true });
 
 // Re-fetch when logging in if bubble is visible and expanded
-watch(isLoggedIn, (loggedIn) => {
+watch(isLoggedIn, (loggedIn: boolean) => { // 添加类型
   if (!loggedIn) {
     expanded.value = false;
     currentSuggestion.value = '';
