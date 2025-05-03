@@ -83,7 +83,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { Heart, HamburgerButton, Close, Home, Like, User, Logout, Book, Sport, Clipboard } from '@icon-park/vue-next';
+import { Heart, HamburgerButton, Close, Home, Like, User, Logout, Book, Sport, Clipboard, Robot } from '@icon-park/vue-next';
 import { isAuthenticated, logout } from '../../services/auth';
 
 const route = useRoute();
@@ -107,7 +107,7 @@ const navigationItems = [
   { name: '健康数据', path: '/health-data', icon: Like },
   { name: '健康知识库', path: '/health-knowledge', icon: Book },
   { name: '健康数据日志', path: '/health-log', icon: Clipboard },
-  { name: '关于我们', path: '/about', icon: User }
+  { name: 'AI健康问答', path: '/ai-qa', icon: Robot }
 ];
 
 // 监听滚动

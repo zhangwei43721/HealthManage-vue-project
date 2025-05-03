@@ -5,6 +5,7 @@ import Register from '../views/register/register.vue'
 import HealthData from '../views/health-data.vue'
 import HealthKnowledge from '../views/health-knowledge.vue'
 import HealthLog from '../views/health/health-log.vue'
+import AiQaPage from '../views/health/ai-qa.vue'
 import { isAuthenticated } from '../services/auth'
 
 // 页面组件
@@ -109,6 +110,12 @@ const routes = [
     name: 'HealthLog',
     component: HealthLog,
     meta: { requiresAuth: true, title: '健康数据日志' },
+  },
+  {
+    path: '/ai-qa',
+    name: 'AiQaPage',
+    component: AiQaPage,
+    meta: { requiresAuth: true, title: 'AI 健康问答' },
   },
   // 登录注册路由
   {
