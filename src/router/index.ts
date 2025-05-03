@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { useUserStore } from '@/stores/user' // 导入 user store
 import AiHomePage from '../views/health/AiHomePage.vue'
 import Login from '../views/login/index.vue'
 import Register from '../views/register/register.vue'
@@ -120,28 +121,55 @@ const routes = [
 const router = createRouter({
   history: createWebHistory(),
   routes,
+  scrollBehavior(to, from, savedPosition) {
+    if (savedPosition) {
+      return savedPosition
+    } else {
+      return { top: 0 }
+    }
+  },
 })
 
 // 全局前置守卫
-router.beforeEach((to, from, next) => {
-  // 判断路由是否需要登录权限
-  if (to.matched.some((record) => record.meta.requiresAuth)) {
-    // 检查是否已登录
-    if (!isAuthenticated()) {
-      // 未登录则跳转到登录页
-      next({
-        path: '/login',
-        // 保存用户原本想访问的页面路径，以便登录成功后直接跳转
-        query: { redirect: to.fullPath },
-      })
-    } else {
-      // 已登录则放行
-      next()
-    }
+router.beforeEach(async (to, from, next) => {
+  // --- Restore the original guard logic ---
+  const userStore = useUserStore()
+
+  // 首次进入应用或刷新页面时，尝试获取用户信息（如果 token 存在）
+  if (!userStore.userInfo && userStore.token) {
+    // console.log('App init: Token exists, attempting to fetch user info...'); // Removed log
+    await userStore.fetchUserInfo()
+  }
+
+  const requiresAuth = to.matched.some((record) => record.meta.requiresAuth)
+  const requiresAdmin = to.matched.some((record) => record.meta.requiresAdmin)
+
+  if (requiresAuth && !userStore.isAuthenticated) {
+    // 需要认证但未登录
+    // console.log( // Removed log
+    //   `Route guard: Denied access to ${to.path} (requires auth, not authenticated). Redirecting to login.`,
+    // )
+    next({
+      path: '/login',
+      query: { redirect: to.fullPath }, // 保留重定向地址
+    })
+  } else if (requiresAdmin && !userStore.isAdmin) {
+    // 需要管理员权限但当前用户不是管理员
+    // console.log( // Removed log
+    //   `Route guard: Denied access to ${to.path} (requires admin, user is not admin). Redirecting to dashboard.`,
+    // )
+    // 可以跳转到无权限页面或用户首页
+    // **重要:** 确认 '/health-data' 是非管理员用户的目标默认页面，如果不是请修改
+    next({ path: '/health-data' })
   } else {
-    // 不需要登录权限的页面直接放行
+    // 其他情况（不需要认证 或 已登录且权限足够）
     next()
   }
+  // --- End of restored logic ---
+})
+
+router.afterEach(() => {
+  // NProgress.done(); // Removed
 })
 
 export default router

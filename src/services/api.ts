@@ -1,5 +1,6 @@
 // eslint-disable no-constant-binary-expression
 import axios from 'axios'
+import { useUserStore } from '@/stores/user'
 
 // 创建axios实例
 const api = axios.create({
@@ -29,47 +30,65 @@ api.interceptors.request.use(
 // 响应拦截器
 api.interceptors.response.use(
   (response) => {
-    // 检查 HTTP 状态码是否成功 (2xx)
-    if (response.status >= 200 && response.status < 300) {
-      const res = response.data
+    const res = response.data
 
-      // 检查返回的数据是否包含 code 属性 (标准后端格式)
-      if (res && typeof res === 'object' && res.hasOwnProperty('code')) {
-        // 如果状态码不是20000，则认为请求出错
-        if (res.code !== 20000) {
-          console.error('接口返回逻辑错误:', res.message || '未知错误', 'Code:', res.code)
-
-          // 处理登录过期情况
-          if (res.code === 20003) {
-            localStorage.removeItem('token')
-            localStorage.removeItem('tokenExpire')
-            // Consider using router push for better SPA navigation if router is available here
-            window.location.href = '/login'
-          }
-
-          return Promise.reject(new Error(res.message || '未知错误'))
-        } else {
-          // code 为 20000，返回整个 res 对象以兼容其他页面
-          console.log('标准成功响应 (code=20000)，返回整个响应对象:', res)
-          return res
-        }
-      } else {
-        // 如果返回的数据没有 code 属性 (例如 /viewHistory 直接返回数组)
-        // 并且 HTTP 状态码是成功的，直接返回数据 (即 res)
-        console.log('非标准成功响应 (无 code 字段)，直接返回数据:', res)
-        return res // 返回原始的 response.data
-      }
-    } else {
-      // 处理非 2xx 的 HTTP 错误状态码
-      console.error('HTTP 错误:', response.status, response.statusText)
-      return Promise.reject(
-        new Error(`HTTP 错误: ${response.status} ${response.statusText}` || '网络请求失败'),
+    // 检查响应代码是否表示成功
+    if (res.code !== 20000) {
+      // 非成功状态处理
+      console.error(
+        'API Error:',
+        res.message || '未知错误',
+        '| Code:',
+        res.code,
+        '| Path:',
+        response.config.url,
       )
+
+      // 处理特定的错误代码，例如Token过期
+      if (res.code === 20003) {
+        // 在这里触发用户登出逻辑，例如通过 Pinia store
+        // import { useUserStore } from '@/stores/user';
+        // const userStore = useUserStore();
+        // userStore.logout();
+        console.warn('Token expired or invalid. Redirecting to login.')
+        // 可以选择直接跳转或通过 store action 处理
+        // window.location.href = '/login';
+        // 为了更好的用户体验，最好是触发 store action
+        const userStore = useUserStore() // Ensure pinia is initialized before this runs
+        userStore.resetState() // Reset state and clear token
+        // Optionally push router to login page if router is accessible here
+        // import router from '@/router';
+        // router.push('/login');
+      }
+
+      // 使用Element Plus等UI库显示错误消息 (示例)
+      /*
+      ElMessage({
+        message: res.message || 'Error',
+        type: 'error',
+        duration: 5 * 1000
+      })
+      */
+
+      return Promise.reject(new Error(res.message || 'Error'))
+    } else {
+      // 成功状态 (code === 20000)
+      // console.log('标准成功响应 (code=20000)，返回整个响应对象:', res); // Removed this log
+      // 只返回 data 部分，或者根据需要返回整个 res
+      return res // Or return res.data if you only need the data payload
     }
   },
   (error) => {
-    console.error('响应错误:', error)
-    // 可以根据 error.response?.status 进一步处理网络错误
+    // 处理网络错误等
+    console.error('Network/Request Error:', error.message || error)
+    // 使用Element Plus等UI库显示错误消息 (示例)
+    /*
+    ElMessage({
+      message: error.message,
+      type: 'error',
+      duration: 5 * 1000
+    })
+    */
     return Promise.reject(error)
   },
 )
