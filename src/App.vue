@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import Header from './components/layout/Header.vue';
 import Footer from './components/layout/Footer.vue';
+import AiSuggestionBubble from './components/common/AiSuggestionBubble.vue';
 </script>
 
 <template>
@@ -14,6 +15,7 @@ import Footer from './components/layout/Footer.vue';
       </router-view>
     </main>
     <Footer />
+    <AiSuggestionBubble />
   </div>
 </template>
 
