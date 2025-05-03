@@ -4,6 +4,7 @@ import Login from '../views/login/index.vue'
 import Register from '../views/register/register.vue'
 import HealthData from '../views/health-data.vue'
 import HealthKnowledge from '../views/health-knowledge.vue'
+import HealthLog from '../views/health/health-log.vue'
 import { isAuthenticated } from '../services/auth'
 
 // 页面组件
@@ -76,27 +77,6 @@ const Diet = {
   `,
 }
 
-// 运动计划页面
-const Exercise = {
-  template: `
-    <div class="py-8">
-      <h1 class="text-3xl font-bold text-center text-primary mb-8">运动计划</h1>
-      <div class="max-w-4xl mx-auto bg-white rounded-xl shadow-md p-6">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div class="p-4 bg-primary/10 rounded-lg">
-            <h3 class="text-lg font-medium text-primary mb-2">运动记录</h3>
-            <p class="text-text-secondary">记录您的运动情况</p>
-          </div>
-          <div class="p-4 bg-secondary/10 rounded-lg">
-            <h3 class="text-lg font-medium text-secondary mb-2">个性化计划</h3>
-            <p class="text-text-secondary">根据您的健康状况制定个性化运动计划</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  `,
-}
-
 // 路由配置
 const routes = [
   {
@@ -107,27 +87,28 @@ const routes = [
   {
     path: '/features',
     component: Features,
-    meta: { requiresAuth: true },
+    meta: { requiresAuth: true, title: '功能介绍' },
   },
   {
     path: '/about',
     component: About,
-    meta: { requiresAuth: true },
+    meta: { requiresAuth: true, title: '关于我们' },
   },
   {
     path: '/health-data',
     component: HealthData,
-    meta: { requiresAuth: true },
+    meta: { requiresAuth: true, title: '健康数据中心' },
   },
   {
     path: '/health-knowledge',
     component: HealthKnowledge,
-    meta: { requiresAuth: true },
+    meta: { requiresAuth: true, title: '健康知识库' },
   },
   {
-    path: '/exercise',
-    component: Exercise,
-    meta: { requiresAuth: true },
+    path: '/health-log',
+    name: 'HealthLog',
+    component: HealthLog,
+    meta: { requiresAuth: true, title: '健康数据日志' },
   },
   // 登录注册路由
   {

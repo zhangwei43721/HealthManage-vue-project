@@ -59,10 +59,12 @@ export default {
 
   data() {
     return {
-      Search,
-      Close,
       searchValue: this.modelValue
     }
+  },
+
+  setup() {
+    return { Search, Close };
   },
 
   watch: {
@@ -97,8 +99,9 @@ export default {
       this.searchValue = '';
       this.$emit('clear');
       this.$nextTick(() => {
-        // 触发重新搜索
+        // Trigger re-search or input event if needed
         this.$emit('search', '');
+        this.$emit('update:modelValue', ''); // Ensure modelValue updates on clear
       });
     }
   }

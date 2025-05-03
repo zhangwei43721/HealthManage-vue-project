@@ -227,7 +227,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue';
-import { getUserInfo, getHistoricalData } from '../services/health';
+import { getUserBodyInfo as getUserInfo, getHistoricalData } from '../services/health';
 import * as echarts from 'echarts/core';
 import { LineChart, BarChart } from 'echarts/charts';
 import {
