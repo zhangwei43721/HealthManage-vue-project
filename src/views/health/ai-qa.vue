@@ -27,12 +27,16 @@
           <!-- Message Content -->
           <div class="message-text p-3 rounded-lg max-w-xs sm:max-w-md lg:max-w-lg break-words"
             :class="messageTextBackground(message.role)">
-            <div v-if="message.role === 'assistant'" v-html="renderMarkdown(message.content)"
+            <!-- Render Markdown for assistant text -->
+            <div v-if="message.role === 'assistant' && message.content" v-html="renderMarkdown(message.content)"
               class="text-sm whitespace-pre-wrap prose dark:prose-invert max-w-none"></div>
-            <p v-else-if="message.content" class="text-sm whitespace-pre-wrap">{{ message.content }}</p>
-            <!-- Image display -->
+            <!-- Render plain text for user text -->
+            <p v-else-if="message.role === 'user' && message.content" class="text-sm whitespace-pre-wrap">{{
+              message.content }}</p>
+
+            <!-- Image display (for both user uploaded and assistant returned) -->
             <div v-if="message.imageUrl" class="mt-2">
-              <img :src="message.imageUrl" alt="Uploaded image" class="max-w-full h-auto rounded-md cursor-pointer"
+              <img :src="message.imageUrl" alt="Image" class="max-w-full h-auto rounded-md cursor-pointer"
                 @click="previewImage(message.imageUrl)">
             </div>
             <!-- Loading indicator for assistant -->
@@ -61,18 +65,28 @@
       <div v-if="previewImageUrl" class="mb-2 flex items-center bg-gray-100 dark:bg-gray-700 p-2 rounded-md max-w-xs">
         <img :src="previewImageUrl" alt="Preview" class="w-12 h-12 object-cover rounded-md mr-2">
         <span class="text-xs text-gray-600 dark:text-gray-300 truncate flex-1">{{ selectedFile ? selectedFile.name : ''
-          }}</span>
+        }}</span>
         <Button type="text" size="small" :icon="Close" @click="removeSelectedImage"
           class="ml-2 text-gray-500 hover:text-red-500" aria-label="Remove image" />
       </div>
 
       <div class="flex items-center gap-2 sm:gap-3">
-        <Button type="outline" :icon="Paperclip" @click="triggerImageUpload" aria-label="Upload image" />
-        <input ref="imageInput" type="file" accept="image/*" @change="handleImageSelected" class="hidden" />
+        <!-- File Input Trigger using Label -->
+        <label for="imageUploadInput"
+          class="inline-flex items-center justify-center px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary cursor-pointer h-[34px]">
+          <Paperclip class="h-4 w-4" aria-hidden="true" />
+          <span class="sr-only">Upload image</span>
+        </label>
+        <input id="imageUploadInput" ref="imageInput" type="file" accept="image/*" @change="handleImageSelected"
+          class="hidden" />
+
+        <!-- Textarea -->
         <textarea ref="inputTextArea" v-model="newMessage" @keydown.enter.prevent="handleEnterKey"
           placeholder="输入您的问题或描述..."
           class="flex-1 resize-none border border-gray-300 dark:border-gray-600 rounded-lg p-2 text-sm focus:ring-2 focus:ring-primary focus:border-transparent dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
           rows="1"></textarea>
+
+        <!-- Send Button -->
         <Button type="primary" :icon="Send" @click="sendMessage"
           :disabled="!newMessage.trim() && !selectedFile || isLoading">
           发送
@@ -226,10 +240,6 @@ const fetchHistory = async () => {
   }
 };
 
-const triggerImageUpload = () => {
-  imageInput.value?.click();
-};
-
 const handleImageSelected = (event: Event) => {
   const target = event.target as HTMLInputElement;
   if (target.files && target.files[0]) {
@@ -290,7 +300,8 @@ const sendMessage = async () => {
   scrollToBottom();
 
   const formData = new FormData();
-  formData.append('message', text);
+  // If text is empty but there's a file, send a space. Otherwise send text.
+  formData.append('message', text ? text : ' ');
   formData.append('conversationId', currentConvId); // Send the determined ID
   if (file) {
     formData.append('file', file);
@@ -359,58 +370,77 @@ const sendMessage = async () => {
             const trimmedLine = line.trim(); // Trim whitespace from the line
             // console.log('Processing trimmed line:', trimmedLine);
 
-            // Check the trimmed line - REMOVED SPACE after 'data:'
             if (trimmedLine.startsWith('data:')) {
-              try {
-                // Process the trimmed line, removing 'data:'
-                const rawData = trimmedLine.substring(5).trim(); // Use index 5 for 'data:'
+              try { // Outer try for substring etc.
+                const rawData = trimmedLine.substring(5).trim();
                 if (!rawData || rawData === '[DONE]') {
                   if (rawData === '[DONE]') {
                     console.log('Received [DONE] signal.');
                     if (assistantMessageIndex !== -1 && messages.value[assistantMessageIndex]) {
                       messages.value[assistantMessageIndex].loading = false;
                       // Optionally check if content is empty and provide a fallback
-                      if (!messages.value[assistantMessageIndex].content) {
-                        messages.value[assistantMessageIndex].content = "AI 助手没有返回内容。";
+                      if (!messages.value[assistantMessageIndex].content && !messages.value[assistantMessageIndex].imageUrl) {
+                        messages.value[assistantMessageIndex].content = "AI 助手没有返回有效内容。";
                       }
                     }
                   }
                   continue; // Skip empty data lines or the DONE signal
                 }
 
-                try { // Wrap JSON.parse
+                let isJsonParsed = false;
+                try { // Inner try for JSON.parse
                   const jsonData = JSON.parse(rawData);
-                  // console.log('Parsed SSE data:', jsonData); // Can uncomment for deep debugging
+                  isJsonParsed = true;
+                  // console.log('Parsed SSE data:', jsonData);
 
-                  // Extract content based on OpenAI format
+                  // Check for text delta (OpenAI format)
                   const contentPart = jsonData.choices?.[0]?.delta?.content;
-                  if (contentPart) {
-                    // Append content to the existing message
+                  // Check explicitly for content existence (can be empty string)
+                  if (contentPart !== undefined && contentPart !== null) {
                     if (assistantMessageIndex !== -1 && messages.value[assistantMessageIndex]) {
                       messages.value[assistantMessageIndex].content += contentPart;
-                      messages.value[assistantMessageIndex].loading = false; // Turn off loading once first chunk arrives
-                      scrollToBottom(); // Scroll as content arrives
+                      // Don't turn off loading here if image URL might still arrive
+                      // messages.value[assistantMessageIndex].loading = false;
+                      scrollToBottom();
                     } else {
                       console.error('Assistant message placeholder not found at index:', assistantMessageIndex)
                     }
                   }
 
-                  // Check for finish reason (optional, handled by DONE signal usually)
+                  // Check for finish reason
                   const finishReason = jsonData.choices?.[0]?.finish_reason;
                   if (finishReason === 'stop' && assistantMessageIndex !== -1 && messages.value[assistantMessageIndex]) {
-                    messages.value[assistantMessageIndex].loading = false;
+                    messages.value[assistantMessageIndex].loading = false; // Stop loading on finish
                     console.log('Stream finished (finish_reason=stop)');
                   }
 
+                  // Add checks for other potential JSON structures if needed
+
                 } catch (jsonError) {
-                  console.error('Error parsing JSON data:', jsonError, 'Raw data:', rawData);
-                  // Append raw data on error? Or show a generic error?
-                  if (assistantMessageIndex !== -1 && messages.value[assistantMessageIndex]) {
-                    messages.value[assistantMessageIndex].content += `\\n[Error parsing chunk: ${rawData}]`;
-                    messages.value[assistantMessageIndex].loading = false;
+                  // JSON parsing failed. Check if it's a URL.
+                  if (!isJsonParsed && rawData.startsWith('http')) {
+                    console.log('Received image URL:', rawData);
+                    if (assistantMessageIndex !== -1 && messages.value[assistantMessageIndex]) {
+                      // Assign the URL to the assistant message's imageUrl
+                      messages.value[assistantMessageIndex].imageUrl = rawData;
+                      // Image URL received. Don't necessarily stop loading, wait for text/finish.
+                      // messages.value[assistantMessageIndex].loading = false;
+                      scrollToBottom();
+                    } else {
+                      console.error('Assistant message placeholder not found when receiving image URL.');
+                    }
+                  } else {
+                    // JSON parse failed and it's not a URL - log error
+                    console.error('Error parsing non-URL SSE data:', jsonError, 'Raw data:', rawData);
+                    if (assistantMessageIndex !== -1 && messages.value[assistantMessageIndex]) {
+                      // Display a more user-friendly error or just log it
+                      // messages.value[assistantMessageIndex].content += `\\n[Error processing chunk: ${rawData}]`;
+                      console.warn('Assistant message received unparseable chunk:', rawData);
+                      // Still might receive finish signal, so don't immediately turn off loading unless needed
+                      // messages.value[assistantMessageIndex].loading = false;
+                    }
                   }
                 }
-
               } catch (e) {
                 // This catch block is for errors during substring/trimming before JSON parse
                 console.error('Error processing stream line before JSON parse:', e, 'Raw line:', line);
