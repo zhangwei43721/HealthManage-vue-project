@@ -127,77 +127,70 @@
     </Card>
 
     <!-- 运动详情编辑/新增弹窗 -->
-    <div v-if="dialogFormVisible" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4" @click.self="closeDialog">
-      <Card class="w-full max-w-xl max-h-[90vh] overflow-y-auto bg-white" elevation="large">
-        <div class="flex justify-between items-center mb-5 pb-3 border-b">
-          <h3 class="text-xl font-semibold text-text-primary">{{ dialogTitle }}</h3>
-          <Button type="text" :icon="Close" @click="closeDialog" iconOnly tooltip="关闭"></Button>
+    <Modal v-model="dialogFormVisible" :title="dialogTitle" size="lg" backdropStyle="glass">
+      <!-- 保存消息提示 -->
+      <div v-if="saveMessage" :class="['mb-4 p-3 rounded text-sm', saveMessage.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700']">
+        {{ saveMessage.text }}
+      </div>
+
+      <!-- 表单 -->
+      <form @submit.prevent="saveDetail" class="space-y-4">
+        <div>
+          <label for="detailSportType" class="block text-sm font-medium text-text-secondary mb-1">运动类型 <span class="text-red-500">*</span></label>
+          <InputField
+            id="detailSportType"
+            v-model="detailForm.sportType"
+            placeholder="例如：跑步、游泳"
+            :error="!!formErrors.sportType"
+            :errorMessage="formErrors.sportType"
+            required
+          />
+        </div>
+        <div>
+          <label for="detailDisease" class="block text-sm font-medium text-text-secondary mb-1">禁忌疾病</label>
+          <InputField
+            id="detailDisease"
+            v-model="detailForm.disease"
+            placeholder="例如：心脏病、高血压患者不宜剧烈运动"
+            type="textarea"
+            :rows="3"
+            :error="!!formErrors.disease"
+            :errorMessage="formErrors.disease"
+          />
+        </div>
+         <div>
+          <label for="detailMethod" class="block text-sm font-medium text-text-secondary mb-1">运动方法 <span class="text-red-500">*</span></label>
+          <InputField
+            id="detailMethod"
+            v-model="detailForm.method"
+            placeholder="详细描述运动步骤、技巧等"
+            type="textarea"
+            :rows="5"
+            :error="!!formErrors.method"
+            :errorMessage="formErrors.method"
+            required
+          />
+        </div>
+         <div>
+          <label for="detailNotes" class="block text-sm font-medium text-text-secondary mb-1">注意事项</label>
+          <InputField
+            id="detailNotes"
+            v-model="detailForm.notes"
+            placeholder="例如：运动前热身、运动后拉伸"
+            type="textarea"
+            :rows="4"
+            :error="!!formErrors.notes"
+            :errorMessage="formErrors.notes"
+          />
         </div>
 
-        <!-- 保存消息提示 -->
-        <div v-if="saveMessage" :class="['mb-4 p-3 rounded text-sm', saveMessage.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700']">
-          {{ saveMessage.text }}
+        <!-- 弹窗底部按钮 -->
+        <div class="flex justify-end gap-3 pt-4 border-t">
+          <Button type="outline" @click="closeDialog">取 消</Button>
+          <Button type="primary" nativeType="submit" :loading="saveLoading">确 定</Button>
         </div>
-
-        <!-- 表单 -->
-        <form @submit.prevent="saveDetail" class="space-y-4">
-          <div>
-            <label for="detailSportType" class="block text-sm font-medium text-text-secondary mb-1">运动类型 <span class="text-red-500">*</span></label>
-            <InputField
-              id="detailSportType"
-              v-model="detailForm.sportType"
-              placeholder="例如：跑步、游泳"
-              :error="!!formErrors.sportType"
-              :errorMessage="formErrors.sportType"
-              required
-            />
-          </div>
-          <div>
-            <label for="detailDisease" class="block text-sm font-medium text-text-secondary mb-1">禁忌疾病</label>
-            <InputField
-              id="detailDisease"
-              v-model="detailForm.disease"
-              placeholder="例如：心脏病、高血压患者不宜剧烈运动"
-              type="textarea"
-              :rows="3"
-              :error="!!formErrors.disease"
-              :errorMessage="formErrors.disease"
-            />
-          </div>
-           <div>
-            <label for="detailMethod" class="block text-sm font-medium text-text-secondary mb-1">运动方法 <span class="text-red-500">*</span></label>
-            <InputField
-              id="detailMethod"
-              v-model="detailForm.method"
-              placeholder="详细描述运动步骤、技巧等"
-              type="textarea"
-              :rows="5"
-              :error="!!formErrors.method"
-              :errorMessage="formErrors.method"
-              required
-            />
-          </div>
-           <div>
-            <label for="detailNotes" class="block text-sm font-medium text-text-secondary mb-1">注意事项</label>
-            <InputField
-              id="detailNotes"
-              v-model="detailForm.notes"
-              placeholder="例如：运动前热身、运动后拉伸"
-              type="textarea"
-              :rows="4"
-              :error="!!formErrors.notes"
-              :errorMessage="formErrors.notes"
-            />
-          </div>
-
-          <!-- 弹窗底部按钮 -->
-          <div class="flex justify-end gap-3 pt-4 border-t">
-            <Button type="outline" @click="closeDialog">取 消</Button>
-            <Button type="primary" nativeType="submit" :loading="saveLoading">确 定</Button>
-          </div>
-        </form>
-      </Card>
-    </div>
+      </form>
+    </Modal>
   </div>
 </template>
 
@@ -213,6 +206,7 @@ import sportItemManageApi from "@/services/sportItemManage";
 import Button from '@/components/base/Button.vue';
 import Card from '@/components/base/Card.vue';
 import InputField from '@/components/base/InputField.vue';
+import Modal from '@/components/base/Modal.vue';
 
 // --- Icon Imports ---
 import { Search, Refresh, Plus, Edit, Delete, Close, Clipboard } from '@icon-park/vue-next';

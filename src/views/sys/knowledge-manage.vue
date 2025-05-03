@@ -13,7 +13,7 @@
         <div class="flex items-center gap-2 flex-wrap">
           <InputField
             v-model="searchModel.sportType"
-            placeholder="输入运动类型搜索"
+              placeholder="输入运动类型搜索"
             :leftIcon="Search"
             size="medium"
             class="w-full md:w-60"
@@ -130,89 +130,82 @@
     </Card>
 
     <!-- 运动信息编辑/新增弹窗 -->
-    <div v-if="dialogFormVisible" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4" @click.self="closeDialog">
-      <Card class="w-full max-w-lg max-h-[90vh] overflow-y-auto bg-white" elevation="large">
-        <div class="flex justify-between items-center mb-5 pb-3 border-b">
-          <h3 class="text-xl font-semibold text-text-primary">{{ dialogTitle }}</h3>
-          <Button type="text" :icon="Close" @click="closeDialog" iconOnly tooltip="关闭"></Button>
+    <Modal v-model="dialogFormVisible" :title="dialogTitle" size="lg" backdropStyle="glass">
+      <!-- 保存消息提示 -->
+      <div v-if="saveMessage" :class="['mb-4 p-3 rounded text-sm', saveMessage.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700']">
+        {{ saveMessage.text }}
+      </div>
+
+      <!-- 表单 -->
+      <form @submit.prevent="saveSportInfo" class="space-y-4">
+        <div>
+          <label for="sportType" class="block text-sm font-medium text-text-secondary mb-1">运动类型 <span class="text-red-500">*</span></label>
+          <InputField
+            id="sportType"
+            v-model="sportInfoForm.sportType"
+            placeholder="例如：跑步、游泳、瑜伽"
+            :error="!!formErrors.sportType"
+            :errorMessage="formErrors.sportType"
+            required
+          />
+        </div>
+        <div>
+          <label for="suitableFrequency" class="block text-sm font-medium text-text-secondary mb-1">运动频率 <span class="text-red-500">*</span></label>
+          <InputField
+            id="suitableFrequency"
+            v-model="sportInfoForm.suitableFrequency"
+            placeholder="例如：每周 3-5 次"
+            :error="!!formErrors.suitableFrequency"
+            :errorMessage="formErrors.suitableFrequency"
+            required
+          />
+        </div>
+        <div>
+          <label for="suitableTime" class="block text-sm font-medium text-text-secondary mb-1">运动时间 <span class="text-red-500">*</span></label>
+          <InputField
+            id="suitableTime"
+            v-model="sportInfoForm.suitableTime"
+            placeholder="例如：每次 30-45 分钟"
+            :error="!!formErrors.suitableTime"
+            :errorMessage="formErrors.suitableTime"
+            required
+          />
+        </div>
+        <div>
+          <label for="recommendedSpeed" class="block text-sm font-medium text-text-secondary mb-1">运动速度/强度 <span class="text-red-500">*</span></label>
+          <InputField
+            id="recommendedSpeed"
+            v-model="sportInfoForm.recommendedSpeed"
+            placeholder="例如：中等强度，保持微喘"
+            :error="!!formErrors.recommendedSpeed"
+            :errorMessage="formErrors.recommendedSpeed"
+            required
+          />
+        </div>
+        <div>
+          <label for="suitableHeartRate" class="block text-sm font-medium text-text-secondary mb-1">运动心率 <span class="text-red-500">*</span></label>
+          <InputField
+            id="suitableHeartRate"
+            v-model="sportInfoForm.suitableHeartRate"
+            placeholder="例如：120-150 次/分钟"
+            :error="!!formErrors.suitableHeartRate"
+            :errorMessage="formErrors.suitableHeartRate"
+            required
+          />
         </div>
 
-        <!-- 保存消息提示 -->
-        <div v-if="saveMessage" :class="['mb-4 p-3 rounded text-sm', saveMessage.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700']">
-          {{ saveMessage.text }}
-        </div>
-
-        <!-- 表单 -->
-        <form @submit.prevent="saveSportInfo" class="space-y-4">
-          <div>
-            <label for="sportType" class="block text-sm font-medium text-text-secondary mb-1">运动类型 <span class="text-red-500">*</span></label>
-            <InputField
-              id="sportType"
-              v-model="sportInfoForm.sportType"
-              placeholder="例如：跑步、游泳、瑜伽"
-              :error="!!formErrors.sportType"
-              :errorMessage="formErrors.sportType"
-              required
-            />
-          </div>
-          <div>
-            <label for="suitableFrequency" class="block text-sm font-medium text-text-secondary mb-1">运动频率 <span class="text-red-500">*</span></label>
-            <InputField
-              id="suitableFrequency"
-              v-model="sportInfoForm.suitableFrequency"
-              placeholder="例如：每周 3-5 次"
-              :error="!!formErrors.suitableFrequency"
-              :errorMessage="formErrors.suitableFrequency"
-              required
-            />
-          </div>
-          <div>
-            <label for="suitableTime" class="block text-sm font-medium text-text-secondary mb-1">运动时间 <span class="text-red-500">*</span></label>
-            <InputField
-              id="suitableTime"
-              v-model="sportInfoForm.suitableTime"
-              placeholder="例如：每次 30-45 分钟"
-              :error="!!formErrors.suitableTime"
-              :errorMessage="formErrors.suitableTime"
-              required
-            />
-          </div>
-           <div>
-            <label for="recommendedSpeed" class="block text-sm font-medium text-text-secondary mb-1">运动速度/强度 <span class="text-red-500">*</span></label>
-            <InputField
-              id="recommendedSpeed"
-              v-model="sportInfoForm.recommendedSpeed"
-              placeholder="例如：中等强度，保持微喘"
-              :error="!!formErrors.recommendedSpeed"
-              :errorMessage="formErrors.recommendedSpeed"
-              required
-            />
-          </div>
-           <div>
-            <label for="suitableHeartRate" class="block text-sm font-medium text-text-secondary mb-1">运动心率 <span class="text-red-500">*</span></label>
-            <InputField
-              id="suitableHeartRate"
-              v-model="sportInfoForm.suitableHeartRate"
-              placeholder="例如：120-150 次/分钟"
-              :error="!!formErrors.suitableHeartRate"
-              :errorMessage="formErrors.suitableHeartRate"
-              required
-            />
-          </div>
-
-          <!-- 弹窗底部按钮 -->
-          <div class="flex justify-end gap-3 pt-4 border-t">
-            <Button type="outline" @click="closeDialog">取 消</Button>
-            <Button type="primary" nativeType="submit" :loading="saveLoading">确 定</Button>
-          </div>
-        </form>
-      </Card>
-    </div>
+      <!-- 弹窗底部按钮 -->
+        <div class="flex justify-end gap-3 pt-4 border-t">
+          <Button type="outline" @click="closeDialog">取 消</Button>
+          <Button type="primary" nativeType="submit" :loading="saveLoading">确 定</Button>
+      </div>
+      </form>
+    </Modal>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, computed } from 'vue';
+import { ref, reactive, onMounted, computed } from '@/composables/vue-imports';
 // --- Type Imports ---
 import type { SportInfo } from '@/types/sport'; // Import SportInfo type
 
@@ -223,6 +216,7 @@ import knowledgeManageApi from "@/services/knowledgeManage";
 import Button from '@/components/base/Button.vue';
 import Card from '@/components/base/Card.vue';
 import InputField from '@/components/base/InputField.vue';
+import Modal from '@/components/base/Modal.vue';
 
 // --- Icon Imports ---
 import { Search, Refresh, Plus, Edit, Delete, Close, Weightlifting } from '@icon-park/vue-next';
@@ -244,15 +238,15 @@ const isEditMode = ref(false);
 // Form data model
 const sportInfoForm = reactive<Partial<SportInfo>>({
     id: undefined,
-    sportType: '',
-    suitableFrequency: '',
-    suitableTime: '',
-    recommendedSpeed: '',
-    suitableHeartRate: ''
+        sportType: '',
+        suitableFrequency: '',
+        suitableTime: '',
+        recommendedSpeed: '',
+        suitableHeartRate: ''
 });
 // Form errors
 const formErrors = reactive<Record<keyof Omit<SportInfo, 'id'>, string>>({
-    sportType: '',
+        sportType: '',
     suitableFrequency: '',
     suitableTime: '',
     recommendedSpeed: '',
@@ -314,12 +308,12 @@ const getSportInfoList = async () => {
             total.value = 0;
             saveMessage.value = { type: 'error', text: '获取运动列表失败: 响应格式错误' };
         }
-    } catch (error) {
+      } catch (error) {
         console.error("Error fetching sport list:", error);
         sportInfoList.value = [];
         total.value = 0;
         saveMessage.value = { type: 'error', text: `获取运动列表失败: ${error instanceof Error ? error.message : '未知错误'}` };
-    } finally {
+      } finally {
         listLoading.value = false;
     }
 };

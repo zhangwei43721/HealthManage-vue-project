@@ -53,7 +53,7 @@
       <!-- 加载状态 -->
        <div v-if="listLoading" class="text-center py-10 text-text-secondary">
           加载中...
-       </div>
+                </div>
 
       <!-- 表格 -->
        <div v-else-if="bodyDataList.length > 0" class="overflow-x-auto">
@@ -122,14 +122,14 @@
             </tr>
           </tbody>
         </table>
-      </div>
+                </div>
 
       <!-- 空状态 -->
        <div v-else class="text-center py-10 text-text-secondary">
          <ChartHistogram theme="outline" size="48" class="mx-auto mb-4 text-gray-400"/>
          <p class="mb-4">暂无用户健康数据</p>
          <!-- <Button type="primary" size="small" @click="openDialog()">添加第一条记录</Button> -->
-       </div>
+                </div>
 
       <!-- 分页 -->
       <div v-if="total > 0 && !listLoading" class="mt-5 flex flex-col md:flex-row justify-between items-center">
@@ -139,7 +139,7 @@
           <div class="flex items-center gap-2">
               <Button
                   type="outline"
-                  size="small"
+                size="small"
                   :disabled="searchModel.pageNo <= 1"
                   @click="goToPage(searchModel.pageNo - 1)"
               >
@@ -147,7 +147,7 @@
               </Button>
               <Button
                   type="outline"
-                  size="small"
+                size="small"
                   :disabled="searchModel.pageNo >= totalPages"
                   @click="goToPage(searchModel.pageNo + 1)"
               >
@@ -169,114 +169,107 @@
     </Card>
 
     <!-- 健康数据编辑弹窗 (No Add for admin on Body table) -->
-    <div v-if="dialogFormVisible" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4 overflow-y-auto" @click.self="closeDialog">
-      <Card class="w-full max-w-3xl max-h-[90vh] overflow-y-auto bg-white" elevation="large">
-        <div class="flex justify-between items-center mb-5 pb-3 border-b">
-          <h3 class="text-xl font-semibold text-text-primary">{{ dialogTitle }}</h3>
-          <Button type="text" :icon="Close" @click="closeDialog" iconOnly tooltip="关闭"></Button>
+    <Modal v-model="dialogFormVisible" :title="dialogTitle" size="xl" backdropStyle="glass">
+      <!-- 保存消息提示 -->
+      <div v-if="saveMessage" :class="['mb-4 p-3 rounded text-sm', saveMessage.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700']">
+        {{ saveMessage.text }}
+      </div>
+
+      <!-- 表单 -->
+      <form @submit.prevent="saveBodyData" class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+        <!-- Basic Info -->
+        <div class="md:col-span-2 font-medium text-text-primary border-b pb-1 mb-2">基本信息</div>
+        <div>
+          <label for="bodyName" class="block text-sm font-medium text-text-secondary mb-1">姓名 <span class="text-red-500">*</span></label>
+          <InputField id="bodyName" v-model="bodyForm.name" placeholder="用户姓名" :error="!!formErrors.name" :errorMessage="formErrors.name" required />
+        </div>
+        <div>
+          <label for="bodyAge" class="block text-sm font-medium text-text-secondary mb-1">年龄 <span class="text-red-500">*</span></label>
+          <InputField id="bodyAge" v-model.number="bodyForm.age" type="number" placeholder="年龄" :error="!!formErrors.age" :errorMessage="formErrors.age" required />
+        </div>
+        <div>
+           <label for="bodyGender" class="block text-sm font-medium text-text-secondary mb-1">性别 <span class="text-red-500">*</span></label>
+           <select id="bodyGender" v-model="bodyForm.gender" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm rounded-md" :class="{'border-red-500': !!formErrors.gender}">
+               <option value="男">男</option>
+               <option value="女">女</option>
+           </select>
+            <p v-if="formErrors.gender" class="mt-1 text-xs text-red-600">{{ formErrors.gender }}</p>
         </div>
 
-        <!-- 保存消息提示 -->
-        <div v-if="saveMessage" :class="['mb-4 p-3 rounded text-sm', saveMessage.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700']">
-          {{ saveMessage.text }}
+        <!-- Body Metrics -->
+        <div class="md:col-span-2 font-medium text-text-primary border-b pb-1 mb-2 mt-4">身体指标</div>
+        <div>
+          <label for="bodyHeight" class="block text-sm font-medium text-text-secondary mb-1">身高 (cm) <span class="text-red-500">*</span></label>
+          <InputField id="bodyHeight" v-model.number="bodyForm.height" type="number" placeholder="身高" :error="!!formErrors.height" :errorMessage="formErrors.height" required />
+        </div>
+        <div>
+          <label for="bodyWeight" class="block text-sm font-medium text-text-secondary mb-1">体重 (kg) <span class="text-red-500">*</span></label>
+          <InputField id="bodyWeight" v-model.number="bodyForm.weight" type="number" placeholder="体重" :error="!!formErrors.weight" :errorMessage="formErrors.weight" required />
+        </div>
+        <div>
+          <label for="bodyHeartRate" class="block text-sm font-medium text-text-secondary mb-1">心率 (次/分) <span class="text-red-500">*</span></label>
+          <InputField id="bodyHeartRate" v-model.number="bodyForm.heartRate" type="number" placeholder="静息心率" :error="!!formErrors.heartRate" :errorMessage="formErrors.heartRate" required />
+        </div>
+        <div>
+          <label for="bodyVision" class="block text-sm font-medium text-text-secondary mb-1">视力 (5.0记为50) <span class="text-red-500">*</span></label>
+          <InputField id="bodyVision" v-model.number="bodyForm.vision" type="number" placeholder="视力" :error="!!formErrors.vision" :errorMessage="formErrors.vision" required />
         </div>
 
-        <!-- 表单 -->
-        <form @submit.prevent="saveBodyData" class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
-          <!-- Basic Info -->
-          <div class="md:col-span-2 font-medium text-text-primary border-b pb-1 mb-2">基本信息</div>
-          <div>
-            <label for="bodyName" class="block text-sm font-medium text-text-secondary mb-1">姓名 <span class="text-red-500">*</span></label>
-            <InputField id="bodyName" v-model="bodyForm.name" placeholder="用户姓名" :error="!!formErrors.name" :errorMessage="formErrors.name" required />
-          </div>
-          <div>
-            <label for="bodyAge" class="block text-sm font-medium text-text-secondary mb-1">年龄 <span class="text-red-500">*</span></label>
-            <InputField id="bodyAge" v-model.number="bodyForm.age" type="number" placeholder="年龄" :error="!!formErrors.age" :errorMessage="formErrors.age" required />
-          </div>
-          <div>
-             <label for="bodyGender" class="block text-sm font-medium text-text-secondary mb-1">性别 <span class="text-red-500">*</span></label>
-             <select id="bodyGender" v-model="bodyForm.gender" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm rounded-md" :class="{'border-red-500': !!formErrors.gender}">
-                 <option value="男">男</option>
-                 <option value="女">女</option>
-             </select>
-              <p v-if="formErrors.gender" class="mt-1 text-xs text-red-600">{{ formErrors.gender }}</p>
-          </div>
+        <!-- Health Indicators -->
+        <div class="md:col-span-2 font-medium text-text-primary border-b pb-1 mb-2 mt-4">健康指标</div>
+        <div>
+          <label for="bodyBloodSugar" class="block text-sm font-medium text-text-secondary mb-1">血糖 (mmol/L) <span class="text-red-500">*</span></label>
+          <InputField id="bodyBloodSugar" v-model.number="bodyForm.bloodSugar" type="number" step="0.1" placeholder="血糖值" :error="!!formErrors.bloodSugar" :errorMessage="formErrors.bloodSugar" required />
+        </div>
+        <div>
+          <label for="bodyBloodPressure" class="block text-sm font-medium text-text-secondary mb-1">血压 (mmHg) <span class="text-red-500">*</span></label>
+          <InputField id="bodyBloodPressure" v-model="bodyForm.bloodPressure" placeholder="例如: 120/80" :error="!!formErrors.bloodPressure" :errorMessage="formErrors.bloodPressure" required />
+        </div>
+        <div>
+          <label for="bodyBloodLipid" class="block text-sm font-medium text-text-secondary mb-1">血脂 <span class="text-red-500">*</span></label>
+          <InputField id="bodyBloodLipid" v-model="bodyForm.bloodLipid" placeholder="例如: 正常 / 偏高" :error="!!formErrors.bloodLipid" :errorMessage="formErrors.bloodLipid" required />
+        </div>
 
-           <!-- Body Metrics -->
-           <div class="md:col-span-2 font-medium text-text-primary border-b pb-1 mb-2 mt-4">身体指标</div>
-           <div>
-             <label for="bodyHeight" class="block text-sm font-medium text-text-secondary mb-1">身高 (cm) <span class="text-red-500">*</span></label>
-             <InputField id="bodyHeight" v-model.number="bodyForm.height" type="number" placeholder="身高" :error="!!formErrors.height" :errorMessage="formErrors.height" required />
-           </div>
-           <div>
-             <label for="bodyWeight" class="block text-sm font-medium text-text-secondary mb-1">体重 (kg) <span class="text-red-500">*</span></label>
-             <InputField id="bodyWeight" v-model.number="bodyForm.weight" type="number" placeholder="体重" :error="!!formErrors.weight" :errorMessage="formErrors.weight" required />
-           </div>
-            <div>
-             <label for="bodyHeartRate" class="block text-sm font-medium text-text-secondary mb-1">心率 (次/分) <span class="text-red-500">*</span></label>
-             <InputField id="bodyHeartRate" v-model.number="bodyForm.heartRate" type="number" placeholder="静息心率" :error="!!formErrors.heartRate" :errorMessage="formErrors.heartRate" required />
-           </div>
-           <div>
-             <label for="bodyVision" class="block text-sm font-medium text-text-secondary mb-1">视力 (5.0记为50) <span class="text-red-500">*</span></label>
-             <InputField id="bodyVision" v-model.number="bodyForm.vision" type="number" placeholder="视力" :error="!!formErrors.vision" :errorMessage="formErrors.vision" required />
-           </div>
+        <!-- Lifestyle -->
+        <div class="md:col-span-2 font-medium text-text-primary border-b pb-1 mb-2 mt-4">生活习惯</div>
+        <div>
+          <label for="bodySleepDuration" class="block text-sm font-medium text-text-secondary mb-1">睡眠时长 (h) <span class="text-red-500">*</span></label>
+          <InputField id="bodySleepDuration" v-model.number="bodyForm.sleepDuration" type="number" step="0.5" placeholder="小时" :error="!!formErrors.sleepDuration" :errorMessage="formErrors.sleepDuration" required />
+        </div>
+        <div>
+          <label for="bodySleepQuality" class="block text-sm font-medium text-text-secondary mb-1">睡眠质量 <span class="text-red-500">*</span></label>
+          <InputField id="bodySleepQuality" v-model="bodyForm.sleepQuality" placeholder="例如: 良好 / 一般 / 差" :error="!!formErrors.sleepQuality" :errorMessage="formErrors.sleepQuality" required />
+        </div>
+        <div>
+          <label for="bodyWaterConsumption" class="block text-sm font-medium text-text-secondary mb-1">日均饮水量 (L) <span class="text-red-500">*</span></label>
+          <InputField id="bodyWaterConsumption" v-model.number="bodyForm.waterConsumption" type="number" step="0.1" placeholder="升" :error="!!formErrors.waterConsumption" :errorMessage="formErrors.waterConsumption" required />
+        </div>
+        <div>
+          <label for="bodyFoodTypes" class="block text-sm font-medium text-text-secondary mb-1">主要食物类型</label>
+          <InputField id="bodyFoodTypes" v-model="bodyForm.foodTypes" placeholder="简单描述饮食习惯" :error="!!formErrors.foodTypes" :errorMessage="formErrors.foodTypes" />
+        </div>
+        <div class="flex items-center gap-4">
+          <label class="flex items-center">
+            <input type="checkbox" v-model="bodyForm.smoking" class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"/>
+            <span class="ml-2 text-sm text-text-secondary">是否吸烟</span>
+          </label>
+          <label class="flex items-center">
+            <input type="checkbox" v-model="bodyForm.drinking" class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"/>
+            <span class="ml-2 text-sm text-text-secondary">是否饮酒</span>
+          </label>
+          <label class="flex items-center">
+            <input type="checkbox" v-model="bodyForm.exercise" class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"/>
+            <span class="ml-2 text-sm text-text-secondary">规律运动</span>
+          </label>
+        </div>
 
-           <!-- Health Indicators -->
-            <div class="md:col-span-2 font-medium text-text-primary border-b pb-1 mb-2 mt-4">健康指标</div>
-             <div>
-               <label for="bodyBloodSugar" class="block text-sm font-medium text-text-secondary mb-1">血糖 (mmol/L) <span class="text-red-500">*</span></label>
-               <InputField id="bodyBloodSugar" v-model.number="bodyForm.bloodSugar" type="number" step="0.1" placeholder="血糖值" :error="!!formErrors.bloodSugar" :errorMessage="formErrors.bloodSugar" required />
-            </div>
-            <div>
-               <label for="bodyBloodPressure" class="block text-sm font-medium text-text-secondary mb-1">血压 (mmHg) <span class="text-red-500">*</span></label>
-               <InputField id="bodyBloodPressure" v-model="bodyForm.bloodPressure" placeholder="例如: 120/80" :error="!!formErrors.bloodPressure" :errorMessage="formErrors.bloodPressure" required />
-            </div>
-             <div>
-               <label for="bodyBloodLipid" class="block text-sm font-medium text-text-secondary mb-1">血脂 <span class="text-red-500">*</span></label>
-               <InputField id="bodyBloodLipid" v-model="bodyForm.bloodLipid" placeholder="例如: 正常 / 偏高" :error="!!formErrors.bloodLipid" :errorMessage="formErrors.bloodLipid" required />
-             </div>
-
-           <!-- Lifestyle -->
-            <div class="md:col-span-2 font-medium text-text-primary border-b pb-1 mb-2 mt-4">生活习惯</div>
-            <div>
-               <label for="bodySleepDuration" class="block text-sm font-medium text-text-secondary mb-1">睡眠时长 (h) <span class="text-red-500">*</span></label>
-               <InputField id="bodySleepDuration" v-model.number="bodyForm.sleepDuration" type="number" step="0.5" placeholder="小时" :error="!!formErrors.sleepDuration" :errorMessage="formErrors.sleepDuration" required />
-            </div>
-             <div>
-               <label for="bodySleepQuality" class="block text-sm font-medium text-text-secondary mb-1">睡眠质量 <span class="text-red-500">*</span></label>
-               <InputField id="bodySleepQuality" v-model="bodyForm.sleepQuality" placeholder="例如: 良好 / 一般 / 差" :error="!!formErrors.sleepQuality" :errorMessage="formErrors.sleepQuality" required />
-             </div>
-             <div>
-               <label for="bodyWaterConsumption" class="block text-sm font-medium text-text-secondary mb-1">日均饮水量 (L) <span class="text-red-500">*</span></label>
-               <InputField id="bodyWaterConsumption" v-model.number="bodyForm.waterConsumption" type="number" step="0.1" placeholder="升" :error="!!formErrors.waterConsumption" :errorMessage="formErrors.waterConsumption" required />
-             </div>
-             <div>
-               <label for="bodyFoodTypes" class="block text-sm font-medium text-text-secondary mb-1">主要食物类型</label>
-               <InputField id="bodyFoodTypes" v-model="bodyForm.foodTypes" placeholder="简单描述饮食习惯" :error="!!formErrors.foodTypes" :errorMessage="formErrors.foodTypes" />
-             </div>
-             <div class="flex items-center gap-4">
-                 <label class="flex items-center">
-                     <input type="checkbox" v-model="bodyForm.smoking" class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"/>
-                     <span class="ml-2 text-sm text-text-secondary">是否吸烟</span>
-                 </label>
-                 <label class="flex items-center">
-                     <input type="checkbox" v-model="bodyForm.drinking" class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"/>
-                     <span class="ml-2 text-sm text-text-secondary">是否饮酒</span>
-                 </label>
-                 <label class="flex items-center">
-                     <input type="checkbox" v-model="bodyForm.exercise" class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"/>
-                     <span class="ml-2 text-sm text-text-secondary">规律运动</span>
-                 </label>
-             </div>
-
-          <!-- 弹窗底部按钮 -->
-          <div class="md:col-span-2 flex justify-end gap-3 pt-5 border-t mt-4">
-            <Button type="outline" @click="closeDialog">取 消</Button>
-            <Button type="primary" nativeType="submit" :loading="saveLoading">保 存</Button>
-          </div>
-        </form>
-      </Card>
-    </div>
+        <!-- 弹窗底部按钮 -->
+        <div class="md:col-span-2 flex justify-end gap-3 pt-5 border-t mt-4">
+          <Button type="outline" @click="closeDialog">取 消</Button>
+          <Button type="primary" nativeType="submit" :loading="saveLoading">保 存</Button>
+        </div>
+      </form>
+    </Modal>
   </div>
 </template>
 
@@ -292,18 +285,19 @@ import userHealthManageApi from "@/services/userHealthManage";
 import Button from '@/components/base/Button.vue';
 import Card from '@/components/base/Card.vue';
 import InputField from '@/components/base/InputField.vue';
+import Modal from '@/components/base/Modal.vue';
 
 // --- Icon Imports ---
 import { Search, Refresh, Plus, Edit, Delete, Close, ChartHistogram, User as UserIcon, IdCardH, DocDetail } from '@icon-park/vue-next';
 
 // --- Reactive State ---
 const searchModel = reactive({
-    name: '',
+        name: '',
     id: '', // ID is usually number, but input can be string initially
     // Add other filters like gender if needed
     // gender: '',
-    pageNo: 1,
-    pageSize: 10,
+        pageNo: 1,
+        pageSize: 10,
 });
 
 const listLoading = ref(false);
@@ -404,7 +398,7 @@ const getBodyDataList = async () => {
         if (response && response.data && Array.isArray(response.data.rows)) {
             bodyDataList.value = response.data.rows;
             total.value = response.data.total;
-        } else {
+      } else {
             console.error("Unexpected response structure from getAllBodyList:", response);
             bodyDataList.value = [];
             total.value = 0;

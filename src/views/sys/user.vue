@@ -109,92 +109,85 @@
     </Card>
 
     <!-- Add/Edit User Modal -->
-    <div v-if="dialogFormVisible" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-      <Card class="w-full max-w-lg bg-white" variant="solid" elevation="large">
-        <div class="flex justify-between items-center mb-4 border-b pb-3">
-          <h3 class="text-lg font-semibold text-gray-800">{{ dialogTitle }}</h3>
-          <Button @click="closeDialog" type="text" :icon="Close" iconOnly size="small" title="关闭"></Button>
+    <Modal v-model="dialogFormVisible" :title="dialogTitle" size="lg" backdropStyle="glass">
+      <form @submit.prevent="saveUser" class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">用户名 <span class="text-red-500">*</span></label>
+          <InputField
+            v-model="userForm.username"
+            placeholder="请输入用户名 (2-20字符)"
+            :leftIcon="UserIcon"
+            :error="!!formErrors.username"
+            :errorMessage="formErrors.username"
+            @update:modelValue="formErrors.username = ''"
+          />
         </div>
 
-        <form @submit.prevent="saveUser" class="space-y-4">
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">用户名 <span class="text-red-500">*</span></label>
-            <InputField
-              v-model="userForm.username"
-              placeholder="请输入用户名 (2-20字符)"
-              :leftIcon="UserIcon"
-              :error="!!formErrors.username"
-              :errorMessage="formErrors.username"
-              @update:modelValue="formErrors.username = ''"
-            />
-          </div>
-
-          <div v-if="!isEditMode">
-            <label class="block text-sm font-medium text-gray-700 mb-1">密码 <span class="text-red-500">*</span></label>
-            <InputField
+        <div v-if="!isEditMode">
+          <label class="block text-sm font-medium text-gray-700 mb-1">密码 <span class="text-red-500">*</span></label>
+          <InputField
             type="password"
             v-model="userForm.password"
-              placeholder="请输入密码 (6-20字符)"
-              :leftIcon="Lock"
-              :error="!!formErrors.password"
-              :errorMessage="formErrors.password"
-               @update:modelValue="formErrors.password = ''"
-            />
-            <!-- Basic password strength indicator could be added here if needed -->
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">联系电话</label>
-            <InputField
-            v-model="userForm.phone"
-              placeholder="请输入手机号码 (选填)"
-              :leftIcon="Iphone"
-              :error="!!formErrors.phone"
-              :errorMessage="formErrors.phone"
-              @update:modelValue="formErrors.phone = ''"
-            />
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">电子邮件</label>
-             <InputField
-            v-model="userForm.email"
-              placeholder="请输入电子邮箱地址 (选填)"
-              :leftIcon="Message"
-              :error="!!formErrors.email"
-              :errorMessage="formErrors.email"
-              @update:modelValue="formErrors.email = ''"
-            />
-          </div>
-
-          <div>
-             <label class="block text-sm font-medium text-gray-700 mb-1">用户角色 <span class="text-red-500">*</span></label>
-             <!-- Basic Multi-Select using Checkboxes -->
-             <div class="border rounded-md p-2 max-h-40 overflow-y-auto">
-                 <div v-if="allRoleList.length > 0">
-                     <label v-for="role in allRoleList" :key="role.roleId" class="flex items-center space-x-2 p-1 hover:bg-gray-100 rounded cursor-pointer">
-                        <input type="checkbox" :value="role.roleId" v-model="userForm.roleIdList" class="rounded border-gray-300 text-primary focus:ring-primary">
-                        <span>{{ role.roleName }} ({{ role.roleDesc }})</span>
-                    </label>
-                 </div>
-                 <p v-else class="text-xs text-gray-500">没有可用的角色</p>
-             </div>
-             <p v-if="formErrors.roleIdList" class="text-xs text-red-500 mt-1">{{ formErrors.roleIdList }}</p>
-          </div>
-
-           <div v-if="!isEditMode" class="text-xs text-gray-500 flex items-center">
-               <Info class="w-4 h-4 mr-1 text-blue-500"/>
-               <span>用户创建后，可通过"修改密码"功能重置密码 (需另行实现)</span>
-           </div>
-
-          <!-- Save/Cancel Buttons -->
-          <div class="flex justify-end space-x-3 pt-4 border-t mt-6">
-            <Button type="outline" @click="closeDialog">取消</Button>
-            <Button type="primary" native-type="submit" :loading="saveLoading">确定</Button>
+            placeholder="请输入密码 (6-20字符)"
+            :leftIcon="Lock"
+            :error="!!formErrors.password"
+            :errorMessage="formErrors.password"
+             @update:modelValue="formErrors.password = ''"
+          />
+          <!-- Basic password strength indicator could be added here if needed -->
         </div>
-        </form>
-      </Card>
-      </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">联系电话</label>
+          <InputField
+            v-model="userForm.phone"
+            placeholder="请输入手机号码 (选填)"
+            :leftIcon="Iphone"
+            :error="!!formErrors.phone"
+            :errorMessage="formErrors.phone"
+            @update:modelValue="formErrors.phone = ''"
+          />
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">电子邮件</label>
+          <InputField
+            v-model="userForm.email"
+            placeholder="请输入电子邮箱地址 (选填)"
+            :leftIcon="Message"
+            :error="!!formErrors.email"
+            :errorMessage="formErrors.email"
+            @update:modelValue="formErrors.email = ''"
+          />
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">用户角色 <span class="text-red-500">*</span></label>
+          <!-- Basic Multi-Select using Checkboxes -->
+          <div class="border rounded-md p-2 max-h-40 overflow-y-auto">
+            <div v-if="allRoleList.length > 0">
+              <label v-for="role in allRoleList" :key="role.roleId" class="flex items-center space-x-2 p-1 hover:bg-gray-100 rounded cursor-pointer">
+                <input type="checkbox" :value="role.roleId" v-model="userForm.roleIdList" class="rounded border-gray-300 text-primary focus:ring-primary">
+                <span>{{ role.roleName }} ({{ role.roleDesc }})</span>
+              </label>
+            </div>
+            <p v-else class="text-xs text-gray-500">没有可用的角色</p>
+          </div>
+          <p v-if="formErrors.roleIdList" class="text-xs text-red-500 mt-1">{{ formErrors.roleIdList }}</p>
+        </div>
+
+        <div v-if="!isEditMode" class="text-xs text-gray-500 flex items-center">
+          <Info class="w-4 h-4 mr-1 text-blue-500"/>
+          <span>用户创建后，可通过"修改密码"功能重置密码 (需另行实现)</span>
+        </div>
+
+        <!-- Save/Cancel Buttons -->
+        <div class="flex justify-end space-x-3 pt-4 border-t mt-6">
+          <Button type="outline" @click="closeDialog">取消</Button>
+          <Button type="primary" native-type="submit" :loading="saveLoading">确定</Button>
+        </div>
+      </form>
+    </Modal>
 
   </div>
 </template>
@@ -210,6 +203,7 @@ import type { Role } from '@/types/role';
 import Button from '@/components/base/Button.vue';
 import Card from '@/components/base/Card.vue';
 import InputField from '@/components/base/InputField.vue';
+import Modal from '@/components/base/Modal.vue';
 
 // Import Icons from IconPark
 import { Search, Refresh, Plus, User as UserIcon, Iphone, Message, Edit, Delete, Lock, Info, Close, Left, Right } from '@icon-park/vue-next';

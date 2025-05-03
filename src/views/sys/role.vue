@@ -124,143 +124,136 @@
     </Card>
 
     <!-- 角色编辑/新增弹窗 -->
-    <div v-if="dialogFormVisible" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4" @click.self="closeDialog">
-      <Card class="w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-white" elevation="large">
-        <div class="flex justify-between items-center mb-5 pb-3 border-b">
-          <h3 class="text-xl font-semibold text-text-primary">{{ dialogTitle }}</h3>
-          <Button type="text" :icon="Close" @click="closeDialog" iconOnly tooltip="关闭"></Button>
-        </div>
+    <Modal v-model="dialogFormVisible" :title="dialogTitle" size="lg" backdropStyle="glass">
+      <!-- 保存消息提示 -->
+      <div v-if="saveMessage" :class="['mb-4 p-3 rounded text-sm', saveMessage.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700']">
+        {{ saveMessage.text }}
+      </div>
 
-        <!-- 保存消息提示 -->
-        <div v-if="saveMessage" :class="['mb-4 p-3 rounded text-sm', saveMessage.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700']">
-          {{ saveMessage.text }}
-        </div>
-
-        <!-- 表单 -->
-        <form @submit.prevent="saveRole" class="space-y-4">
-          <div>
-            <label for="roleName" class="block text-sm font-medium text-text-secondary mb-1">角色名称</label>
-            <InputField
-              id="roleName"
+      <!-- 表单 -->
+      <form @submit.prevent="saveRole" class="space-y-4">
+        <div>
+          <label for="roleName" class="block text-sm font-medium text-text-secondary mb-1">角色名称</label>
+          <InputField
+            id="roleName"
             v-model="roleForm.roleName"
-              placeholder="请输入角色名称 (2-20字符)"
-              :error="!!formErrors.roleName"
-              :errorMessage="formErrors.roleName"
-              required
-            />
-          </div>
-          <div>
-            <label for="roleDesc" class="block text-sm font-medium text-text-secondary mb-1">角色描述</label>
-            <InputField
-              id="roleDesc"
+            placeholder="请输入角色名称 (2-20字符)"
+            :error="!!formErrors.roleName"
+            :errorMessage="formErrors.roleName"
+            required
+          />
+        </div>
+        <div>
+          <label for="roleDesc" class="block text-sm font-medium text-text-secondary mb-1">角色描述</label>
+          <InputField
+            id="roleDesc"
             v-model="roleForm.roleDesc"
-              placeholder="请输入角色描述 (2-50字符)"
+            placeholder="请输入角色描述 (2-50字符)"
             type="textarea"
-              :rows="3"
-              :error="!!formErrors.roleDesc"
-              :errorMessage="formErrors.roleDesc"
-              required
-            />
-             <p v-if="formErrors.roleDesc" class="mt-1 text-xs text-red-600">{{ formErrors.roleDesc }}</p> <!-- Show textarea error below -->
-          </div>
+            :rows="3"
+            :error="!!formErrors.roleDesc"
+            :errorMessage="formErrors.roleDesc"
+            required
+          />
+          <p v-if="formErrors.roleDesc" class="mt-1 text-xs text-red-600">{{ formErrors.roleDesc }}</p> <!-- Show textarea error below -->
+        </div>
 
-          <!-- 权限树 -->
-          <div>
-            <label class="block text-sm font-medium text-text-secondary mb-1">权限设置</label>
-             <div class="border rounded p-3 max-h-60 overflow-y-auto">
-               <div class="flex justify-between items-center mb-2 pb-2 border-b">
-                 <span class="text-sm font-medium text-text-primary">选择权限</span>
-                  <div class="flex items-center gap-3">
-                    <button type="button" @click="expandAllNodes(menuList)" class="text-xs text-blue-600 hover:underline">全部展开</button>
-                    <button type="button" @click="collapseAllNodes()" class="text-xs text-blue-600 hover:underline">全部折叠</button>
-                     <label class="flex items-center cursor-pointer">
-                         <input type="checkbox" :checked="isAllSelectedComputed" @change="selectAllNodes(menuList, !isAllSelectedComputed)" class="mr-1 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"/>
-                         <span class="text-xs">{{ isAllSelectedComputed ? '取消全选' : '全选' }}</span>
-                     </label>
-                 </div>
-               </div>
-                <div v-if="formErrors.menuIdList" class="text-xs text-red-600 mb-2">{{ formErrors.menuIdList }}</div>
-               <!-- Custom Tree Structure -->
-               <div v-for="node in menuList" :key="node.menuId">
-                 <div class="flex items-center py-1">
-                   <!-- Toggle Expand/Collapse Icon -->
-                   <span @click="toggleExpand(node.menuId)" class="cursor-pointer mr-1 w-5 text-center">
-                     <component
-                         :is="node.children && node.children.length > 0 ? (expandedNodes.has(node.menuId) ? FolderOpen : FolderClose) : 'div'"
-                         theme="outline"
-                         size="16"
-                         class="text-gray-500 hover:text-primary inline-block"
+        <!-- 权限树 -->
+        <div>
+          <label class="block text-sm font-medium text-text-secondary mb-1">权限设置</label>
+          <div class="border rounded p-3 max-h-60 overflow-y-auto">
+            <div class="flex justify-between items-center mb-2 pb-2 border-b">
+              <span class="text-sm font-medium text-text-primary">选择权限</span>
+              <div class="flex items-center gap-3">
+                <button type="button" @click="expandAllNodes(menuList)" class="text-xs text-blue-600 hover:underline">全部展开</button>
+                <button type="button" @click="collapseAllNodes()" class="text-xs text-blue-600 hover:underline">全部折叠</button>
+                <label class="flex items-center cursor-pointer">
+                  <input type="checkbox" :checked="isAllSelectedComputed" @change="selectAllNodes(menuList, !isAllSelectedComputed)" class="mr-1 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"/>
+                  <span class="text-xs">{{ isAllSelectedComputed ? '取消全选' : '全选' }}</span>
+                </label>
+              </div>
+            </div>
+            <div v-if="formErrors.menuIdList" class="text-xs text-red-600 mb-2">{{ formErrors.menuIdList }}</div>
+            <!-- Custom Tree Structure -->
+            <div v-for="node in menuList" :key="node.menuId">
+              <div class="flex items-center py-1">
+                <!-- Toggle Expand/Collapse Icon -->
+                <span @click="toggleExpand(node.menuId)" class="cursor-pointer mr-1 w-5 text-center">
+                  <component
+                    :is="node.children && node.children.length > 0 ? (expandedNodes.has(node.menuId) ? FolderOpen : FolderClose) : 'div'"
+                    theme="outline"
+                    size="16"
+                    class="text-gray-500 hover:text-primary inline-block"
+                  />
+                </span>
+                <!-- Checkbox and Label -->
+                <label class="flex items-center cursor-pointer flex-grow">
+                  <input
+                    type="checkbox"
+                    :checked="isNodeSelected(node.menuId)"
+                    @change="toggleNodeSelection(node)"
+                    class="mr-2 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                  />
+                  <span class="text-sm">{{ node.title }}</span>
+                </label>
+              </div>
+              <!-- Children Nodes -->
+              <div v-if="node.children && node.children.length > 0 && expandedNodes.has(node.menuId)" class="pl-6">
+                <div v-for="child in node.children" :key="child.menuId">
+                  <div class="flex items-center py-1">
+                    <span class="mr-1 w-5 text-center"> <!-- Placeholder for alignment -->
+                      <component
+                        :is="child.children && child.children.length > 0 ? (expandedNodes.has(child.menuId) ? FolderOpen : FolderClose) : 'div'"
+                        theme="outline"
+                        size="16"
+                        class="text-gray-500 hover:text-primary inline-block"
                       />
-                   </span>
-                   <!-- Checkbox and Label -->
-                   <label class="flex items-center cursor-pointer flex-grow">
-                     <input
-                       type="checkbox"
-                       :checked="isNodeSelected(node.menuId)"
-                       @change="toggleNodeSelection(node)"
-                       class="mr-2 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                     />
-                     <span class="text-sm">{{ node.title }}</span>
-                   </label>
-                 </div>
-                 <!-- Children Nodes -->
-                 <div v-if="node.children && node.children.length > 0 && expandedNodes.has(node.menuId)" class="pl-6">
-                   <div v-for="child in node.children" :key="child.menuId">
-                       <div class="flex items-center py-1">
-                         <span class="mr-1 w-5 text-center"> <!-- Placeholder for alignment -->
-                             <component
-                               :is="child.children && child.children.length > 0 ? (expandedNodes.has(child.menuId) ? FolderOpen : FolderClose) : 'div'"
-                               theme="outline"
-                               size="16"
-                               class="text-gray-500 hover:text-primary inline-block"
-                             />
-                          </span>
-                         <label class="flex items-center cursor-pointer flex-grow">
-                            <input
-                              type="checkbox"
-                              :checked="isNodeSelected(child.menuId)"
-                              @change="toggleNodeSelection(child)"
-                              class="mr-2 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                            />
-                            <span class="text-sm">{{ child.title }}</span>
-                         </label>
-                       </div>
-                        <!-- Grandchildren Nodes (Add more levels if needed) -->
-                        <div v-if="child.children && child.children.length > 0 && expandedNodes.has(child.menuId)" class="pl-6">
-                           <div v-for="grandchild in child.children" :key="grandchild.menuId">
-                               <div class="flex items-center py-1">
-                                <span class="mr-1 w-5 text-center"></span> <!-- Placeholder -->
-                                 <label class="flex items-center cursor-pointer flex-grow">
-                                    <input
-                                      type="checkbox"
-                                      :checked="isNodeSelected(grandchild.menuId)"
-                                      @change="toggleNodeSelection(grandchild)"
-                                      class="mr-2 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                                    />
-                                    <span class="text-sm">{{ grandchild.title }}</span>
-                                 </label>
-                               </div>
-                           </div>
-                        </div>
-                   </div>
-                 </div>
+                    </span>
+                    <label class="flex items-center cursor-pointer flex-grow">
+                      <input
+                        type="checkbox"
+                        :checked="isNodeSelected(child.menuId)"
+                        @change="toggleNodeSelection(child)"
+                        class="mr-2 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                      />
+                      <span class="text-sm">{{ child.title }}</span>
+                    </label>
+                  </div>
+                  <!-- Grandchildren Nodes (Add more levels if needed) -->
+                  <div v-if="child.children && child.children.length > 0 && expandedNodes.has(child.menuId)" class="pl-6">
+                    <div v-for="grandchild in child.children" :key="grandchild.menuId">
+                      <div class="flex items-center py-1">
+                        <span class="mr-1 w-5 text-center"></span> <!-- Placeholder -->
+                        <label class="flex items-center cursor-pointer flex-grow">
+                          <input
+                            type="checkbox"
+                            :checked="isNodeSelected(grandchild.menuId)"
+                            @change="toggleNodeSelection(grandchild)"
+                            class="mr-2 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                          />
+                          <span class="text-sm">{{ grandchild.title }}</span>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
+        </div>
 
       <!-- 弹窗底部按钮 -->
-          <div class="flex justify-end gap-3 pt-4 border-t">
-            <Button type="outline" @click="closeDialog">取 消</Button>
-            <Button type="primary" nativeType="submit" :loading="saveLoading">确 定</Button>
-          </div>
-        </form>
-      </Card>
+        <div class="flex justify-end gap-3 pt-4 border-t">
+          <Button type="outline" @click="closeDialog">取 消</Button>
+          <Button type="primary" nativeType="submit" :loading="saveLoading">确 定</Button>
       </div>
+      </form>
+    </Modal>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, computed } from 'vue';
+import { ref, reactive, onMounted, computed } from '@/composables/vue-imports';
 // --- Type Imports ---
 import type { Role } from '@/types/role'; // Import Role type
 import type { Menu } from '@/types/menu'; // Import Menu type
@@ -273,17 +266,12 @@ import menuApi from "@/services/menuManage";
 import Button from '@/components/base/Button.vue';
 import Card from '@/components/base/Card.vue';
 import InputField from '@/components/base/InputField.vue';
+import Modal from '@/components/base/Modal.vue';
 // Assuming SearchField might not be needed if InputField with icon covers it
 // import SearchField from '@/components/base/SearchField.vue';
 
 // --- Icon Imports ---
 import { Search, Refresh, Plus, Edit, Delete, Close, PeoplesTwo, FolderClose, FolderOpen } from '@icon-park/vue-next';
-
-// --- Helper Type for Custom Tree Node (if needed specifically here) ---
-// interface TreeNode extends Menu {
-//     children?: TreeNode[];
-// }
-// Use Menu directly if TreeNode is not adding much structure
 
 // --- Reactive State ---
 const searchModel = reactive({
@@ -428,7 +416,7 @@ const openDialog = async (id?: number) => {
                     ...roleData,
                     menuIdList: Array.isArray(roleData.menuIdList) ? roleData.menuIdList : []
                 });
-            } else {
+        } else {
                  console.error("Invalid data received for role:", response);
                  throw new Error("获取的角色数据格式无效");
             }
