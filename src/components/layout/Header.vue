@@ -20,12 +20,12 @@
         <!-- 桌面端导航菜单 -->
         <nav class="hidden md:flex items-center space-x-4">
           <!-- 用户导航菜单 -->
-          <RouterLink v-for="(item, index) in userNavigationItems" :key="'user-'+index" :to="item.path"
-            class="flex items-center px-4 py-2 rounded-full text-white/90 hover:text-white hover:bg-white/10 transition-all duration-200"
-            :class="{ 'bg-white/20 text-white font-medium shadow-sm': isActive(item.path) }">
-            <component :is="item.icon" size="16" class="mr-1.5" />
-            {{ item.name }}
-          </RouterLink>
+            <RouterLink v-for="(item, index) in userNavigationItems" :key="'user-'+index" :to="item.path"
+              class="flex items-center px-4 py-2 rounded-full text-white/90 hover:text-white hover:bg-white/10 transition-all duration-200"
+              :class="{ 'bg-white/20 text-white font-medium shadow-sm': isActive(item.path) }">
+              <component :is="item.icon" size="16" class="mr-1.5" />
+              {{ item.name }}
+            </RouterLink>
 
           <!-- 管理员入口按钮 (桌面端) -->
           <RouterLink v-if="userStore.isAdmin" to="/sys"
@@ -62,12 +62,12 @@
       :class="{ 'max-h-0 opacity-0': !isMenuOpen, 'max-h-[500px] opacity-100 shadow-lg': isMenuOpen }">
       <div class="px-4 pt-2 pb-4 space-y-1">
         <!-- 用户菜单项 (移动端) -->
-        <RouterLink v-for="(item, index) in userNavigationItems" :key="'user-m-'+index" :to="item.path"
-          class="flex items-center px-4 py-2.5 my-1 rounded-xl text-white/90 hover:text-white"
-          :class="{ 'bg-white/20 text-white font-medium shadow-sm': isActive(item.path) }" @click="closeMenu">
-          <component :is="item.icon" size="18" class="mr-2.5" />
-          {{ item.name }}
-        </RouterLink>
+          <RouterLink v-for="(item, index) in userNavigationItems" :key="'user-m-'+index" :to="item.path"
+            class="flex items-center px-4 py-2.5 my-1 rounded-xl text-white/90 hover:text-white"
+            :class="{ 'bg-white/20 text-white font-medium shadow-sm': isActive(item.path) }" @click="closeMenu">
+            <component :is="item.icon" size="18" class="mr-2.5" />
+            {{ item.name }}
+          </RouterLink>
 
         <!-- 管理员入口按钮 (移动端) -->
         <RouterLink v-if="userStore.isAdmin" to="/sys"

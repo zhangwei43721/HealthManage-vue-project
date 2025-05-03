@@ -1,5 +1,6 @@
 <template>
-  <div class="health-dashboard min-h-screen pb-20 pt-24 dark:bg-gray-900 dark:text-white">
+  <div class="health-dashboard min-h-screen pb-12 pt-20 dark:bg-gray-900 dark:text-white">
+    <!-- 加载状态显示 -->
     <div v-if="isLoading"
       class="fixed inset-0 z-50 flex items-center justify-center bg-white bg-opacity-75 dark:bg-gray-900 dark:bg-opacity-75">
       <div class="text-center">
@@ -14,6 +15,7 @@
       </div>
     </div>
 
+    <!-- 错误信息显示 -->
     <div v-if="error" class="fixed inset-x-0 top-20 z-50 flex justify-center">
       <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded max-w-md flex items-center shadow-lg">
         <svg class="w-5 h-5 mr-2 text-red-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
@@ -39,66 +41,220 @@
       </div>
     </div>
 
+    <!-- 主内容区域 -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="text-center mb-10">
-        <h1 class="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">健康数据中心</h1>
-        <p class="mt-3 text-xl text-gray-500 dark:text-gray-400">全面了解您的健康状况和历史变化</p>
+      <!-- 页面标题 -->
+      <div class="text-center mb-8">
+        <h1 class="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">个人健康数据中心</h1>
+        <p class="mt-2 text-base text-gray-500 dark:text-gray-400">全面了解您的健康状况和趋势变化</p>
       </div>
 
-      <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
-        <div
-          class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300"
-          style="height: 300px">
-          <div class="p-6 flex flex-col items-center justify-center h-full relative">
-            <svg class="absolute inset-0 w-full h-full" viewBox="0 0 100 100">
-              <defs>
-                <linearGradient id="healthGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" :stop-color="healthIndexColor" />
-                  <stop offset="100%" :stop-color="healthGradientEndColor" />
-                </linearGradient>
-              </defs>
-              <circle cx="50" cy="50" r="40" fill="none" stroke="#f3f4f6" stroke-width="10"
-                class="dark:stroke-gray-700" />
-              <circle cx="50" cy="50" r="40" fill="none" stroke="url(#healthGradient)" stroke-width="10"
-                stroke-dasharray="251.2" :stroke-dashoffset="251.2 * (1 - healthIndex / 100)"
-                transform="rotate(-90 50 50)">
-                <animate attributeName="stroke-dashoffset" :from="251.2" :to="251.2 * (1 - healthIndex / 100)"
-                  dur="1.5s" fill="freeze" calcMode="spline" keySplines="0.42 0 0.58 1" />
-              </circle>
-            </svg>
-            <div class="relative z-10 flex flex-col items-center">
-              <span class="text-5xl font-bold"
-                :style="`background: linear-gradient(to right, ${healthIndexColor}, ${healthGradientEndColor}); -webkit-background-clip: text; -webkit-text-fill-color: transparent;`">{{
-                  healthIndex }}%</span>
-              <span class="text-gray-600 dark:text-gray-300 mt-2 text-lg font-medium">健康指数</span>
-              <div class="mt-3 text-sm font-medium" :class="healthIndexClass">{{ healthIndexText }}</div>
+      <!-- 健康指数和身体数据卡片 -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- 健康指数卡片 -->
+        <div class="lg:col-span-3">
+          <div
+            class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden h-full transform hover:scale-102 transition-transform duration-300">
+            <div class="p-6 flex flex-col items-center justify-center h-full relative">
+              <svg class="mb-4 w-40 h-40" viewBox="0 0 100 100">
+                <defs>
+                  <linearGradient id="healthGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" :stop-color="healthIndexColor" />
+                    <stop offset="100%" :stop-color="healthGradientEndColor" />
+                  </linearGradient>
+                  <!-- 水球图波浪效果滤镜 -->
+                  <filter id="wave" x="0" y="0" width="100%" height="100%">
+                    <feTurbulence type="fractalNoise" baseFrequency="0.01 0.05" numOctaves="1" result="noise"
+                      seed="10" />
+                    <feDisplacementMap in="SourceGraphic" in2="noise" scale="3" xChannelSelector="R"
+                      yChannelSelector="G" />
+                  </filter>
+                  <clipPath id="clip">
+                    <circle cx="50" cy="50" r="45" />
+                  </clipPath>
+                  <!-- 水波纹动画 -->
+                  <linearGradient id="liquidFill" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stop-color="rgba(72, 202, 139, 0.8)" />
+                    <stop offset="100%" stop-color="rgba(72, 202, 139, 0.2)" />
+                  </linearGradient>
+                  <!-- 波浪动画 -->
+                  <animate xlink:href="#wave-path" attributeName="d" dur="5s" begin="0s" repeatCount="indefinite"
+                    values="
+                      M 0 50 Q 25 40 50 50 T 100 50 V 100 H 0 Z;
+                      M 0 50 Q 25 60 50 50 T 100 50 V 100 H 0 Z;
+                      M 0 50 Q 25 40 50 50 T 100 50 V 100 H 0 Z" />
+                </defs>
+
+                <!-- 外圆 -->
+                <circle cx="50" cy="50" r="45" fill="none" stroke="#50C878" stroke-width="2" />
+
+                <!-- 水球主体 -->
+                <g clip-path="url(#clip)">
+                  <!-- 填充背景 -->
+                  <rect x="0" :y="100 - calculatedHealthScore" width="100" :height="calculatedHealthScore"
+                    fill="url(#liquidFill)" />
+
+                  <!-- 波浪效果 -->
+                  <path id="wave-path"
+                    :d="`M 0 ${110 - calculatedHealthScore} Q 25 ${100 - calculatedHealthScore} 50 ${110 - calculatedHealthScore} T 100 ${110 - calculatedHealthScore} V 100 H 0 Z`"
+                    fill="url(#liquidFill)" filter="url(#wave)">
+                  </path>
+
+                  <!-- 第二层波浪（透明度较低，形成层次感） -->
+                  <path
+                    :d="`M 0 ${115 - calculatedHealthScore} Q 30 ${105 - calculatedHealthScore} 55 ${115 - calculatedHealthScore} T 100 ${115 - calculatedHealthScore} V 100 H 0 Z`"
+                    fill="rgba(72, 202, 139, 0.3)" filter="url(#wave)" opacity="0.7">
+                    <animate attributeName="d" dur="6s" begin="0.5s" repeatCount="indefinite"
+                      values="
+                        M 0 ${115 - calculatedHealthScore} Q 30 ${105 - calculatedHealthScore} 55 ${115 - calculatedHealthScore} T 100 ${115 - calculatedHealthScore} V 100 H 0 Z;
+                        M 0 ${115 - calculatedHealthScore} Q 30 ${125 - calculatedHealthScore} 55 ${115 - calculatedHealthScore} T 100 ${115 - calculatedHealthScore} V 100 H 0 Z;
+                        M 0 ${115 - calculatedHealthScore} Q 30 ${105 - calculatedHealthScore} 55 ${115 - calculatedHealthScore} T 100 ${115 - calculatedHealthScore} V 100 H 0 Z" />
+                  </path>
+                </g>
+
+                <!-- 显示百分比的文字 -->
+                <text x="50" y="55" text-anchor="middle" font-size="20" font-weight="bold" fill="#fff">{{
+                  calculatedHealthScore }}%</text>
+              </svg>
+              <div class="text-center">
+                <div class="text-gray-600 dark:text-gray-300 mt-2 text-lg font-medium">健康指数</div>
+                <div class="mt-3 text-lg font-medium" :class="getHealthIndexClass(calculatedHealthScore)">{{
+                  getHealthIndexText(calculatedHealthScore) }}</div>
+              </div>
             </div>
           </div>
         </div>
 
-        <div class="lg:col-span-3 bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden">
-          <div class="p-6">
-            <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
-              <svg class="w-5 h-5 mr-2 text-blue-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path
-                  d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z">
-                </path>
-              </svg>
-              身体数据
-            </h2>
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-              <div v-for="item in bodyDataItems" :key="item.label"
-                class="bg-gray-50 dark:bg-gray-700 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow duration-300">
-                <div class="flex flex-col items-center justify-center h-36">
-                  <div class="text-center">
-                    <div class="text-lg text-gray-700 dark:text-gray-300 mb-2">{{ item.label }}</div>
-                    <div class="flex items-baseline">
-                      <span class="text-3xl font-bold text-gray-900 dark:text-white">{{ item.value }}</span>
-                      <span v-if="item.unit" class="ml-1 text-gray-500 dark:text-gray-400 text-sm">{{ item.unit
-                      }}</span>
+        <!-- 身体数据和生命体征卡片 -->
+        <div class="lg:col-span-9">
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
+            <!-- 身体基础数据 -->
+            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden">
+              <div class="p-5">
+                <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+                  <svg class="w-6 h-6 mr-2 text-blue-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path
+                      d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z">
+                    </path>
+                  </svg>
+                  身体基础数据
+                </h2>
+                <!-- 将身高、体重、BMI改为紧凑的行式布局 -->
+                <div class="bg-gray-50 dark:bg-gray-700 rounded-xl p-4 mb-4">
+                  <div class="flex flex-row items-center justify-between">
+                    <div class="flex items-center">
+                      <div class="text-sm text-gray-600 dark:text-gray-300">身高：</div>
+                      <div class="ml-2 font-bold text-gray-900 dark:text-white">{{ bodyData.height }} <span
+                          class="text-xs font-normal text-gray-500 dark:text-gray-400">cm</span></div>
                     </div>
-                    <div v-if="item.comment" class="mt-2 text-sm" :class="item.commentClass">{{ item.comment }}</div>
+                    <div class="flex items-center">
+                      <div class="text-sm text-gray-600 dark:text-gray-300">体重：</div>
+                      <div class="ml-2 font-bold text-gray-900 dark:text-white">{{ bodyData.weight }} <span
+                          class="text-xs font-normal text-gray-500 dark:text-gray-400">kg</span></div>
+                    </div>
+                    <div class="flex items-center">
+                      <div class="text-sm text-gray-600 dark:text-gray-300">BMI：</div>
+                      <div class="ml-2 font-bold text-gray-900 dark:text-white">{{ bmi.toFixed(1) }}</div>
+                      <div class="ml-1 text-xs" :class="getBmiCommentClass(bmi)">{{ getBmiComment(bmi) }}</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="text-md font-medium text-gray-700 dark:text-gray-200 mb-3">其他指标</div>
+                <div class="grid grid-cols-2 gap-4">
+                  <!-- 其他身体数据项 -->
+                  <div v-if="bodyData.age"
+                    class="bg-gray-50 dark:bg-gray-700 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow duration-300">
+                    <div class="flex flex-col items-center justify-center">
+                      <div class="text-center">
+                        <div class="text-sm text-gray-600 dark:text-gray-300 mb-1">年龄</div>
+                        <div class="flex items-baseline justify-center">
+                          <span class="text-2xl font-bold text-gray-900 dark:text-white">{{ bodyData.age }}</span>
+                          <span class="ml-1 text-gray-500 dark:text-gray-400 text-xs">岁</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div v-if="bodyData.gender"
+                    class="bg-gray-50 dark:bg-gray-700 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow duration-300">
+                    <div class="flex flex-col items-center justify-center">
+                      <div class="text-center">
+                        <div class="text-sm text-gray-600 dark:text-gray-300 mb-1">性别</div>
+                        <div class="flex items-baseline justify-center">
+                          <span class="text-2xl font-bold text-gray-900 dark:text-white">{{ bodyData.gender }}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div v-if="bodyData.sleepDuration"
+                    class="bg-gray-50 dark:bg-gray-700 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow duration-300">
+                    <div class="flex flex-col items-center justify-center">
+                      <div class="text-center">
+                        <div class="text-sm text-gray-600 dark:text-gray-300 mb-1">睡眠时长</div>
+                        <div class="flex items-baseline justify-center">
+                          <span class="text-2xl font-bold text-gray-900 dark:text-white">{{ bodyData.sleepDuration
+                            }}</span>
+                          <span class="ml-1 text-gray-500 dark:text-gray-400 text-xs">小时</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div v-if="bodyData.waterConsumption"
+                    class="bg-gray-50 dark:bg-gray-700 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow duration-300">
+                    <div class="flex flex-col items-center justify-center">
+                      <div class="text-center">
+                        <div class="text-sm text-gray-600 dark:text-gray-300 mb-1">饮水量</div>
+                        <div class="flex items-baseline justify-center">
+                          <span class="text-2xl font-bold text-gray-900 dark:text-white">{{ bodyData.waterConsumption
+                            }}</span>
+                          <span class="ml-1 text-gray-500 dark:text-gray-400 text-xs">ml</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 生命体征指标 -->
+            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden">
+              <div class="p-5">
+                <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+                  <svg class="w-6 h-6 mr-2 text-indigo-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+                  </svg>
+                  生命体征指标
+                </h2>
+                <div class="space-y-4">
+                  <div v-for="vital in vitalSignsConfig" :key="vital.key"
+                    class="bg-gray-50 dark:bg-gray-700 rounded-xl p-4 transition-all duration-200 hover:shadow-md dark:hover:bg-gray-600">
+                    <div class="flex flex-col mb-2">
+                      <div class="flex items-center justify-between">
+                        <span class="text-md font-medium text-gray-700 dark:text-gray-200">{{ vital.label }}</span>
+                        <span class="text-md font-medium" :class="getVitalStatus(vital.value, vital.ranges).textClass">
+                          {{ vital.value }} {{ vital.unit }}
+                          <span v-if="getVitalStatus(vital.value, vital.ranges).status === 'normal'"
+                            class="inline-flex items-center ml-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">(正常)</span>
+                          <span v-else-if="getVitalStatus(vital.value, vital.ranges).status === 'high'"
+                            class="inline-flex items-center ml-1 px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">(偏高)</span>
+                          <span v-else-if="getVitalStatus(vital.value, vital.ranges).status === 'low'"
+                            class="inline-flex items-center ml-1 px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">(偏低)</span>
+                        </span>
+                      </div>
+                    </div>
+                    <div class="relative h-3 w-full bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden">
+                      <div class="absolute top-0 left-0 h-full rounded-full"
+                        :class="getVitalStatus(vital.value, vital.ranges).progressClass"
+                        :style="`width: ${calculateProgress(vital.value, vital.progressMax)}%; transition: width 1s ease-in-out;`">
+                      </div>
+                    </div>
+                    <div class="mt-2 flex justify-between text-xs text-gray-500 dark:text-gray-400">
+                      <span>{{ vital.ranges.dangerLow }}</span>
+                      <span class="text-green-500 font-medium">{{ vital.ranges.normalMin }} - {{ vital.ranges.normalMax
+                        }}</span>
+                      <span>{{ vital.ranges.dangerHigh }}</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -107,117 +263,239 @@
         </div>
       </div>
 
-      <div
-        class="mt-8 bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
-        <div class="p-6">
-          <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
-            <svg class="w-5 h-5 mr-2 text-indigo-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
-            </svg>
-            生命体征
-          </h2>
-          <div class="space-y-6">
-            <div v-for="vital in vitalSignsConfig" :key="vital.key"
-              class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 transition-all duration-200 hover:bg-gray-100 dark:hover:bg-gray-600">
-              <div class="flex flex-col md:flex-row md:justify-between md:items-center mb-2">
-                <div class="flex items-center">
-                  <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ vital.label }}</span>
-                  <div class="relative ml-2 group">
-                    <svg class="w-4 h-4 text-gray-400 cursor-help" xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <circle cx="12" cy="12" r="10"></circle>
-                      <path d="M12 16v-4M12 8h.01"></path>
-                    </svg>
-                    <div
-                      class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-48 p-2 bg-gray-800 text-white text-xs rounded shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-opacity z-10">
-                      正常范围: {{ vital.ranges.normalMin }} - {{ vital.ranges.normalMax }} {{ vital.unit }}
-                    </div>
-                  </div>
-                </div>
-                <span class="text-sm font-medium mt-1 md:mt-0"
-                  :class="getVitalStatus(vital.value, vital.ranges).textClass">
-                  {{ vital.value }} {{ vital.unit }}
-                  <span v-if="getVitalStatus(vital.value, vital.ranges).status === 'normal'"
-                    class="inline-flex items-center ml-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">(正常)</span>
-                  <span v-else-if="getVitalStatus(vital.value, vital.ranges).status === 'high'"
-                    class="inline-flex items-center ml-1 px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">(偏高)</span>
-                  <span v-else-if="getVitalStatus(vital.value, vital.ranges).status === 'low'"
-                    class="inline-flex items-center ml-1 px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">(偏低)</span>
-                </span>
-              </div>
-              <div class="relative h-3 w-full bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                <div class="absolute top-0 left-0 h-full rounded-full"
-                  :class="getVitalStatus(vital.value, vital.ranges).progressClass"
-                  :style="`width: ${calculateProgress(vital.value, vital.progressMax)}%; transition: width 1s ease-in-out;`">
-                </div>
-              </div>
-              <div class="mt-2 flex justify-between text-xs text-gray-500 dark:text-gray-400">
-                <span>{{ vital.ranges.dangerLow }}</span>
-                <span class="text-green-500">{{ vital.ranges.normalMin }} - {{ vital.ranges.normalMax }}</span>
-                <span>{{ vital.ranges.dangerHigh }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
+      <!-- 健康趋势综合图 -->
+      <div class="mt-6">
         <div
-          class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden transform hover:scale-[1.02] transition-all duration-300">
-          <div class="p-6">
-            <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
-              <svg class="w-5 h-5 mr-2 text-emerald-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
-                fill="none" stroke="currentColor" stroke-width="2">
-                <path
-                  d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z">
-                </path>
-              </svg>
-              健康评估分数
-            </h2>
-            <div ref="scoreChartContainer" class="h-72 w-full"></div>
-          </div>
-        </div>
-
-        <div
-          class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden transform hover:scale-[1.02] transition-all duration-300">
-          <div class="p-6">
-            <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
-              <svg class="w-5 h-5 mr-2 text-blue-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+          class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden transform hover:scale-[1.01] transition-all duration-300">
+          <div class="p-5">
+            <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+              <svg class="w-6 h-6 mr-2 text-blue-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
                 stroke="currentColor" stroke-width="2">
                 <path d="M21 12h-4l-3 8-4-16-3 8H3"></path>
               </svg>
               健康趋势综合图
             </h2>
-            <div ref="chartContainer" class="h-80 w-full"></div>
+            <div ref="chartContainer" class="h-96 w-full"></div>
           </div>
         </div>
       </div>
 
-      <div class="mt-8 bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden">
-        <div class="p-6">
-          <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
-            <svg class="w-5 h-5 mr-2 text-purple-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-              stroke="currentColor" stroke-width="2">
-              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-            </svg>
-            健康建议
-          </h2>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div v-for="(recommendation, index) in healthRecommendations" :key="index"
-              class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow duration-300">
-              <div class="flex items-start">
-                <div class="flex-shrink-0">
-                  <div class="w-10 h-10 rounded-full flex items-center justify-center" :class="recommendation.bgClass">
-                    <svg class="w-5 h-5" :class="recommendation.iconClass" xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <path :d="recommendation.iconPath"></path>
-                    </svg>
+      <!-- 两列卡片布局 -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+        <!-- 健康建议卡片 -->
+        <div
+          class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
+          <div class="p-5">
+            <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+              <svg class="w-6 h-6 mr-2 text-purple-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+              </svg>
+              健康建议
+            </h2>
+            <div class="grid grid-cols-1 gap-4">
+              <div v-for="(recommendation, index) in healthRecommendations" :key="index"
+                class="bg-gray-50 dark:bg-gray-700 rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-300">
+                <div class="flex items-start">
+                  <div class="flex-shrink-0">
+                    <div class="w-10 h-10 rounded-full flex items-center justify-center"
+                      :class="recommendation.bgClass">
+                      <svg class="w-5 h-5" :class="recommendation.iconClass" xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path :d="recommendation.iconPath"></path>
+                      </svg>
+                    </div>
+                  </div>
+                  <div class="ml-4">
+                    <h3 class="text-md font-medium text-gray-900 dark:text-white">{{ recommendation.title }}</h3>
+                    <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">{{ recommendation.description }}</p>
                   </div>
                 </div>
-                <div class="ml-4">
-                  <h3 class="text-base font-medium text-gray-900 dark:text-white">{{ recommendation.title }}</h3>
-                  <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ recommendation.description }}</p>
+              </div>
+            </div>
+            <div
+              class="mt-4 text-sm text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 p-3 rounded-lg flex items-center">
+              <svg class="w-5 h-5 mr-2 text-yellow-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+              </svg>
+              以上健康建议仅供参考，如有不适请及时就医咨询专业医生。
+            </div>
+          </div>
+        </div>
+
+        <!-- BMI分析卡片 -->
+        <div
+          class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
+          <div class="p-5">
+            <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+              <svg class="w-6 h-6 mr-2 text-emerald-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor" stroke-width="2">
+                <path
+                  d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zM7 10h2v7H7zm4-3h2v10h-2zm4 6h2v4h-2z">
+                </path>
+              </svg>
+              身体质量指数 (BMI)
+            </h2>
+            <div class="flex flex-col md:flex-row md:items-center p-2">
+              <div class="md:w-1/4 text-center mb-5 md:mb-0">
+                <div class="text-5xl font-bold mb-2" :class="getBmiColorClass(bmi)">{{ bmi.toFixed(1) }}</div>
+                <div class="text-md font-medium" :class="getBmiColorClass(bmi)">{{ bodyType }}</div>
+              </div>
+              <div class="md:w-3/4 md:px-6">
+                <div class="relative h-5 w-full bg-gray-200 dark:bg-gray-600 rounded-full mb-4">
+                  <div
+                    class="absolute top-0 left-0 h-full rounded-full bg-gradient-to-r from-blue-500 via-green-500 to-red-500"
+                    style="width: 100%;"></div>
+                  <div class="absolute top-0 h-full w-1 bg-white dark:bg-gray-800"
+                    :style="`left: ${calculateBmiPosition(bmi)}%; transform: translateX(-50%);`"></div>
+                  <div class="absolute -top-2 h-8 w-8 rounded-full border-2 border-white dark:border-gray-800 shadow-md"
+                    :class="getBmiBackgroundClass(bmi)"
+                    :style="`left: ${calculateBmiPosition(bmi)}%; transform: translateX(-50%);`"></div>
+                </div>
+                <div class="flex justify-between text-sm text-gray-500 dark:text-gray-400">
+                  <span>偏瘦</span>
+                  <span>正常</span>
+                  <span>超重</span>
+                  <span>肥胖</span>
+                </div>
+                <div class="flex justify-between mt-1">
+                  <span class="text-xs text-gray-500">18.5</span>
+                  <span class="text-xs text-gray-500">24</span>
+                  <span class="text-xs text-gray-500">28</span>
+                  <span class="text-xs text-gray-500">35+</span>
+                </div>
+                <div
+                  class="mt-4 text-sm text-gray-700 dark:text-gray-300 border-t border-gray-200 dark:border-gray-700 pt-4">
+                  <p class="mb-3"><span class="font-medium">健康风险: </span>{{ obesityHealthRisk }}</p>
+                  <p><span class="font-medium">体型建议: </span>{{ bodyTypeSuggestion }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 健康风险分析卡片 -->
+        <div
+          class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
+          <div class="p-5">
+            <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+              <svg class="w-6 h-6 mr-2 text-red-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2">
+                <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"></path>
+              </svg>
+              健康风险分析
+            </h2>
+
+            <div class="p-4 bg-gray-50 dark:bg-gray-700 rounded-xl">
+              <div class="mb-4">
+                <h3 class="text-md font-medium text-gray-900 dark:text-white mb-2">可能的健康风险：</h3>
+                <p class="text-sm text-gray-700 dark:text-gray-300">{{ calculatedRisk }}</p>
+              </div>
+
+              <div class="grid grid-cols-1 gap-5 mt-4">
+                <div
+                  class="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm transform hover:scale-[1.02] transition-all duration-300">
+                  <div class="flex items-center mb-3">
+                    <svg class="w-5 h-5 mr-2 text-blue-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                      fill="none" stroke="currentColor" stroke-width="2">
+                      <path
+                        d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z">
+                      </path>
+                    </svg>
+                    <h4 class="text-md font-medium text-gray-900 dark:text-white">生活习惯分析</h4>
+                  </div>
+                  <p class="text-sm text-gray-700 dark:text-gray-300">{{ calculatedHabits }}</p>
+                </div>
+
+                <div
+                  class="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm transform hover:scale-[1.02] transition-all duration-300">
+                  <div class="flex items-center mb-3">
+                    <svg class="w-5 h-5 mr-2 text-green-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                      fill="none" stroke="currentColor" stroke-width="2">
+                      <path
+                        d="M13.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM9.8 8.9L7 23h2.1l1.8-8 1.6 1.5v6.5h2v-9l-5.7-3.1zM17.7 10.3c-.6-.3-1.2.1-1.4.7L15 16.4l-1.2-2.1c-.3-.5-.9-.6-1.4-.3l-1 .6c-1.7 1-3.4 1.5-5.4 1.5v2c2.3 0 4.4-.6 6.3-1.7l.6 1c.3.5.9.6 1.4.3l1-.6c.5-.3.6-.9.3-1.4l-1.2-2.1L17 11l2.4 5.9h2L18 9l-.3-1.2z">
+                      </path>
+                    </svg>
+                    <h4 class="text-md font-medium text-gray-900 dark:text-white">基础代谢率 (BMR)</h4>
+                  </div>
+                  <div class="flex items-center mb-2">
+                    <div class="text-3xl font-bold text-gray-900 dark:text-white">{{ calculatedBMR }}</div>
+                    <div class="ml-2 text-sm text-gray-500 dark:text-gray-400">千卡/天</div>
+                  </div>
+                  <p class="text-sm text-gray-700 dark:text-gray-300">
+                    基础代谢率是指人体在清醒而完全静息状态下，维持生命所需的最低能量消耗。
+                  </p>
+                </div>
+              </div>
+
+              <div
+                class="mt-4 text-sm text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-600 p-3 rounded-lg flex items-center">
+                <svg class="w-5 h-5 mr-2 text-yellow-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                  fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                </svg>
+                以上分析仅供参考，不能替代专业医疗诊断。如有不适，请及时就医。
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 视力分析卡片 -->
+        <div
+          class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
+          <div class="p-5">
+            <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+              <svg class="w-6 h-6 mr-2 text-purple-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor" stroke-width="2">
+                <path
+                  d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z">
+                </path>
+              </svg>
+              视力分析
+            </h2>
+
+            <div class="bg-gray-50 dark:bg-gray-700 rounded-xl p-5">
+              <div class="flex flex-col md:flex-row">
+                <div
+                  class="mb-5 md:mb-0 md:w-1/3 md:pr-6 flex flex-col items-center border-b md:border-b-0 md:border-r border-gray-200 dark:border-gray-600 pb-5 md:pb-0">
+                  <div class="text-center mb-4">
+                    <div class="text-md text-gray-700 dark:text-gray-300 mb-2">当前视力状况</div>
+                    <div class="text-4xl font-bold text-gray-900 dark:text-white">{{ bodyData.vision || '无数据' }} <span
+                        class="text-md font-normal text-gray-500 dark:text-gray-400">度</span></div>
+                  </div>
+                  <div class="bg-white dark:bg-gray-800 rounded-lg py-2 px-5 shadow-sm">
+                    <div class="text-md font-medium" :class="getVisionTypeColor(visionType)">{{ visionType }}</div>
+                  </div>
+                </div>
+
+                <div class="md:w-2/3 md:pl-6">
+                  <div class="w-full mb-5">
+                    <div class="relative h-4 bg-gradient-to-r from-green-500 via-yellow-500 to-red-500 rounded-full">
+                      <div
+                        class="absolute -top-2 h-8 w-8 rounded-full border-2 border-white dark:border-gray-800 shadow-md"
+                        :class="getVisionMarkerClass(bodyData.vision)"
+                        :style="`left: ${calculateVisionPosition(bodyData.vision)}%; transform: translateX(-50%);`">
+                      </div>
+                    </div>
+                    <div class="flex justify-between mt-3 text-sm text-gray-600 dark:text-gray-300">
+                      <span>正常 (0度)</span>
+                      <span>轻度近视 (≤300度)</span>
+                      <span>中度近视 (≤600度)</span>
+                      <span>高度近视 (>600度)</span>
+                    </div>
+                  </div>
+
+                  <div class="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm">
+                    <div class="flex items-center mb-3">
+                      <svg class="w-5 h-5 mr-2 text-blue-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                      </svg>
+                      <h3 class="text-md font-medium text-gray-900 dark:text-white">视力健康建议</h3>
+                    </div>
+                    <p class="text-sm text-gray-700 dark:text-gray-300">{{ visionSuggestion }}</p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -229,10 +507,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, watch, nextTick } from '@/composables/vue-imports.ts'
+import { ref, computed, onMounted, onUnmounted, watch, nextTick } from '@/composables/vue-imports'
 import { getUserBodyInfo as getUserInfo, getHistoricalData } from '@/services/health.ts';
 import * as echarts from 'echarts/core';
-import { LineChart, BarChart } from 'echarts/charts';
+import { LineChart } from 'echarts/charts';
 import {
   TitleComponent, TooltipComponent, GridComponent, LegendComponent, DataZoomComponent,
   MarkLineComponent, MarkPointComponent, ToolboxComponent, AxisPointerComponent, VisualMapComponent
@@ -243,7 +521,7 @@ import type { EChartsOption } from 'echarts';
 
 echarts.use([
   TitleComponent, TooltipComponent, GridComponent, LegendComponent, DataZoomComponent, MarkLineComponent,
-  MarkPointComponent, ToolboxComponent, AxisPointerComponent, VisualMapComponent, LineChart, BarChart,
+  MarkPointComponent, ToolboxComponent, AxisPointerComponent, VisualMapComponent, LineChart,
   CanvasRenderer, UniversalTransition
 ]);
 
@@ -252,11 +530,6 @@ interface HistoricalRecord {
   bloodSugar: number; bloodPressure: string; bloodLipid: string; heartRate: number; vision: number;
   sleepDuration: number; sleepQuality: string; smoking: boolean; drinking: boolean; exercise: boolean;
   foodTypes: string; waterConsumption: number; date: number;
-}
-
-interface ScoreItem {
-  name: string;
-  score: number;
 }
 
 interface BodyDataType {
@@ -287,11 +560,8 @@ const bodyData = ref<BodyDataType>({
 
 const historyData = ref<HistoricalRecord[]>([]);
 const chartContainer = ref<HTMLElement | null>(null);
-const scoreChartContainer = ref<HTMLElement | null>(null);
 let chartInstance: echarts.ECharts | null = null;
-let scoreChartInstance: echarts.ECharts | null = null;
 let resizeObserver: ResizeObserver | null = null;
-let scoreResizeObserver: ResizeObserver | null = null;
 let themeObserver: MutationObserver | null = null;
 
 const isLoading = ref(true);
@@ -303,29 +573,7 @@ const bmi = computed(() => {
   return bodyData.value.weight / (heightInMeters * heightInMeters);
 });
 
-const bodyDataItems = computed(() => [
-  {
-    label: '身高',
-    value: bodyData.value.height,
-    unit: 'cm',
-    comment: '',
-    commentClass: ''
-  },
-  {
-    label: '体重',
-    value: bodyData.value.weight,
-    unit: 'kg',
-    comment: '',
-    commentClass: ''
-  },
-  {
-    label: 'BMI',
-    value: bmi.value.toFixed(1),
-    unit: '',
-    comment: getBmiComment(bmi.value),
-    commentClass: getBmiCommentClass(bmi.value)
-  }
-]);
+
 
 const calculateScore = (value: number, normalMin: number, normalMax: number, lowPenaltyFactor = 1, highPenaltyFactor = 1): number => {
   if (value >= normalMin && value <= normalMax) return 100;
@@ -378,18 +626,6 @@ const healthIndexColor = computed(() => {
   return '#ef4444';
 });
 
-const healthScoresChartData = computed(() => {
-  const scores = detailedScores.value;
-  return [
-    { name: 'BMI', score: scores.bmiScore },
-    { name: '血糖', score: scores.bloodSugarScore },
-    { name: '血压', score: scores.bloodPressureScore },
-    { name: '心率', score: scores.heartRateScore },
-    { name: '生活方式', score: scores.lifestyleScore },
-    { name: '血脂', score: scores.bloodLipidScore }
-  ];
-});
-
 const getVitalStatus = (value: number, ranges: VitalRanges): VitalStatus => {
   if (value >= ranges.normalMin && value <= ranges.normalMax) {
     return { status: 'normal', textClass: 'text-green-600 dark:text-green-400', progressClass: 'bg-green-500' };
@@ -417,12 +653,6 @@ const vitalSignsConfig = computed(() => {
 
 const calculateProgress = (value: number, max: number) => {
   return Math.min((value / max) * 100, 100);
-};
-
-const getScoreHexColor = (score: number): string => {
-  if (score >= 80) return '#10b981';
-  if (score >= 60) return '#f59e0b';
-  return '#ef4444';
 };
 
 const formatDate = (timestamp: number): string => {
@@ -572,88 +802,6 @@ const initChart = () => {
   }
 };
 
-const updateScoreChartOptions = () => {
-  if (!scoreChartInstance || !healthScoresChartData.value || healthScoresChartData.value.length === 0) return;
-
-  const scoresData = healthScoresChartData.value;
-  const categoryData = scoresData.map((item: ScoreItem) => item.name);
-  const seriesData = scoresData.map((item: ScoreItem) => item.score);
-  const isDarkMode = document.documentElement.classList.contains('dark');
-
-  const option: EChartsOption = {
-    darkMode: isDarkMode,
-    tooltip: {
-      trigger: 'axis',
-      formatter: '{b}: {c}分',
-      backgroundColor: isDarkMode ? 'rgba(50,50,50,0.9)' : 'rgba(255,255,255,0.9)',
-      borderColor: isDarkMode ? '#555' : '#ddd',
-      textStyle: { color: isDarkMode ? '#eee' : '#333' },
-      axisPointer: { type: 'shadow' }
-    },
-    grid: { top: '15%', left: '3%', right: '4%', bottom: '3%', containLabel: true },
-    xAxis: {
-      type: 'category',
-      data: categoryData,
-      axisLabel: {
-        interval: 0,
-        color: isDarkMode ? '#ccc' : '#5e6d82',
-        rotate: seriesData.length > 5 ? 45 : 0
-      },
-      axisLine: { lineStyle: { color: isDarkMode ? '#555' : '#eee' } },
-      axisTick: { show: false }
-    },
-    yAxis: {
-      type: 'value',
-      name: '评分',
-      min: 0,
-      max: 100,
-      interval: 20,
-      nameTextStyle: { color: isDarkMode ? '#ccc' : '#5e6d82' },
-      axisLabel: { color: isDarkMode ? '#ccc' : '#5e6d82' },
-      axisLine: { show: false },
-      splitLine: { lineStyle: { color: isDarkMode ? '#333' : '#eee' } }
-    },
-    series: [{
-      name: '评分',
-      type: 'bar',
-      barWidth: '40%',
-      data: seriesData,
-      itemStyle: {
-        color: params => getScoreHexColor(params.value as number),
-        borderRadius: [5, 5, 0, 0],
-        shadowColor: 'rgba(0, 0, 0, 0.3)',
-        shadowBlur: 5
-      },
-      label: {
-        show: true,
-        position: 'top',
-        formatter: '{c}分',
-        color: isDarkMode ? '#ddd' : '#666'
-      },
-      emphasis: {
-        itemStyle: {
-          shadowBlur: 10,
-          shadowColor: 'rgba(0,0,0,0.5)'
-        }
-      },
-      animationDelay: (idx: number) => idx * 200,
-    }],
-    animationEasing: 'elasticOut',
-    animationDelayUpdate: (idx: number) => idx * 5,
-  };
-  scoreChartInstance.setOption(option);
-};
-
-const initScoreChart = () => {
-  if (scoreChartContainer.value) {
-    const isDarkMode = document.documentElement.classList.contains('dark');
-    scoreChartInstance = echarts.init(scoreChartContainer.value, isDarkMode ? 'dark' : undefined);
-    updateScoreChartOptions();
-    scoreResizeObserver = new ResizeObserver(() => scoreChartInstance?.resize());
-    scoreResizeObserver.observe(scoreChartContainer.value);
-  }
-};
-
 const observeThemeChange = () => {
   const targetNode = document.documentElement;
   const config = { attributes: true, attributeFilter: ['class'] };
@@ -661,9 +809,7 @@ const observeThemeChange = () => {
     for (const mutation of mutationsList) {
       if (mutation.attributeName === 'class') {
         chartInstance?.dispose();
-        scoreChartInstance?.dispose();
         initChart();
-        initScoreChart();
       }
     }
   };
@@ -723,7 +869,6 @@ const retryDataFetch = async () => {
   }
   await nextTick();
   initChart();
-  initScoreChart();
 };
 
 onMounted(async () => {
@@ -736,7 +881,6 @@ onMounted(async () => {
     }
     await nextTick();
     initChart();
-    initScoreChart();
     observeThemeChange();
   } catch (err) {
     console.error('初始化页面失败:', err);
@@ -747,12 +891,9 @@ onMounted(async () => {
 
 onUnmounted(() => {
   chartInstance?.dispose();
-  scoreChartInstance?.dispose();
   if (chartContainer.value && resizeObserver) resizeObserver.unobserve(chartContainer.value);
-  if (scoreChartContainer.value && scoreResizeObserver) scoreResizeObserver.unobserve(scoreChartContainer.value);
   themeObserver?.disconnect();
   resizeObserver = null;
-  scoreResizeObserver = null;
   themeObserver = null;
 });
 
@@ -766,15 +907,13 @@ watch(bodyData, async (newData: BodyDataType) => {
     if (!historyData.value.length && newData.id) {
       await fetchHistoryData();
     }
-    await nextTick();
-    updateScoreChartOptions();
   }
 }, { deep: true });
 
 const getBmiComment = (bmiValue: number): string => {
-  if (bmiValue < 18.5) return '体重偏轻';
-  if (bmiValue < 24.9) return '体重正常';
-  if (bmiValue < 29.9) return '体重过重';
+  if (bmiValue < 18.5) return '偏轻';
+  if (bmiValue < 24.9) return '正常';
+  if (bmiValue < 29.9) return '过重';
   return '肥胖';
 };
 
@@ -792,19 +931,20 @@ const healthGradientEndColor = computed(() => {
   return '#f87171';
 });
 
-const healthIndexText = computed(() => {
-  const index = healthIndex.value;
-  if (index >= 80) return '优秀';
-  if (index >= 60) return '良好';
-  return '需要改善';
-});
+// 以下计算属性已替换为方法
+// const healthIndexText = computed(() => {
+//   const index = healthIndex.value;
+//   if (index >= 80) return '优秀';
+//   if (index >= 60) return '良好';
+//   return '需要改善';
+// });
 
-const healthIndexClass = computed(() => {
-  const index = healthIndex.value;
-  if (index >= 80) return 'text-green-500';
-  if (index >= 60) return 'text-yellow-500';
-  return 'text-red-500';
-});
+// const healthIndexClass = computed(() => {
+//   const index = healthIndex.value;
+//   if (index >= 80) return 'text-green-500';
+//   if (index >= 60) return 'text-yellow-500';
+//   return 'text-red-500';
+// });
 
 const healthRecommendations = computed(() => {
   const recommendations = [];
@@ -880,6 +1020,306 @@ const healthRecommendations = computed(() => {
 
   return recommendations;
 });
+
+const getBmiColorClass = (bmiValue: number): string => {
+  if (bmiValue < 18.5) return 'text-green-500';
+  if (bmiValue < 24.9) return 'text-yellow-500';
+  if (bmiValue < 28) return 'text-yellow-500';
+  return 'text-red-500';
+};
+
+const getBmiBackgroundClass = (bmiValue: number): string => {
+  if (bmiValue < 18.5) return 'bg-green-500';
+  if (bmiValue < 24.9) return 'bg-yellow-500';
+  if (bmiValue < 28) return 'bg-yellow-500';
+  return 'bg-red-500';
+};
+
+const calculateBmiPosition = (bmiValue: number): number => {
+  // 将BMI值映射到0-100%的位置
+  const minBmi = 15; // 最小BMI值
+  const maxBmi = 40; // 最大BMI值
+  const position = ((bmiValue - minBmi) / (maxBmi - minBmi)) * 100;
+  return Math.min(Math.max(position, 0), 100); // 确保在0-100%范围内
+};
+
+const bodyType = computed(() => {
+  if (bmi.value < 18.5) return '偏瘦';
+  if (bmi.value < 24.9) return '正常';
+  if (bmi.value < 28) return '超重';
+  return '肥胖';
+});
+
+const obesityHealthRisk = computed(() => {
+  if (bmi.value < 18.5) return '体重偏轻，可能存在营养不良或贫血等问题。';
+  if (bmi.value < 24.9) return '体重正常，保持良好的健康状态。';
+  if (bmi.value < 28) return '体重过重，可能存在心血管疾病、糖尿病等健康风险。';
+  return '肥胖，可能存在多种健康风险，如心血管疾病、糖尿病等。';
+});
+
+const bodyTypeSuggestion = computed(() => {
+  if (bmi.value < 18.5) return '建议增加营养摄入，多吃高蛋白、高纤维的食物，保持健康饮食。';
+  if (bmi.value < 24.9) return '保持良好的生活习惯，继续保持健康的饮食和运动习惯。';
+  if (bmi.value < 28) return '建议减少高热量食物摄入，增加有氧运动，控制体重。';
+  return '建议减少高热量食物摄入，增加有氧运动，控制体重，并咨询专业医生。';
+});
+
+const calculatedRisk = computed(() => {
+  if (!bodyData.value) return "数据加载中或加载失败";
+  const risks = [];
+
+  // 血压风险判断
+  if (bodyData.value.bloodPressure) {
+    const bpValue = parseInt(bodyData.value.bloodPressure);
+    if (bpValue >= 140) {
+      risks.push("高血压风险");
+    } else if (bpValue < 90 && bpValue > 0) {
+      risks.push("低血压风险");
+    }
+  }
+
+  // 其他风险
+  const info = bodyData.value;
+  if (info.bloodLipid && parseFloat(info.bloodLipid) > 5.2) risks.push("高血脂风险");
+  if (info.bloodSugar > 6.1 && info.bloodSugar < 7.0) risks.push("空腹血糖受损风险");
+  if (info.bloodSugar >= 7.0) risks.push("糖尿病风险");
+  if (info.heartRate > 100) risks.push("静息心率过快");
+  if (info.heartRate < 60 && info.heartRate > 0) risks.push("静息心率过缓");
+
+  // 视力风险
+  if (info.vision && info.vision >= 300) risks.push("近视相关眼病风险");
+
+  // 体型风险
+  if (bmi.value >= 24) risks.push("超重/肥胖相关疾病风险");
+  if (bmi.value < 18.5) risks.push("体重过轻相关风险");
+
+  // 生活习惯直接风险
+  if (info.smoking === true) risks.push("吸烟相关疾病风险");
+  if (info.drinking === true) risks.push("过量饮酒风险");
+  if (info.exercise === false) risks.push("缺乏运动风险");
+  if (info.sleepDuration && info.sleepDuration < 7) risks.push("睡眠不足风险");
+  if (info.sleepQuality === "差") risks.push("睡眠质量差风险");
+  if (info.waterConsumption && info.waterConsumption < 1500) risks.push("饮水不足风险");
+
+  return risks.length > 0 ? risks.join("，") : "暂未发现明显风险项";
+});
+
+const calculatedHabits = computed(() => {
+  if (!bodyData.value) return "数据加载中或加载失败";
+  const habitsList = [];
+  const info = bodyData.value;
+
+  // 饮食偏好
+  if (info.foodTypes && typeof info.foodTypes === 'string') {
+    habitsList.push(`饮食偏好: ${info.foodTypes.trim()}`);
+  } else {
+    habitsList.push("饮食偏好未记录");
+  }
+
+  // 作息与睡眠
+  if (typeof info.sleepDuration === 'number') {
+    habitsList.push(`平均睡眠时长: ${info.sleepDuration.toFixed(1)} 小时` + (info.sleepDuration < 7 ? " (可能不足)" : ""));
+  } else {
+    habitsList.push("睡眠时长未记录");
+  }
+
+  if (info.sleepQuality && typeof info.sleepQuality === 'string' && info.sleepQuality.trim() !== '') {
+    habitsList.push(`睡眠质量自评: ${info.sleepQuality.trim()}` + (info.sleepQuality === "差" ? " (有待改善)" : ""));
+  } else {
+    habitsList.push("睡眠质量未记录");
+  }
+
+  // 运动习惯
+  if (info.exercise === true) {
+    habitsList.push("有运动习惯");
+  } else if (info.exercise === false) {
+    habitsList.push("缺乏运动");
+  } else {
+    habitsList.push("运动习惯未记录");
+  }
+
+  // 饮水习惯
+  if (typeof info.waterConsumption === 'number') {
+    habitsList.push(`日均饮水: ${Math.round(info.waterConsumption)} ml` + (info.waterConsumption < 1500 ? " (可能不足)" : ""));
+  } else {
+    habitsList.push("饮水量未记录");
+  }
+
+  // 不良嗜好
+  if (info.smoking === true) {
+    habitsList.push("有吸烟习惯");
+  } else if (info.smoking === false) {
+    habitsList.push("无吸烟习惯");
+  } else {
+    habitsList.push("吸烟情况未记录");
+  }
+
+  if (info.drinking === true) {
+    habitsList.push("有饮酒习惯");
+  } else if (info.drinking === false) {
+    habitsList.push("无饮酒习惯");
+  } else {
+    habitsList.push("饮酒情况未记录");
+  }
+
+  return habitsList.length > 0 ? habitsList.join("； ") : "暂无足够信息评估生活习惯";
+});
+
+const calculatedBMR = computed(() => {
+  const info = bodyData.value;
+  if (!info || typeof info.weight !== 'number' || info.weight <= 0
+    || typeof info.height !== 'number' || info.height <= 0
+    || typeof info.age !== 'number' || info.age <= 0
+    || typeof info.gender !== 'string' || !info.gender) {
+    return 0; // 必要信息不全
+  }
+
+  const weight = info.weight;
+  const heightCm = info.height; // 假设身高已经是厘米单位
+  const age = info.age;
+  const gender = info.gender.toLowerCase(); // 转小写以便比较
+  let bmr;
+
+  // Harris-Benedict 公式 (修正版)
+  if (gender === '男' || gender === 'male') {
+    bmr = 88.362 + (13.397 * weight) + (4.799 * heightCm) - (5.677 * age);
+  } else if (gender === '女' || gender === 'female') {
+    bmr = 447.593 + (9.247 * weight) + (3.098 * heightCm) - (4.330 * age);
+  } else {
+    return 0; // 性别不识别
+  }
+
+  return bmr > 0 ? Math.round(bmr) : 0; // 返回正数 BMR 或 0
+});
+
+// 恢复综合健康评分计算属性，用于健康指数显示
+const calculatedHealthScore = computed(() => {
+  if (!bodyData.value.id) return 0;
+  const scores = detailedScores.value;
+  const total = (
+    scores.bmiScore * 2 +
+    scores.bloodSugarScore * 2 +
+    scores.bloodPressureScore * 2 +
+    scores.heartRateScore * 2 +
+    scores.lifestyleScore * 1.5 +
+    scores.bloodLipidScore * 1.5
+  ) / 11;
+  return Math.round(Math.max(0, Math.min(100, total)));
+});
+
+// 由于删除了综合健康评分板块，下面的计算属性不再需要
+// const healthScoreLevel = computed(() => {
+//   const score = calculatedHealthScore.value;
+//   if (score >= 90) return '优秀';
+//   if (score >= 80) return '良好';
+//   if (score >= 70) return '一般';
+//   if (score >= 60) return '较差';
+//   return '差';
+// });
+
+// const healthScoreCircleColor = computed(() => {
+//   const score = calculatedHealthScore.value;
+//   if (score >= 90) return 'stroke-green-500';
+//   if (score >= 80) return 'stroke-blue-500';
+//   if (score >= 70) return 'stroke-yellow-500';
+//   if (score >= 60) return 'stroke-orange-500';
+//   return 'stroke-red-500';
+// });
+
+// const healthScoreTextColor = computed(() => {
+//   const score = calculatedHealthScore.value;
+//   if (score >= 90) return '#10b981'; // 绿色
+//   if (score >= 80) return '#3b82f6'; // 蓝色
+//   if (score >= 70) return '#f59e0b'; // 黄色
+//   if (score >= 60) return '#f97316'; // 橙色
+//   return '#ef4444'; // 红色
+// });
+
+// const healthScoreLevelColor = computed(() => {
+//   const score = calculatedHealthScore.value;
+//   if (score >= 90) return 'text-green-500';
+//   if (score >= 80) return 'text-blue-500';
+//   if (score >= 70) return 'text-yellow-500';
+//   if (score >= 60) return 'text-orange-500';
+//   return 'text-red-500';
+// });
+
+// 获取评分项名称 - 不再需要
+// const getScoreName = (name: string): string => {
+//   const nameMap: { [key: string]: string } = {
+//     bmiScore: 'BMI',
+//     bloodSugarScore: '血糖',
+//     bloodPressureScore: '血压',
+//     heartRateScore: '心率',
+//     lifestyleScore: '生活习惯',
+//     bloodLipidScore: '血脂'
+//   };
+//   return nameMap[name] || name;
+// };
+
+// 根据分数获取颜色 - 不再需要
+// const getScoreColor = (score: number): string => {
+//   if (score >= 90) return '#10b981'; // 绿色
+//   if (score >= 80) return '#3b82f6'; // 蓝色
+//   if (score >= 70) return '#f59e0b'; // 黄色
+//   if (score >= 60) return '#f97316'; // 橙色
+//   return '#ef4444'; // 红色
+// };
+
+const getVisionTypeColor = (visionType: string): string => {
+  if (visionType === '正常' || visionType === '轻度近视') return 'text-green-500';
+  if (visionType === '中度近视') return 'text-yellow-500';
+  if (visionType === '高度近视') return 'text-red-500';
+  return 'text-gray-500'; // 未知或无数据
+};
+
+const getVisionMarkerClass = (vision: number): string => {
+  if (!vision) return 'bg-gray-500';
+  if (vision < 300) return 'bg-green-500';
+  if (vision < 600) return 'bg-yellow-500';
+  return 'bg-red-500';
+};
+
+const calculateVisionPosition = (vision: number): number => {
+  if (!vision) return 0;
+  // 视力度数映射到位置百分比
+  // 0度 -> 0%，600度 -> 66%，1000度+ -> 100%
+  const maxVision = 1000;
+  const position = Math.min(100, (vision / maxVision) * 100);
+  return position;
+};
+
+const visionType = computed(() => {
+  const vision = bodyData.value.vision;
+  if (!vision) return '无数据';
+  if (vision === 0) return '正常';
+  if (vision < 300) return '轻度近视';
+  if (vision < 600) return '中度近视';
+  return '高度近视';
+});
+
+const visionSuggestion = computed(() => {
+  const vision = bodyData.value.vision;
+  if (!vision) return '请先记录您的视力数据，定期检查视力可以及时发现问题。';
+  if (vision === 0) return '您的视力状况良好，继续保持良好的用眼习惯，避免长时间使用电子设备。';
+  if (vision < 300) return '您的视力状况为轻度近视，建议定期检查视力，并注意用眼卫生，每隔一小时休息眼睛5-10分钟。';
+  if (vision < 600) return '您的视力状况为中度近视，建议定期到眼科进行专业检查，控制用眼时间，增加户外活动，必要时进行视力矫正。';
+  return '您的视力状况为高度近视，建议尽快到眼科进行全面检查，关注眼底健康，严格控制用眼时间，遵医嘱采取合适的矫正方式。';
+});
+
+// 根据健康指数获取颜色类名
+const getHealthIndexClass = (score: number): string => {
+  if (score >= 80) return 'text-green-500';
+  if (score >= 60) return 'text-yellow-500';
+  return 'text-red-500';
+};
+
+// 根据健康指数获取等级文本
+const getHealthIndexText = (score: number): string => {
+  if (score >= 80) return '优秀';
+  if (score >= 60) return '良好';
+  return '需要改善';
+};
 </script>
 
 <style scoped>
@@ -923,5 +1363,87 @@ const healthRecommendations = computed(() => {
 
 .animate-spin {
   animation: spin 1s linear infinite;
+}
+
+/* 卡片悬停效果 */
+.bg-white,
+.bg-gray-50 {
+  transition: all 0.3s ease-in-out;
+}
+
+.bg-white:hover,
+.bg-gray-50:hover {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* 进度条动画 */
+.rounded-full {
+  transition: width 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* 页面滚动时的淡入效果 */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 20px, 0);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.health-dashboard>div>div:not(:first-child) {
+  animation: fadeInUp 0.5s ease-out forwards;
+}
+
+/* 调整各部分的延迟出现效果 */
+.health-dashboard>div>div:nth-child(2) {
+  animation-delay: 0.1s;
+}
+
+.health-dashboard>div>div:nth-child(3) {
+  animation-delay: 0.2s;
+}
+
+.health-dashboard>div>div:nth-child(4) {
+  animation-delay: 0.3s;
+}
+
+.health-dashboard>div>div:nth-child(5) {
+  animation-delay: 0.4s;
+}
+
+.health-dashboard>div>div:nth-child(6) {
+  animation-delay: 0.5s;
+}
+
+.health-dashboard>div>div:nth-child(7) {
+  animation-delay: 0.6s;
+}
+
+.health-dashboard>div>div:nth-child(8) {
+  animation-delay: 0.7s;
+}
+
+/* 健康指数圆形渐变效果 */
+@keyframes gradientRotate {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.text-5xl.font-bold[style*="background"] {
+  background-size: 200% 200%;
+  animation: gradientRotate 5s ease infinite;
 }
 </style>

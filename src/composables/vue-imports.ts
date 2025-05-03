@@ -16,6 +16,7 @@ export const provide = Vue.provide
 export const inject = Vue.inject
 export const toRef = Vue.toRef
 export const toRefs = Vue.toRefs
+export const defineComponent = Vue.defineComponent
 
 // 添加更多Vue组合API函数导出...
 
