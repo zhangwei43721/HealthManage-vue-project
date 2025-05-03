@@ -353,6 +353,10 @@ import DOMPurify from 'dompurify';
 import { getChatHistory, resetChatHistory, initiateChatStream } from '@/services/aiService';
 import type { ChatHistory } from '@/types/chat';
 
+// 修正类型定义以避免 ESLint 'any' 错误
+// 使用更具体的函数签名，如果可能的话，或者接受更宽泛的函数类型
+type DebounceableFunction = (...args: unknown[]) => unknown;
+
 interface Message extends Partial<ChatHistory> {
   role: 'user' | 'assistant';
   content: string;
@@ -541,16 +545,19 @@ const renderMarkdown = (content: string): string => {
 };
 
 // 优化 fetch 操作的防抖功能
-const debounce = (func, wait) => {
-  let timeout = null;
+// 使用修正后的类型
+const debounce = <F extends DebounceableFunction>(
+  func: F,
+  wait: number
+): ((...args: Parameters<F>) => void) => {
+  let timeout: ReturnType<typeof setTimeout> | null = null;
 
-  return function (...args) {
-    const context = this;
+  return function (this: ThisParameterType<F>, ...args: Parameters<F>) {
     if (timeout !== null) {
       clearTimeout(timeout);
     }
     timeout = setTimeout(() => {
-      func.apply(context, args);
+      func.apply(this, args);
       timeout = null;
     }, wait);
   };
@@ -666,10 +673,6 @@ const handleTextareaInput = () => {
   textareaRows.value = Math.min(Math.max(1, lineCount), 5);
 };
 
-const startRecording = () => {
-  isRecording.value = true;
-};
-
 const stopRecording = () => {
   isRecording.value = false;
   newMessage.value = "我最近经常感到头晕和疲劳，是什么原因？";
@@ -756,7 +759,6 @@ const suggestPromptForImage = (file: File) => {
   // 清除原有错误
   error.value = null;
 
-  const fileType = file.type.toLowerCase();
   const fileName = file.name.toLowerCase();
 
   // 检测是否是医学影像
@@ -785,40 +787,6 @@ const suggestPromptForImage = (file: File) => {
 
   // 显示小提示
   showToast('已添加图片，请输入或修改您的问题', 'info');
-};
-
-// 避免在错误处理时的循环重试
-const isCurrentlyRetrying = false;
-
-// 处理错误的函数
-const handleError = (error: unknown, context: string): string => {
-  const errorMessage = error instanceof Error ? error.message : String(error);
-  console.error(`${context} 错误:`, error);
-
-  // 针对不同错误类型返回友好的错误消息
-  if (errorMessage.includes('network') || errorMessage.includes('Network') ||
-    errorMessage.includes('连接') || errorMessage.includes('connect')) {
-    return '网络连接错误，请检查您的网络设置';
-  } else if (errorMessage.includes('timeout') || errorMessage.includes('超时')) {
-    return '请求超时，服务器可能繁忙，请稍后再试';
-  } else if (errorMessage.includes('401') || errorMessage.includes('unauthorized') ||
-    errorMessage.includes('未授权')) {
-    return '未授权，请重新登录';
-  } else if (errorMessage.includes('404') || errorMessage.includes('not found')) {
-    return '请求的资源不存在';
-  } else if (errorMessage.includes('500')) {
-    return '服务器内部错误，请稍后再试';
-  }
-
-  // 默认错误消息
-  return errorMessage;
-};
-
-// 添加图片错误处理
-const handleImageError = (evt: Event) => {
-  const target = evt.target as HTMLImageElement;
-  target.src = '/placeholder-image.jpg'; // 替换为默认图片
-  showToast('图片加载失败', 'error');
 };
 
 // 发送消息函数

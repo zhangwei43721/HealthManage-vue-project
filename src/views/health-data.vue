@@ -33,6 +33,9 @@
               clip-rule="evenodd" />
           </svg>
         </button>
+        <button @click="retryDataFetch" class="ml-2 text-sm font-medium text-red-700 hover:text-red-900 underline">
+          重试
+        </button>
       </div>
     </div>
 
@@ -93,7 +96,7 @@
                     <div class="flex items-baseline">
                       <span class="text-3xl font-bold text-gray-900 dark:text-white">{{ item.value }}</span>
                       <span v-if="item.unit" class="ml-1 text-gray-500 dark:text-gray-400 text-sm">{{ item.unit
-                        }}</span>
+                      }}</span>
                     </div>
                     <div v-if="item.comment" class="mt-2 text-sm" :class="item.commentClass">{{ item.comment }}</div>
                   </div>
@@ -251,6 +254,11 @@ interface HistoricalRecord {
   foodTypes: string; waterConsumption: number; date: number;
 }
 
+interface ScoreItem {
+  name: string;
+  score: number;
+}
+
 interface BodyDataType {
   id: number; name: string; age: number; gender: string; height: number; weight: number;
   bloodSugar: number; bloodPressure: string; bloodLipid: string; heartRate: number; vision: number;
@@ -336,14 +344,16 @@ const detailedScores = computed(() => {
     bloodSugarScore: calculateScore(data.bloodSugar, 4, 6, 20, 15),
     bloodPressureScore: calculateScore(bpValue, 90, 120, 2, 1.5),
     heartRateScore: calculateScore(data.heartRate, 60, 100, 2, 1.5),
-    lifestyleScore: 100 - (data.smoking ? 20 : 0) - (data.drinking ? 10 : 0) + (data.exercise ? 10 : 0)
+    lifestyleScore: 100 - (data.smoking ? 20 : 0) - (data.drinking ? 10 : 0) + (data.exercise ? 10 : 0),
+    bloodLipidScore: calculateScore(lipidValue, 2.8, 5.2, 15, 10)
   };
   return {
     bmiScore: Math.round(Math.max(0, Math.min(100, scores.bmiScore))),
     bloodSugarScore: Math.round(Math.max(0, Math.min(100, scores.bloodSugarScore))),
     bloodPressureScore: Math.round(Math.max(0, Math.min(100, scores.bloodPressureScore))),
     heartRateScore: Math.round(Math.max(0, Math.min(100, scores.heartRateScore))),
-    lifestyleScore: Math.round(Math.max(0, Math.min(100, scores.lifestyleScore)))
+    lifestyleScore: Math.round(Math.max(0, Math.min(100, scores.lifestyleScore))),
+    bloodLipidScore: Math.round(Math.max(0, Math.min(100, scores.bloodLipidScore)))
   };
 });
 
@@ -355,8 +365,9 @@ const healthIndex = computed(() => {
     scores.bloodSugarScore * 2 +
     scores.bloodPressureScore * 2 +
     scores.heartRateScore * 2 +
-    scores.lifestyleScore * 2
-  ) / 10;
+    scores.lifestyleScore * 2 +
+    scores.bloodLipidScore * 2
+  ) / 12;
   return Math.round(Math.max(0, Math.min(100, total)));
 });
 
@@ -374,7 +385,8 @@ const healthScoresChartData = computed(() => {
     { name: '血糖', score: scores.bloodSugarScore },
     { name: '血压', score: scores.bloodPressureScore },
     { name: '心率', score: scores.heartRateScore },
-    { name: '能力', score: scores.lifestyleScore }
+    { name: '生活方式', score: scores.lifestyleScore },
+    { name: '血脂', score: scores.bloodLipidScore }
   ];
 });
 
@@ -564,8 +576,8 @@ const updateScoreChartOptions = () => {
   if (!scoreChartInstance || !healthScoresChartData.value || healthScoresChartData.value.length === 0) return;
 
   const scoresData = healthScoresChartData.value;
-  const categoryData = scoresData.map(item => item.name);
-  const seriesData = scoresData.map(item => item.score);
+  const categoryData = scoresData.map((item: ScoreItem) => item.name);
+  const seriesData = scoresData.map((item: ScoreItem) => item.score);
   const isDarkMode = document.documentElement.classList.contains('dark');
 
   const option: EChartsOption = {
@@ -749,7 +761,7 @@ watch(historyData, async () => {
   updateChartOptions();
 }, { deep: true });
 
-watch(bodyData, async (newData) => {
+watch(bodyData, async (newData: BodyDataType) => {
   if (newData && newData.name !== '加载中...') {
     if (!historyData.value.length && newData.id) {
       await fetchHistoryData();
@@ -887,8 +899,6 @@ const healthRecommendations = computed(() => {
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-
-
 @keyframes progressFill {
   from {
     width: 0;
@@ -903,42 +913,6 @@ const healthRecommendations = computed(() => {
 .relative .bg-yellow-500,
 .relative .bg-red-500 {
   animation: progressFill 1s ease-out forwards;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.health-dashboard .max-w-7xl>div {
-  animation: fadeIn 0.5s ease-out forwards;
-}
-
-.health-dashboard .max-w-7xl>div:nth-child(1) {
-  animation-delay: 0.1s;
-}
-
-.health-dashboard .max-w-7xl>div:nth-child(2) {
-  animation-delay: 0.2s;
-}
-
-.health-dashboard .max-w-7xl>div:nth-child(3) {
-  animation-delay: 0.3s;
-}
-
-.health-dashboard .max-w-7xl>div:nth-child(4) {
-  animation-delay: 0.4s;
-}
-
-.health-dashboard .max-w-7xl>div:nth-child(5) {
-  animation-delay: 0.5s;
 }
 
 @keyframes spin {

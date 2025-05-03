@@ -1,11 +1,5 @@
 /// <reference types="vite/client" />
 
-import * as vue from '@vue/runtime-dom'
-
-declare module 'vue' {
-  export * from '@vue/runtime-dom'
-}
-
 // 确保ResizeObserver类型在全局可用
 interface ResizeObserverOptions {
   box?: 'content-box' | 'border-box'

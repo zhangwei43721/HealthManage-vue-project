@@ -75,7 +75,7 @@
       <!-- 运动知识列表 -->
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         <div v-for="sport in sportsList" :key="sport.id"
-          class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden transform transition-all duration-500 h-[320px] relative"
+          class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden transform h-[320px] relative"
           :class="{ 'cursor-pointer hover:shadow-lg hover:scale-[1.02]': !sport.flipped }"
           @click="toggleCardFlip(sport)">
           <!-- 卡片正面 (基本信息) -->
@@ -211,238 +211,237 @@
   </div>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
+import { ref, computed, onMounted } from 'vue';
 // 导入APIs
 import { getAllSportInfo, getSportList, getDetailInfoByName } from '../services/health'
 
-export default {
-  name: 'HealthKnowledge',
-  data() {
-    return {
-      // 列表数据
-      sportsList: [],
-      totalRecords: 0,
-
-      // 搜索和筛选
-      searchQuery: '',
-      categoryFilter: '',
-      categories: [],
-
-      // 分页
-      currentPage: 1,
-      pageSize: 9,
-
-      // 状态
-      loading: false,
-      error: '',
-
-      // 其他
-      searchTimeout: null
-    }
-  },
-
-  computed: {
-    totalPages() {
-      return Math.ceil(this.totalRecords / this.pageSize)
-    },
-
-    paginationArray() {
-      const pages = [];
-      const maxPages = 5; // 最多显示5个页码
-      let startPage = Math.max(1, this.currentPage - Math.floor(maxPages / 2));
-      const endPage = Math.min(this.totalPages, startPage + maxPages - 1);
-
-      if (endPage - startPage + 1 < maxPages) {
-        startPage = Math.max(1, endPage - maxPages + 1);
-      }
-
-      for (let i = startPage; i <= endPage; i++) {
-        pages.push(i);
-      }
-
-      return pages;
-    }
-  },
-
-  created() {
-    this.fetchSportsList();
-  },
-
-  methods: {
-    // 获取运动知识列表
-    async fetchSportsList() {
-      try {
-        this.loading = true;
-        this.error = '';
-
-        let response;
-        if (this.categoryFilter) {
-          response = await getSportList(this.categoryFilter, this.currentPage, this.pageSize);
-        } else {
-          response = await getAllSportInfo(this.currentPage, this.pageSize);
-        }
-
-        if (response && response.data) {
-          let sportItems = [];
-
-          // 检查返回的数据结构
-          if (response.data.records) {
-            // 如果返回的是records属性
-            sportItems = response.data.records || [];
-            this.totalRecords = response.data.total || 0;
-          } else if (response.data.rows) {
-            // 如果返回的是rows属性
-            sportItems = response.data.rows || [];
-            this.totalRecords = response.data.total || 0;
-          } else if (Array.isArray(response.data)) {
-            // 如果直接返回数组
-            sportItems = response.data;
-            this.totalRecords = response.data.length;
-          } else {
-            console.error('未知的响应数据格式:', response.data);
-            this.totalRecords = 0;
-          }
-
-          // 处理数据，添加翻转和详情属性
-          this.sportsList = sportItems.map(sport => ({
-            ...sport,
-            flipped: false,
-            detailLoading: false,
-            detail: null
-          }));
-
-          // 提取所有运动类型作为分类
-          if (this.sportsList.length > 0 && this.categories.length === 0) {
-            const uniqueCategories = [...new Set(this.sportsList.map(sport => sport.sportType))];
-            this.categories = uniqueCategories;
-          }
-        }
-      } catch (err) {
-        console.error('获取运动知识失败:', err);
-        this.error = '获取运动知识列表失败，请稍后重试';
-        this.sportsList = [];
-      } finally {
-        this.loading = false;
-      }
-    },
-
-    // 切换卡片翻转状态并加载详情
-    async toggleCardFlip(sport) {
-      // 翻转卡片状态
-      sport.flipped = !sport.flipped;
-
-      // 如果是翻转到背面且还没有加载过详情，则加载详情
-      if (sport.flipped && !sport.detail && !sport.detailLoading) {
-        await this.fetchSportDetail(sport);
-      }
-    },
-
-    // 根据运动类型获取详细信息
-    async fetchSportDetail(sport) {
-      try {
-        // 设置加载状态
-        sport.detailLoading = true;
-        console.log('获取运动详情:', sport.sportType);
-
-        const response = await getDetailInfoByName(sport.sportType);
-        console.log('获取运动详情API响应:', response);
-
-        if (response && response.data) {
-          // 检查响应中是否包含必要的详情字段
-          if (response.data.method || response.data.disease || response.data.notes) {
-            sport.detail = response.data;
-          } else if (response.data.id) {
-            // 如果没有详情字段但有ID，可能是其他格式的响应
-            sport.detail = {
-              id: response.data.id,
-              sportType: sport.sportType,
-              method: response.data.method || '暂无相关信息',
-              disease: response.data.disease || '暂无相关信息',
-              notes: response.data.notes || '暂无相关信息'
-            };
-          } else {
-            // 未返回有效数据
-            sport.detail = {
-              sportType: sport.sportType,
-              method: '暂无相关信息',
-              disease: '暂无相关信息',
-              notes: '暂无相关信息'
-            };
-          }
-        } else {
-          // 没有响应或响应中没有data
-          sport.detail = {
-            sportType: sport.sportType,
-            method: '暂无相关信息',
-            disease: '暂无相关信息',
-            notes: '暂无相关信息'
-          };
-        }
-      } catch (err) {
-        console.error('获取运动详情失败:', err);
-        // 错误时也显示默认数据而不是空白
-        sport.detail = {
-          sportType: sport.sportType,
-          method: '获取详情失败，请稍后重试',
-          disease: '获取详情失败，请稍后重试',
-          notes: '获取详情失败，请稍后重试'
-        };
-        this.error = '获取运动详情失败，但已显示占位内容';
-      } finally {
-        sport.detailLoading = false;
-      }
-    },
-
-    // 处理搜索
-    handleSearch() {
-      // 防抖
-      if (this.searchTimeout) {
-        clearTimeout(this.searchTimeout);
-      }
-
-      this.searchTimeout = setTimeout(() => {
-        this.currentPage = 1;
-        this.fetchSportsList();
-      }, 500);
-    },
-
-    // 处理分类筛选
-    handleFilterChange() {
-      this.currentPage = 1;
-      this.fetchSportsList();
-    },
-
-    // 重置筛选
-    resetFilters() {
-      this.searchQuery = '';
-      this.categoryFilter = '';
-      this.currentPage = 1;
-      this.fetchSportsList();
-    },
-
-    // 切换页码
-    changePage(page) {
-      if (page < 1 || page > this.totalPages) return;
-      this.currentPage = page;
-      this.fetchSportsList();
-    }
-  }
+interface SportDetail {
+  id?: number;
+  sportType?: string;
+  method: string;
+  disease: string;
+  notes: string;
 }
+
+interface ApiSportItem {
+  id: number;
+  sportType: string;
+  suitableTime?: string;
+  suitableHeartRate?: string;
+  suitableFrequency?: string;
+  recommendedSpeed?: string;
+}
+
+interface SportListItem extends ApiSportItem {
+  flipped: boolean;
+  detailLoading: boolean;
+  detail: SportDetail | null;
+}
+
+interface ApiResponse {
+  data?: {
+    records?: ApiSportItem[];
+    rows?: ApiSportItem[];
+    total?: number;
+  } | ApiSportItem[];
+}
+
+const sportsList = ref<SportListItem[]>([]);
+const totalRecords = ref<number>(0);
+
+const searchQuery = ref<string>('');
+const categoryFilter = ref<string>('');
+const categories = ref<string[]>([]); // Assuming categories are strings
+
+const currentPage = ref<number>(1);
+const pageSize = ref<number>(9);
+
+const loading = ref<boolean>(false);
+const error = ref<string>('');
+
+const searchTimeout = ref<ReturnType<typeof setTimeout> | null>(null);
+
+const totalPages = computed<number>(() => {
+  return Math.ceil(totalRecords.value / pageSize.value)
+});
+
+const paginationArray = computed<number[]>(() => {
+  const pages: number[] = [];
+  const maxPages = 5;
+  let startPage = Math.max(1, currentPage.value - Math.floor(maxPages / 2));
+  const endPage = Math.min(totalPages.value, startPage + maxPages - 1);
+
+  if (endPage - startPage + 1 < maxPages) {
+    startPage = Math.max(1, endPage - maxPages + 1);
+  }
+
+  for (let i = startPage; i <= endPage; i++) {
+    pages.push(i);
+  }
+
+  return pages;
+});
+
+onMounted(() => {
+  fetchSportsList();
+});
+
+// --- Functions ---
+// 获取运动知识列表
+const fetchSportsList = async () => {
+  try {
+    loading.value = true;
+    error.value = '';
+
+    // Explicitly type the response to help TypeScript
+    let response: ApiResponse;
+    if (categoryFilter.value) {
+      // Assuming getSportList returns a Promise<ApiResponse>
+      response = await getSportList(categoryFilter.value, currentPage.value, pageSize.value);
+    } else {
+      // Assuming getAllSportInfo returns a Promise<ApiResponse>
+      response = await getAllSportInfo(currentPage.value, pageSize.value);
+    }
+
+    if (response && response.data) {
+      // Use ApiSportItem[] instead of any[]
+      let sportItems: ApiSportItem[] = [];
+
+      // Check response data structure
+      if (typeof response.data === 'object' && !Array.isArray(response.data)) {
+        if (response.data.records) {
+          sportItems = response.data.records || [];
+          totalRecords.value = response.data.total || 0;
+        } else if (response.data.rows) {
+          sportItems = response.data.rows || [];
+          totalRecords.value = response.data.total || 0;
+        } else {
+           console.error('Unknown response data structure (object): ', response.data);
+           totalRecords.value = 0; // Reset on unknown structure
+        }
+      } else if (Array.isArray(response.data)) {
+        sportItems = response.data;
+        // If it's just an array, maybe total is the length (adjust logic if needed)
+        totalRecords.value = response.data.length;
+      } else {
+        console.error('Unknown response data format:', response.data);
+        totalRecords.value = 0;
+      }
+
+      // Process data, add flip and detail properties
+      sportsList.value = sportItems.map((sport: ApiSportItem): SportListItem => ({
+        // Assuming base structure from API, add default fallbacks if needed
+        id: sport.id ?? 0,
+        sportType: sport.sportType ?? '未知类型',
+        suitableTime: sport.suitableTime ?? 'N/A',
+        suitableHeartRate: sport.suitableHeartRate ?? 'N/A',
+        suitableFrequency: sport.suitableFrequency ?? 'N/A',
+        recommendedSpeed: sport.recommendedSpeed ?? 'N/A',
+        // Add UI state properties
+        flipped: false,
+        detailLoading: false,
+        detail: null
+      }));
+
+      // Extract categories only if categories list is empty
+      if (sportsList.value.length > 0 && categories.value.length === 0) {
+        const uniqueCategories = [
+          ...new Set(sportsList.value.map((sport: SportListItem) => sport.sportType))
+        ];
+        categories.value = uniqueCategories.filter(cat => cat !== '未知类型'); // Filter out unknowns
+      }
+    }
+  } catch (err) {
+    console.error('获取运动知识失败:', err);
+    error.value = '获取运动知识列表失败，请稍后重试';
+    sportsList.value = [];
+    totalRecords.value = 0; // Reset total on error
+  } finally {
+    loading.value = false;
+  }
+};
+
+// 根据运动类型获取详细信息
+const fetchSportDetail = async (sport: SportListItem) => {
+  // Don't fetch if already loading or detail exists
+  if (sport.detailLoading || sport.detail) return;
+
+  try {
+    sport.detailLoading = true;
+    console.log('获取运动详情:', sport.sportType);
+
+    // Assuming getDetailInfoByName returns Promise<{ data: SportDetail | null }>
+    const response = await getDetailInfoByName(sport.sportType);
+    console.log('获取运动详情API响应:', response);
+
+    if (response && response.data && (response.data.method || response.data.disease || response.data.notes)) {
+      sport.detail = response.data;
+    } else {
+      // Provide default placeholder if no valid detail found
+      sport.detail = {
+        method: '暂无相关运动方法信息',
+        disease: '暂无相关适宜/禁忌疾病信息',
+        notes: '暂无相关注意事项信息'
+      };
+      console.warn('运动详情数据不完整或未找到:', sport.sportType, response?.data);
+    }
+  } catch (err) {
+    console.error('获取运动详情失败:', err);
+    sport.detail = {
+      method: '获取详情失败，请稍后重试',
+      disease: '获取详情失败，请稍后重试',
+      notes: '获取详情失败，请稍后重试'
+    };
+    error.value = '获取运动详情失败'; // Update general error state
+  } finally {
+    sport.detailLoading = false;
+  }
+};
+
+// 切换卡片翻转状态并加载详情
+const toggleCardFlip = (sport: SportListItem) => {
+  sport.flipped = !sport.flipped;
+  // Fetch detail only when flipping to the back side
+  if (sport.flipped) {
+    fetchSportDetail(sport);
+  }
+};
+
+// 处理搜索 (with debounce)
+const handleSearch = () => {
+  if (searchTimeout.value) {
+    clearTimeout(searchTimeout.value);
+  }
+  searchTimeout.value = setTimeout(() => {
+    currentPage.value = 1; // Reset page on new search
+    fetchSportsList();
+  }, 500); // 500ms debounce
+};
+
+// 处理分类筛选
+const handleFilterChange = () => {
+  currentPage.value = 1; // Reset page on filter change
+  fetchSportsList();
+};
+
+// 重置筛选
+const resetFilters = () => {
+  searchQuery.value = '';
+  categoryFilter.value = '';
+  currentPage.value = 1;
+  fetchSportsList();
+};
+
+// 切换页码
+const changePage = (page: number) => {
+  if (page < 1 || page > totalPages.value || page === currentPage.value) return;
+  currentPage.value = page;
+  fetchSportsList();
+};
 </script>
 
 <style scoped>
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 .health-knowledge {
   background-color: #f9fafb;
 }
@@ -461,20 +460,4 @@ export default {
   }
 }
 
-/* 卡片动画效果 */
-.grid>div {
-  animation: fadeIn 0.3s ease-out forwards;
-}
-
-.grid>div:nth-child(3n+1) {
-  animation-delay: 0.1s;
-}
-
-.grid>div:nth-child(3n+2) {
-  animation-delay: 0.2s;
-}
-
-.grid>div:nth-child(3n+3) {
-  animation-delay: 0.3s;
-}
 </style>
