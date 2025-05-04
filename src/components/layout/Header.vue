@@ -148,7 +148,8 @@ const userNavigationItems = [
   { name: '健康数据', path: '/health-data', icon: Clipboard },
   { name: '健康知识', path: '/health-knowledge', icon: Book },
   { name: '健康日志', path: '/health-log', icon: Like },
-  { name: 'AI 助手', path: '/ai-qa', icon: Robot }
+  { name: 'AI 助手', path: '/ai-qa', icon: Robot },
+  { name: 'ChatGPT风格', path: '/chatgpt-clone', icon: Robot }
 ];
 
 // 监听滚动

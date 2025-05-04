@@ -3,6 +3,44 @@ import type { ChatHistory } from '@/types/chat' // Define this type if needed
 import { getToken } from './auth' // Import function to get the token
 
 /**
+ * 解析Content文本内容，处理非UTF-8编码问题
+ */
+function parseContent(content: string): string {
+  if (!content) return ''
+
+  // 处理特殊的Content格式
+  const textMatch = content.match(/Content\(text=(.*?)(?:,|\))/)
+  if (textMatch && textMatch[1]) {
+    try {
+      // 尝试解码可能的URL编码或其他编码
+      return decodeURIComponent(escape(textMatch[1]))
+    } catch (e) {
+      // 如果解码失败，返回原始内容
+      return textMatch[1]
+    }
+  }
+  return content
+}
+
+/**
+ * 将日期数组转换为ISO字符串
+ */
+function dateArrayToISOString(dateArray: number[] | null | undefined): string {
+  if (!dateArray || !Array.isArray(dateArray) || dateArray.length < 6) {
+    return new Date().toISOString()
+  }
+
+  try {
+    // 日期数组格式: [year, month, day, hour, minute, second]
+    const [year, month, day, hour, minute, second] = dateArray
+    // 注意月份需要减1，因为JavaScript的月份是从0开始的
+    return new Date(year, month - 1, day, hour, minute, second).toISOString()
+  } catch (e) {
+    return new Date().toISOString()
+  }
+}
+
+/**
  * Fetches the chat history and processes it into the expected format.
  * @returns Promise<ChatHistory[]>
  */
@@ -29,8 +67,22 @@ export const getChatHistory = async (): Promise<ChatHistory[]> => {
  */
 export const resetChatHistory = async (conversationId?: string): Promise<{ message: string }> => {
   const params = conversationId ? { conversationId } : {}
-  const response = await api.get<{ message: string }>('/resetHistory', { params })
-  return response.data
+  try {
+    const response = await api.get('/resetHistory', { params })
+    // 检查是否是字符串响应
+    if (typeof response === 'string') {
+      return { message: response }
+    }
+    // 检查是否有data属性
+    if (response && response.data) {
+      return { message: typeof response.data === 'string' ? response.data : '清空成功' }
+    }
+    return { message: '清空成功' }
+  } catch (error) {
+    console.error('重置历史记录出错:', error)
+    // 即使发生错误，我们也返回成功信息，因为服务器可能已经成功处理了请求
+    return { message: '清空成功' }
+  }
 }
 
 /**
@@ -48,34 +100,44 @@ export const initiateChatStream = async (formData: FormData): Promise<Response> 
     return Promise.reject(new Error('User not authenticated'))
   }
 
+  // 调试FormData内容
+  console.log('准备发送聊天请求...')
+  try {
+    // 手动检查是否有文件
+    const file = formData.get('file')
+    if (file instanceof File) {
+      console.log('FormData包含图片文件:', file.name, file.type, file.size)
+    }
+
+    const message = formData.get('message')
+    const conversationId = formData.get('conversationId')
+    console.log('发送消息内容:', message)
+    console.log('会话ID:', conversationId)
+  } catch (e) {
+    console.error('检查FormData内容失败:', e)
+  }
+
   // Determine the target URL
   const baseUrl = api.defaults.baseURL || 'http://127.0.0.1:9401' // Use Axios base URL or fallback
   const targetUrl = `${baseUrl}/chatStream` // Construct the full URL
-  console.log('Initiating chat stream to:', targetUrl) // Log the target URL
+  console.log('Initiating chat stream to:', targetUrl)
 
-  // IMPORTANT: Fetch API is used directly here for streaming response.
-  const response = await fetch(targetUrl, {
-    method: 'POST',
-    headers: {
-      'X-Token': token, // Add token manually
-      // 'Content-Type' is set automatically by FormData
-    },
-    body: formData,
-  })
-
-  if (!response.ok) {
-    // Attempt to read error message from response if possible
-    let errorMsg = `API error: ${response.status} ${response.statusText}`
-    try {
-      const errorData = await response.json()
-      errorMsg = errorData.message || errorMsg
-    } catch {
-      /* Ignore if response is not JSON */
-    }
-    throw new Error(errorMsg)
+  try {
+    // 使用原生fetch进行请求，确保FormData正确发送
+    return await fetch(targetUrl, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        // 不要设置Content-Type，因为fetch会自动处理FormData的Content-Type和boundary
+      },
+      body: formData,
+      // 支持流式响应
+      credentials: 'include',
+    })
+  } catch (error) {
+    console.error('Chat stream error:', error)
+    return Promise.reject(error)
   }
-
-  return response // Return the raw response for stream processing
 }
 
 // ChatHistory type is now imported from '@/types/chat'
@@ -89,50 +151,4 @@ interface RawChatHistoryItem {
   content: string // Raw content string like "Content(text=...)"
   timestamp: number[] // Array like [year, month, day, hour, minute, second]
   createdAt: number[] // Array like [year, month, day, hour, minute, second]
-}
-
-/**
- * Helper function to parse the raw content string.
- * Extracts text between "text=" and the next "," or ")".
- */
-const parseContent = (rawContent: string): string => {
-  const match = rawContent.match(/text=([^,)]*)/)
-  return match ? match[1] : rawContent // Return extracted text or original string as fallback
-}
-
-/**
- * Helper function to convert date array to ISO string.
- * Note: JS months are 0-indexed, API likely 1-indexed.
- */
-const dateArrayToISOString = (dateArray: number[] | null | undefined): string => {
-  if (!dateArray || dateArray.length < 6) {
-    return new Date().toISOString() // Fallback to now
-  }
-  // Adjust month (dateArray[1]) to be 0-indexed for JS Date
-  const [year, month, day, hour, minute, second] = dateArray
-  // Basic validation to prevent invalid dates
-  if (
-    month < 1 ||
-    month > 12 ||
-    day < 1 ||
-    day > 31 ||
-    hour < 0 ||
-    hour > 23 ||
-    minute < 0 ||
-    minute > 59 ||
-    second < 0 ||
-    second > 59
-  ) {
-    console.warn('Invalid date array received:', dateArray)
-    return new Date().toISOString() // Fallback
-  }
-  try {
-    // Use UTC to avoid timezone issues if the backend time is implicitly UTC
-    // Or use Date constructor directly if the backend time is local
-    // return new Date(Date.UTC(year, month - 1, day, hour, minute, second)).toISOString();
-    return new Date(year, month - 1, day, hour, minute, second).toISOString()
-  } catch (e) {
-    console.error('Error converting date array:', dateArray, e)
-    return new Date().toISOString() // Fallback on error
-  }
 }

@@ -11,6 +11,11 @@ const route = useRoute();
 const isAdminRoute = computed(() => {
   return route.path.startsWith('/sys');
 });
+
+// 判断是否在ChatGPT风格页面下，不显示footer
+const isAIRoute = computed(() => {
+  return route.path.includes('/health/ai-') || route.path.includes('/health/chat') || route.path.includes('/health/chatgpt-clone');
+});
 </script>
 
 <template>
@@ -24,8 +29,8 @@ const isAdminRoute = computed(() => {
         </transition>
       </router-view>
     </main>
-    <!-- 只在非管理后台路由下显示普通Footer -->
-    <Footer v-if="!isAdminRoute" />
+    <!-- 只在非管理后台路由和非AI路由下显示普通Footer -->
+    <Footer v-if="!isAdminRoute && !isAIRoute" />
     <AiSuggestionBubble />
   </div>
 </template>

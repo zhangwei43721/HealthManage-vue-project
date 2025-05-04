@@ -4,7 +4,7 @@ import { useUserStore } from '@/stores/user'
 
 // 创建axios实例
 const api = axios.create({
-  baseURL: 'http://127.0.0.1:9401', // 后端API地址
+  baseURL: 'http://120.55.192.74:9401', // 后端API地址
   timeout: 10000, // 请求超时时间
   headers: {
     'Content-Type': 'application/json;charset=UTF-8',
