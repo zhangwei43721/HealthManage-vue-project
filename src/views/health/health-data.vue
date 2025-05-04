@@ -1,5 +1,5 @@
 <template>
-  <div class="health-dashboard min-h-screen pb-12 pt-20 dark:bg-gray-900 dark:text-white">
+  <div class="health-dashboard min-h-screen pb-12 pt-24 dark:bg-gray-900 dark:text-white">
     <!-- 加载状态显示 -->
     <div v-if="isLoading"
       class="fixed inset-0 z-50 flex items-center justify-center bg-white bg-opacity-75 dark:bg-gray-900 dark:bg-opacity-75">
@@ -44,7 +44,7 @@
     <!-- 主内容区域 -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <!-- 页面标题 -->
-      <div class="text-center mb-8">
+      <div class="text-center mb-10">
         <h1 class="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">个人健康数据中心</h1>
         <p class="mt-2 text-base text-gray-500 dark:text-gray-400">全面了解您的健康状况和趋势变化</p>
       </div>
@@ -193,7 +193,7 @@
                         <div class="text-sm text-gray-600 dark:text-gray-300 mb-1">睡眠时长</div>
                         <div class="flex items-baseline justify-center">
                           <span class="text-2xl font-bold text-gray-900 dark:text-white">{{ bodyData.sleepDuration
-                            }}</span>
+                          }}</span>
                           <span class="ml-1 text-gray-500 dark:text-gray-400 text-xs">小时</span>
                         </div>
                       </div>
@@ -206,7 +206,7 @@
                         <div class="text-sm text-gray-600 dark:text-gray-300 mb-1">饮水量</div>
                         <div class="flex items-baseline justify-center">
                           <span class="text-2xl font-bold text-gray-900 dark:text-white">{{ bodyData.waterConsumption
-                            }}</span>
+                          }}</span>
                           <span class="ml-1 text-gray-500 dark:text-gray-400 text-xs">ml</span>
                         </div>
                       </div>
@@ -252,7 +252,7 @@
                     <div class="mt-2 flex justify-between text-xs text-gray-500 dark:text-gray-400">
                       <span>{{ vital.ranges.dangerLow }}</span>
                       <span class="text-green-500 font-medium">{{ vital.ranges.normalMin }} - {{ vital.ranges.normalMax
-                        }}</span>
+                      }}</span>
                       <span>{{ vital.ranges.dangerHigh }}</span>
                     </div>
                   </div>

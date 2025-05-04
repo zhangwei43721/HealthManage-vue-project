@@ -1,10 +1,11 @@
 <template>
-  <div class="p-4 sm:p-6 lg:p-8 space-y-6 relative bg-gray-50 min-h-[calc(100vh-60px)] mt-[60px]">
-    <!-- 页面标题区 - 修改为与health-data.vue一致 -->
+  <div
+    class="p-4 sm:p-6 lg:p-8 space-y-6 relative bg-gray-50 dark:bg-gray-900 min-h-[calc(100vh-60px)] mt-[60px] pt-24">
+    <!-- 页面标题区 - 修改为与health-knowledge.vue一致 -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center mb-10">
-        <h1 class="text-3xl font-bold tracking-tight text-gray-900">健康数据日志</h1>
-        <p class="mt-3 text-xl text-gray-500">全面管理并回顾您的健康信息记录</p>
+        <h1 class="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">健康数据日志</h1>
+        <p class="mt-3 text-xl text-gray-500 dark:text-gray-400">全面管理并回顾您的健康信息记录</p>
       </div>
     </div>
 
