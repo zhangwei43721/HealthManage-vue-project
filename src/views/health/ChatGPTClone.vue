@@ -131,8 +131,7 @@
                 </div>
 
                 <!-- 消息文本 -->
-                <div v-if="message.role === 'assistant'" class="prose prose-gray max-w-none text-gray-800"
-                  v-html="renderMarkdown(message.content)">
+                <div v-if="message.role === 'assistant'" class="markdown-body" v-html="renderMarkdown(message.content)">
                 </div>
                 <div v-else class="whitespace-pre-wrap text-gray-800">
                   {{ message.content }}
@@ -346,22 +345,9 @@ import DOMPurify from 'dompurify';
 import { v4 as uuidv4 } from 'uuid';
 import { getChatHistory, resetChatHistory } from '@/services/aiService';
 
-// 导入markdown-it和相关插件
-import MarkdownIt from 'markdown-it';
-import 'prismjs';
-import 'prismjs/themes/prism.css';
-import 'prismjs/components/prism-javascript';
-import 'prismjs/components/prism-typescript';
-import 'prismjs/components/prism-css';
-import 'prismjs/components/prism-java';
-import 'prismjs/components/prism-python';
-import 'prismjs/components/prism-c';
-import 'prismjs/components/prism-cpp';
-import 'prismjs/components/prism-bash';
-import 'prismjs/components/prism-json';
-import 'prismjs/components/prism-sql';
-import 'prismjs/components/prism-markdown';
-import mdPrism from 'markdown-it-prism';
+// 导入marked和样式
+import { marked } from 'marked';
+import 'github-markdown-css';
 
 // 类型定义
 interface Message {
@@ -471,15 +457,6 @@ const startNewChat = () => {
   showToast('已创建新对话', 'success');
 };
 
-// 初始化markdown-it实例
-const md = new MarkdownIt({
-  html: true,        // 启用HTML标签
-  breaks: true,      // 将换行符转换为<br>
-  linkify: true,     // 自动将URL转换为链接
-  typographer: true, // 启用引号美化等排版功能
-})
-  .use(mdPrism);      // 使用Prism.js进行语法高亮
-
 // 简化Markdown渲染函数
 const markdownCache = new Map();
 const renderMarkdown = (content: string): string => {
@@ -488,8 +465,8 @@ const renderMarkdown = (content: string): string => {
   }
 
   try {
-    // 使用markdown-it渲染
-    const rawHtml = md.render(content);
+    // 使用marked渲染
+    const rawHtml = marked(content);
 
     // 使用DOMPurify过滤HTML
     const safeHtml = DOMPurify.sanitize(rawHtml);
@@ -1228,21 +1205,87 @@ textarea {
   transition: height 0.1s ease-out;
 }
 
-/* Markdown 样式优化 - 简化版 */
-:deep(.prose) {
-  line-height: 1.4;
+/* Markdown 样式优化 */
+:deep(.markdown-body) {
+  background-color: transparent;
+  color: inherit;
+  font-size: 16px;
+  line-height: 1.6;
+  padding: 0;
 }
 
-:deep(.prose p),
-:deep(.prose ul),
-:deep(.prose ol),
-:deep(.prose li),
-:deep(.prose h1),
-:deep(.prose h2),
-:deep(.prose h3),
-:deep(.prose h4) {
-  margin-top: 0.2em;
-  margin-bottom: 0.2em;
-  line-height: 1.4;
+:deep(.markdown-body pre) {
+  background-color: #f6f8fa;
+  border-radius: 6px;
+  margin: 1em 0;
+}
+
+:deep(.markdown-body code) {
+  background-color: rgba(175, 184, 193, 0.2);
+  border-radius: 4px;
+  font-size: 0.9em;
+  padding: 0.2em 0.4em;
+}
+
+:deep(.markdown-body p) {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+:deep(.markdown-body ul),
+:deep(.markdown-body ol) {
+  padding-left: 2em;
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+:deep(.markdown-body h1),
+:deep(.markdown-body h2),
+:deep(.markdown-body h3),
+:deep(.markdown-body h4),
+:deep(.markdown-body h5),
+:deep(.markdown-body h6) {
+  margin-top: 1em;
+  margin-bottom: 0.5em;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+:deep(.markdown-body h1) {
+  font-size: 1.5em;
+  padding-bottom: 0.2em;
+  border-bottom: 1px solid #eaecef;
+}
+
+:deep(.markdown-body h2) {
+  font-size: 1.3em;
+  padding-bottom: 0.2em;
+  border-bottom: 1px solid #eaecef;
+}
+
+:deep(.markdown-body h3) {
+  font-size: 1.15em;
+}
+
+:deep(.markdown-body li + li) {
+  margin-top: 0.15em;
+}
+
+/* 暗模式适配 */
+.dark :deep(.markdown-body) {
+  color: #e6e6e6;
+}
+
+.dark :deep(.markdown-body pre) {
+  background-color: #282c34;
+}
+
+.dark :deep(.markdown-body code) {
+  background-color: rgba(110, 118, 129, 0.4);
+}
+
+.dark :deep(.markdown-body h1),
+.dark :deep(.markdown-body h2) {
+  border-color: #30363d;
 }
 </style>
