@@ -203,13 +203,13 @@
 
     <!-- 图片来源选择弹窗 -->
     <div v-if="showImageOptions"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-gray-500/30 backdrop-blur-md"
       @click="showImageOptions = false">
-      <div class="bg-white rounded-lg p-6 w-80 shadow-lg" @click.stop>
+      <div class="bg-white/90 backdrop-blur-sm rounded-lg p-6 w-80 shadow-xl" @click.stop>
         <h3 class="text-lg font-semibold mb-4">选择图片来源</h3>
         <div class="flex flex-col space-y-3">
           <button @click="selectLocalImage"
-            class="flex items-center gap-2 px-4 py-3 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
+            class="flex items-center gap-2 px-4 py-3 bg-gray-100/80 hover:bg-gray-200/90 rounded-lg transition-colors">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
               stroke="currentColor" class="w-5 h-5">
               <path stroke-linecap="round" stroke-linejoin="round"
@@ -218,7 +218,7 @@
             从相册选择
           </button>
           <button @click="useCamera"
-            class="flex items-center gap-2 px-4 py-3 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
+            class="flex items-center gap-2 px-4 py-3 bg-gray-100/80 hover:bg-gray-200/90 rounded-lg transition-colors">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
               stroke="currentColor" class="w-5 h-5">
               <path stroke-linecap="round" stroke-linejoin="round"
@@ -233,9 +233,8 @@
     </div>
 
     <!-- 摄像头捕捉弹窗 -->
-    <div v-if="showCamera"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 backdrop-blur-sm">
-      <div class="bg-white rounded-lg p-4 w-full max-w-lg shadow-lg">
+    <div v-if="showCamera" class="fixed inset-0 z-50 flex items-center justify-center bg-gray-500/30 backdrop-blur-md">
+      <div class="bg-white/90 backdrop-blur-sm rounded-lg p-4 w-full max-w-lg shadow-xl">
         <div class="flex justify-between items-center mb-4">
           <h3 class="text-lg font-semibold">拍摄照片</h3>
           <button @click="closeCamera" class="text-gray-500 hover:text-gray-700">
@@ -266,30 +265,34 @@
 
     <!-- 图片预览模态框 -->
     <div v-if="showImagePreviewModal"
-      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-75 backdrop-blur-sm"
+      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-600/40 backdrop-blur-md"
       @click="closeImagePreview">
       <div class="relative max-w-5xl max-h-[90vh] w-full">
         <div class="absolute top-4 right-4 flex space-x-2 z-20">
-          <button @click.stop="zoomIn" class="p-2 bg-gray-800 hover:bg-gray-700 text-white rounded-full">
+          <button @click.stop="zoomIn"
+            class="p-2 bg-gray-800/80 hover:bg-gray-700 text-white rounded-full backdrop-blur-sm">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
               stroke="currentColor" class="h-5 w-5">
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
             </svg>
           </button>
-          <button @click.stop="zoomOut" class="p-2 bg-gray-800 hover:bg-gray-700 text-white rounded-full">
+          <button @click.stop="zoomOut"
+            class="p-2 bg-gray-800/80 hover:bg-gray-700 text-white rounded-full backdrop-blur-sm">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
               stroke="currentColor" class="h-5 w-5">
               <path stroke-linecap="round" stroke-linejoin="round" d="M18 12H6" />
             </svg>
           </button>
-          <button @click.stop="resetZoom" class="p-2 bg-gray-800 hover:bg-gray-700 text-white rounded-full">
+          <button @click.stop="resetZoom"
+            class="p-2 bg-gray-800/80 hover:bg-gray-700 text-white rounded-full backdrop-blur-sm">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
               stroke="currentColor" class="h-5 w-5">
               <path stroke-linecap="round" stroke-linejoin="round"
                 d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
             </svg>
           </button>
-          <button @click.stop="closeImagePreview" class="p-2 bg-red-600 hover:bg-red-500 text-white rounded-full">
+          <button @click.stop="closeImagePreview"
+            class="p-2 bg-red-600/90 hover:bg-red-500 text-white rounded-full backdrop-blur-sm">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
               stroke="currentColor" class="h-5 w-5">
               <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -311,6 +314,26 @@
         'bg-blue-500 text-white': toast.type === 'info'
       }">
       <span class="text-sm font-medium">{{ toast.message }}</span>
+    </div>
+
+    <!-- 确认对话框 -->
+    <div v-if="showConfirmDialog"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-gray-500/30 backdrop-blur-md"
+      @click="cancelConfirmDialog">
+      <div class="bg-white/90 backdrop-blur-sm rounded-lg p-6 w-80 shadow-xl" @click.stop>
+        <h3 class="text-lg font-semibold mb-3">{{ confirmDialogTitle }}</h3>
+        <p class="text-gray-700 mb-5">{{ confirmDialogMessage }}</p>
+        <div class="flex justify-end space-x-3">
+          <button class="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 transition-colors text-gray-700"
+            @click="cancelConfirmDialog">
+            取消
+          </button>
+          <button class="px-4 py-2 rounded-lg bg-red-500 hover:bg-red-600 transition-colors text-white"
+            @click="confirmDialogAction">
+            确定
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -376,6 +399,12 @@ const toast = ref<{
   message: '',
   type: 'info'
 });
+
+// 确认对话框状态
+const showConfirmDialog = ref(false);
+const confirmDialogTitle = ref('');
+const confirmDialogMessage = ref('');
+let confirmDialogCallback: (() => void) | null = null;
 
 // 示例问题
 const exampleQuestions = [
@@ -831,39 +860,39 @@ const sendMessage = async () => {
 
 // 清空聊天历史
 const clearHistory = async () => {
-  if (!confirm('确定要清空所有聊天记录吗？')) return;
+  showConfirm('清空聊天记录', '确定要清空所有聊天记录吗？这个操作无法撤销。', async () => {
+    try {
+      // 获取活跃的聊天对话
+      const activeChat = currentChat.value;
 
-  try {
-    // 获取活跃的聊天对话
-    const activeChat = currentChat.value;
+      if (activeChat && activeChat.conversationId) {
+        // 确保传入正确的conversationId
+        console.log('准备清空会话:', activeChat.conversationId);
 
-    if (activeChat && activeChat.conversationId) {
-      // 确保传入正确的conversationId
-      console.log('准备清空会话:', activeChat.conversationId);
+        // 调用后端API清空聊天记录
+        const result = await resetChatHistory(activeChat.conversationId);
+        console.log('清空历史记录结果:', result);
+      } else {
+        console.warn('没有活跃的对话或者对话ID不存在');
+      }
 
-      // 调用后端API清空聊天记录
-      const result = await resetChatHistory(activeChat.conversationId);
-      console.log('清空历史记录结果:', result);
-    } else {
-      console.warn('没有活跃的对话或者对话ID不存在');
+      // 清空本地聊天记录
+      chatHistory.value = [];
+
+      // 创建新的聊天（避免空白界面）
+      startNewChat();
+
+      // 显示成功消息
+      showToast('聊天记录已清空', 'success');
+    } catch (error) {
+      console.error('清空历史记录时出错:', error);
+
+      // 即使API调用失败，我们仍然清空本地记录并显示成功消息
+      chatHistory.value = [];
+      startNewChat();
+      showToast('本地聊天记录已清空', 'success');
     }
-
-    // 清空本地聊天记录
-    chatHistory.value = [];
-
-    // 创建新的聊天（避免空白界面）
-    startNewChat();
-
-    // 显示成功消息
-    showToast('聊天记录已清空', 'success');
-  } catch (error) {
-    console.error('清空历史记录时出错:', error);
-
-    // 即使API调用失败，我们仍然清空本地记录并显示成功消息
-    chatHistory.value = [];
-    startNewChat();
-    showToast('本地聊天记录已清空', 'success');
-  }
+  });
 };
 
 // 获取聊天历史记录
@@ -1043,6 +1072,29 @@ const toBase64 = (file: File): Promise<string> => {
     reader.onerror = error => reject(error);
   });
 };
+
+// 显示确认对话框
+const showConfirm = (title: string, message: string, callback: () => void) => {
+  confirmDialogTitle.value = title;
+  confirmDialogMessage.value = message;
+  confirmDialogCallback = callback;
+  showConfirmDialog.value = true;
+};
+
+// 取消确认对话框
+const cancelConfirmDialog = () => {
+  showConfirmDialog.value = false;
+  confirmDialogCallback = null;
+};
+
+// 确认对话框操作
+const confirmDialogAction = () => {
+  if (confirmDialogCallback) {
+    confirmDialogCallback();
+  }
+  showConfirmDialog.value = false;
+  confirmDialogCallback = null;
+};
 </script>
 
 <style scoped>
@@ -1064,6 +1116,31 @@ const toBase64 = (file: File): Promise<string> => {
   --token-border-medium: #565869;
   --token-text-primary: #ececf1;
   --token-text-secondary: #c5c5d2;
+}
+
+/* 毛玻璃效果 */
+.backdrop-blur-md {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.backdrop-blur-sm {
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+/* 模态框亚克力效果 */
+.bg-white\/90 {
+  background-color: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.bg-gray-500\/30 {
+  background-color: rgba(107, 114, 128, 0.3);
+}
+
+.bg-gray-600\/40 {
+  background-color: rgba(75, 85, 99, 0.4);
 }
 
 /* 固定在底部的输入框 */
