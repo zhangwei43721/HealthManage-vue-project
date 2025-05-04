@@ -131,7 +131,7 @@
                 </div>
 
                 <!-- 消息文本 -->
-                <div v-if="message.role === 'assistant'" class="prose max-w-none text-gray-800"
+                <div v-if="message.role === 'assistant'" class="prose prose-gray max-w-none text-gray-800"
                   v-html="renderMarkdown(message.content)">
                 </div>
                 <div v-else class="whitespace-pre-wrap text-gray-800">
@@ -342,10 +342,26 @@
 <script setup lang="ts">
 // @ts-expect-error Vue 3.x型声明文件兼容性问题
 import { ref, onMounted, onUnmounted, nextTick, watch, computed } from 'vue';
-import { marked } from 'marked';
 import DOMPurify from 'dompurify';
 import { v4 as uuidv4 } from 'uuid';
 import { getChatHistory, resetChatHistory } from '@/services/aiService';
+
+// 导入markdown-it和相关插件
+import MarkdownIt from 'markdown-it';
+import 'prismjs';
+import 'prismjs/themes/prism.css';
+import 'prismjs/components/prism-javascript';
+import 'prismjs/components/prism-typescript';
+import 'prismjs/components/prism-css';
+import 'prismjs/components/prism-java';
+import 'prismjs/components/prism-python';
+import 'prismjs/components/prism-c';
+import 'prismjs/components/prism-cpp';
+import 'prismjs/components/prism-bash';
+import 'prismjs/components/prism-json';
+import 'prismjs/components/prism-sql';
+import 'prismjs/components/prism-markdown';
+import mdPrism from 'markdown-it-prism';
 
 // 类型定义
 interface Message {
@@ -455,7 +471,16 @@ const startNewChat = () => {
   showToast('已创建新对话', 'success');
 };
 
-// Markdown渲染
+// 初始化markdown-it实例
+const md = new MarkdownIt({
+  html: true,        // 启用HTML标签
+  breaks: true,      // 将换行符转换为<br>
+  linkify: true,     // 自动将URL转换为链接
+  typographer: true, // 启用引号美化等排版功能
+})
+  .use(mdPrism);      // 使用Prism.js进行语法高亮
+
+// 简化Markdown渲染函数
 const markdownCache = new Map();
 const renderMarkdown = (content: string): string => {
   if (markdownCache.has(content)) {
@@ -463,31 +488,18 @@ const renderMarkdown = (content: string): string => {
   }
 
   try {
-    // 更精确地移除markdown内容中的图片链接部分，避免重复渲染
-    // 检测content是否包含resultImageUrl对应的图片链接
-    const contentWithoutImages = content.replace(/!\[.*?\]\(https?:\/\/[^\s)]+\)/g, '');
+    // 使用markdown-it渲染
+    const rawHtml = md.render(content);
 
-    marked.setOptions({
-      gfm: true,
-      breaks: true,
-    });
+    // 使用DOMPurify过滤HTML
+    const safeHtml = DOMPurify.sanitize(rawHtml);
 
-    const rawHtml = marked.parse(contentWithoutImages);
-    const cleanHtml = typeof rawHtml === 'string'
-      ? DOMPurify.sanitize(rawHtml, {
-        ALLOWED_TAGS: ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'p', 'a', 'ul', 'ol',
-          'li', 'b', 'i', 'strong', 'em', 'strike', 'code', 'hr', 'br', 'div',
-          'table', 'thead', 'tbody', 'tr', 'th', 'td', 'pre', 'img', 'span'],
-        ALLOWED_ATTR: ['href', 'name', 'target', 'src', 'alt', 'class', 'style', 'title']
-      })
-      : contentWithoutImages;
-
-    markdownCache.set(content, cleanHtml);
-    return cleanHtml;
+    // 缓存结果
+    markdownCache.set(content, safeHtml);
+    return safeHtml;
   } catch (e) {
-    console.error("渲染 Markdown 时出错:", e);
-    markdownCache.set(content, content);
-    return content;
+    console.error("渲染Markdown时出错:", e);
+    return content; // 出错时返回原始内容
   }
 };
 
@@ -1099,6 +1111,7 @@ const confirmDialogAction = () => {
 </script>
 
 <style scoped>
+/* 现有样式 */
 :root {
   --token-primary: #10a37f;
   --token-sidebar-surface-primary: #202123;
@@ -1215,55 +1228,21 @@ textarea {
   transition: height 0.1s ease-out;
 }
 
-/* Markdown 内容样式改进 */
-.prose {
-  max-width: none;
+/* Markdown 样式优化 - 简化版 */
+:deep(.prose) {
+  line-height: 1.4;
 }
 
-.prose h1,
-.prose h2,
-.prose h3 {
-  margin-top: 1.5em;
-  margin-bottom: 0.5em;
-  font-weight: 600;
-}
-
-.prose pre {
-  background-color: #f3f4f6;
-  padding: 0.75rem;
-  border-radius: 0.5rem;
-  overflow-x: auto;
-}
-
-.dark .prose pre {
-  background-color: #2d2d31;
-}
-
-.prose code {
-  font-family: ui-monospace, monospace;
-  padding: 0.2em 0.4em;
-  background-color: rgba(0, 0, 0, 0.05);
-  border-radius: 0.25em;
-}
-
-.dark .prose code {
-  background-color: rgba(255, 255, 255, 0.1);
-}
-
-.prose img {
-  border-radius: 0.375rem;
-}
-
-.prose blockquote {
-  border-left: 4px solid var(--token-primary);
-  padding-left: 1rem;
-  font-style: italic;
-}
-
-/* 响应式调整 */
-@media (max-width: 640px) {
-  nav.flex-none {
-    width: 220px;
-  }
+:deep(.prose p),
+:deep(.prose ul),
+:deep(.prose ol),
+:deep(.prose li),
+:deep(.prose h1),
+:deep(.prose h2),
+:deep(.prose h3),
+:deep(.prose h4) {
+  margin-top: 0.2em;
+  margin-bottom: 0.2em;
+  line-height: 1.4;
 }
 </style>
