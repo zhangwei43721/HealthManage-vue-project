@@ -1,15 +1,16 @@
 <template>
-  <div class="min-h-screen bg-gray-50 text-gray-800 flex flex-col pt-[80px] pb-0">
+  <div class="min-h-screen bg-gray-50 text-gray-800 flex flex-col">
     <!-- 欢迎信息 -->
     <div v-if="!currentChat || currentChat.messages.length === 0"
-      class="flex-1 flex flex-col items-center justify-center p-4">
+      class="flex-1 flex flex-col items-center justify-center p-4 min-h-[calc(100vh-64px)] mt-16">
       <div class="max-w-3xl w-full">
         <h1 class="text-3xl font-bold text-center mb-3">您好，有什么可以帮助您的？</h1>
         <p class="text-xl text-center text-gray-500 mb-10">您可以询问任何健康相关的问题</p>
 
         <!-- 中央输入框 -->
         <div class="max-w-2xl mx-auto mb-8 relative">
-          <div class="relative rounded-2xl border border-gray-300 bg-white shadow-sm">
+          <div
+            class="relative rounded-2xl border border-gray-300 bg-white/90 backdrop-blur-sm shadow-md hover:shadow-lg transition-all duration-300">
             <textarea ref="inputArea" v-model="newMessage" rows="1"
               class="w-full resize-none border-0 bg-transparent p-5 pr-24 text-gray-800 placeholder-gray-400 focus:outline-none rounded-2xl"
               placeholder="您想了解什么健康知识？" @keydown.enter.prevent="handleEnterKey" @input="adjustTextareaHeight">
@@ -55,9 +56,9 @@
         </div>
 
         <!-- 示例问题 -->
-        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 max-w-2xl mx-auto">
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 max-w-2xl mx-auto">
           <button v-for="(example, i) in exampleQuestions.slice(0, 6)" :key="i"
-            class="text-sm px-4 py-3 rounded-2xl border border-gray-300 bg-white hover:bg-gray-100 transition-colors text-gray-700 text-left"
+            class="text-sm px-4 py-3 rounded-2xl border border-gray-300 bg-white hover:bg-gray-100 transition-colors text-gray-700 text-left shadow-sm hover:shadow"
             @click="askExample(example)">
             {{ example.content }}
           </button>
@@ -66,7 +67,7 @@
     </div>
 
     <!-- 聊天内容 -->
-    <div v-else class="flex-1 flex flex-col">
+    <div v-else class="flex-1 flex flex-col pt-[80px] pb-0">
       <!-- 消息列表 -->
       <div ref="messagesContainer" class="flex-1 overflow-y-auto pt-4 pb-32">
         <div class="max-w-3xl mx-auto px-4">
@@ -1116,6 +1117,23 @@ const confirmDialogAction = () => {
   --token-border-medium: #565869;
   --token-text-primary: #ececf1;
   --token-text-secondary: #c5c5d2;
+}
+
+/* 欢迎信息淡入动画 */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.flex-1.flex.flex-col.items-center.justify-center {
+  animation: fade-in 0.5s ease-out;
 }
 
 /* 毛玻璃效果 */
