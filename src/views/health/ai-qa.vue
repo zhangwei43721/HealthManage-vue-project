@@ -68,6 +68,26 @@
           class="message-text p-4 rounded-lg max-w-xs sm:max-w-md md:max-w-lg lg:max-w-xl break-words shadow-sm relative group"
           :class="messageTextBackground(message.role)">
 
+          <!-- 图片显示 - 移到文字前面 -->
+          <div v-if="message.imageUrl" class="mb-3">
+            <div
+              class="relative rounded-md overflow-hidden border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-700 shadow-sm">
+              <img :src="message.imageUrl" alt="Image" class="max-w-full h-auto cursor-pointer"
+                @click="previewImage(message.imageUrl)">
+              <div
+                class="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-20 transition-all flex items-center justify-center">
+                <button @click.stop="previewImage(message.imageUrl)"
+                  class="transform scale-0 hover:scale-100 transition-transform bg-black bg-opacity-70 text-white p-2 rounded-full">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
           <!-- Render Markdown for assistant text -->
           <div v-if="message.role === 'assistant' && message.content" v-html="renderMarkdown(message.content)"
             class="text-sm whitespace-pre-wrap prose dark:prose-invert max-w-none"></div>
@@ -89,26 +109,6 @@
                   d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
               </svg>
             </button>
-          </div>
-
-          <!-- 图片显示 -->
-          <div v-if="message.imageUrl" class="mt-3">
-            <div
-              class="relative rounded-md overflow-hidden border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-700 shadow-sm">
-              <img :src="message.imageUrl" alt="Image" class="max-w-full h-auto cursor-pointer"
-                @click="previewImage(message.imageUrl)">
-              <div
-                class="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-20 transition-all flex items-center justify-center">
-                <button @click.stop="previewImage(message.imageUrl)"
-                  class="transform scale-0 hover:scale-100 transition-transform bg-black bg-opacity-70 text-white p-2 rounded-full">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
-                    stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
-                  </svg>
-                </button>
-              </div>
-            </div>
           </div>
 
           <!-- 助手加载中指示器 -->
@@ -342,6 +342,8 @@
 </template>
 
 <script setup lang="ts">
+// eslint-disable no-this-alias
+// eslint-disable no-this-alias
 import { ref, onMounted, nextTick, watch, onUnmounted } from 'vue';
 import Button from '@/components/base/Button.vue';
 import { Send, Paperclip, Close, Delete, Robot, User, LoadingOne } from '@icon-park/vue-next';
@@ -352,16 +354,13 @@ import DOMPurify from 'dompurify';
 
 import { getChatHistory, resetChatHistory, initiateChatStream } from '@/services/aiService';
 import type { ChatHistory } from '@/types/chat';
-
-// 修正类型定义以避免 ESLint 'any' 错误
-// 使用更具体的函数签名，如果可能的话，或者接受更宽泛的函数类型
 type DebounceableFunction = (...args: unknown[]) => unknown;
-
-interface Message extends Partial<ChatHistory> {
+interface Message {
   role: 'user' | 'assistant';
   content: string;
   timestamp: string;
   imageUrl?: string;
+  id?: string | number;
   loading?: boolean;
 }
 
@@ -380,9 +379,7 @@ let currentConversationId: string | null = null;
 
 const showImagePreviewModal = ref(false);
 const imageToPreview = ref<string | null>(null);
-
 const showResetConfirm = ref(false);
-
 const imageZoom = ref(1);
 const textareaRows = ref(1);
 const inputFocused = ref(false);
@@ -395,6 +392,7 @@ const quickPrompts = [
   '什么是地中海饮食？',
   '怎样改善睡眠质量？'
 ];
+const toast = ref<{ show: boolean; message: string; type: 'success' | 'error' | 'info'; }>({ show: false, message: '', type: 'info' });
 
 const scrollToBottom = () => {
   nextTick(() => {
@@ -407,9 +405,12 @@ const scrollToBottom = () => {
 const adjustTextAreaHeight = () => {
   if (inputTextArea.value) {
     inputTextArea.value.style.height = 'auto';
-    inputTextArea.value.style.height = `${inputTextArea.value.scrollHeight}px`;
+    const scrollHeight = inputTextArea.value.scrollHeight;
+    const maxHeight = 160;
+    inputTextArea.value.style.height = `${Math.min(scrollHeight, maxHeight)}px`;
   }
 };
+
 
 watch(newMessage, () => {
   nextTick(adjustTextAreaHeight);
@@ -423,14 +424,19 @@ const fetchHistory = async () => {
 
     const conversations: Record<string, Message[]> = {};
     history.forEach(histItem => {
-      if (!conversations[histItem.conversationId]) {
-        conversations[histItem.conversationId] = [];
-      }
-      conversations[histItem.conversationId].push({
-        ...histItem,
-        timestamp: histItem.createdAt || histItem.timestamp,
-      });
+        const convId = histItem.conversationId;
+        if (!conversations[convId]) {
+            conversations[convId] = [];
+        }
+        // Ensure timestamp exists and is a string for consistent typing
+        const timestamp = histItem.createdAt || histItem.timestamp || new Date().toISOString();
+        conversations[convId].push({
+            ...histItem,
+            timestamp: String(timestamp), // Force string conversion
+            id: histItem.id || uuidv4() // Ensure ID exists
+        });
     });
+
 
     let latestConvId: string | null = null;
     let latestTimestamp = 0;
@@ -446,7 +452,7 @@ const fetchHistory = async () => {
     });
 
     if (latestConvId && conversations[latestConvId]) {
-      messages.value = conversations[latestConvId];
+      messages.value = conversations[latestConvId].sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
       currentConversationId = latestConvId;
     } else {
       messages.value = [];
@@ -478,8 +484,6 @@ const handleImageSelected = (event: Event) => {
     const reader = new FileReader();
     reader.onload = (e) => {
       previewImageUrl.value = e.target?.result as string;
-
-      // 根据文件类型和名称智能建议提示语
       suggestPromptForImage(file);
     };
     reader.readAsDataURL(file);
@@ -497,79 +501,65 @@ const removeSelectedImage = () => {
   }
 };
 
-// 引入工具函数和缓存机制
 const markdownCache = new Map();
-
 const renderMarkdown = (content: string): string => {
-  // 如果已经缓存了该内容的渲染结果，直接返回
   if (markdownCache.has(content)) {
     return markdownCache.get(content);
   }
+  const mightBeMarkdown = /[#*`[\]()>\-_!]/.test(content) || /\n\s*\n/.test(content); // Added more checks
+    if (!mightBeMarkdown && !content.includes('\n')) {
+        // Only cache if it's unlikely to be Markdown and single line
+        markdownCache.set(content, content);
+        return content;
+    }
 
-  // 基本检查内容是否可能是 markdown（包含常见的 markdown 字符）
-  const mightBeMarkdown = /[#*`[\]()>-]/.test(content);
-  if (!mightBeMarkdown) {
-    // 添加到缓存并返回纯文本
-    markdownCache.set(content, content);
-    return content;
-  }
 
   try {
-    // 设置marked选项，启用GFM和禁用不安全标签
     marked.setOptions({
       gfm: true,
       breaks: true,
-      // 移除不支持的选项
     });
-
-    // 使用 DOMPurify 清理 marked 生成的 HTML 输出
     const rawHtml = marked.parse(content);
     const cleanHtml = typeof rawHtml === 'string'
       ? DOMPurify.sanitize(rawHtml, {
-        ALLOWED_TAGS: ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'p', 'a', 'ul', 'ol',
-          'li', 'b', 'i', 'strong', 'em', 'strike', 'code', 'hr', 'br', 'div',
-          'table', 'thead', 'tbody', 'tr', 'th', 'td', 'pre', 'img', 'span'],
-        ALLOWED_ATTR: ['href', 'name', 'target', 'src', 'alt', 'class', 'style']
+        USE_PROFILES: { html: true },
+                ALLOWED_TAGS: ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'p', 'a', 'ul', 'ol',
+                  'li', 'b', 'i', 'strong', 'em', 'strike', 'code', 'hr', 'br', 'div',
+                  'table', 'thead', 'tbody', 'tr', 'th', 'td', 'pre', 'img', 'span'],
+                ALLOWED_ATTR: ['href', 'name', 'target', 'src', 'alt', 'class', 'style', 'title', 'id'] // Added title, id
       })
       : content;
-
-    // 添加到缓存并返回处理后的 HTML
     markdownCache.set(content, cleanHtml);
     return cleanHtml;
   } catch (e) {
     console.error("渲染 Markdown 时出错:", e);
-    // 错误时返回原始内容，并添加到缓存
     markdownCache.set(content, content);
     return content;
   }
 };
 
-// 优化 fetch 操作的防抖功能
-// 使用修正后的类型
 const debounce = <F extends DebounceableFunction>(
   func: F,
   wait: number
 ): ((...args: Parameters<F>) => void) => {
   let timeout: ReturnType<typeof setTimeout> | null = null;
-
   return function (this: ThisParameterType<F>, ...args: Parameters<F>) {
+    const context = this;
     if (timeout !== null) {
       clearTimeout(timeout);
     }
     timeout = setTimeout(() => {
-      func.apply(this, args);
+      func.apply(context, args);
       timeout = null;
     }, wait);
   };
 };
 
-// 使用防抖来优化滚动操作
-const debounceScrollToBottom = debounce(() => {
-  scrollToBottom();
-}, 100);
+
+const debounceScrollToBottom = debounce(scrollToBottom, 100);
 
 const handleEnterKey = (event: KeyboardEvent) => {
-  if (event.key === 'Enter' && !event.shiftKey) {
+  if (event.key === 'Enter' && !event.shiftKey && !isMobile.value) { // Prevent Enter on mobile
     event.preventDefault();
     sendMessage();
   }
@@ -577,9 +567,13 @@ const handleEnterKey = (event: KeyboardEvent) => {
 
 const formatTimestamp = (isoString: string | Date): string => {
   try {
-    return format(new Date(isoString), 'HH:mm');
+     const date = typeof isoString === 'string' ? new Date(isoString) : isoString;
+     if (isNaN(date.getTime())) { // Check if date is valid
+       return '--:--';
+     }
+     return format(date, 'HH:mm');
   } catch {
-    return '';
+    return '--:--';
   }
 };
 
@@ -599,13 +593,17 @@ const previewImage = (url: string | null) => {
 const closeImagePreview = () => {
   showImagePreviewModal.value = false;
   imageToPreview.value = null;
-  // 重置缩放
   imageZoom.value = 1;
 };
 
 const confirmResetHistory = () => {
-  showResetConfirm.value = true;
+    if (messages.value.length > 0) { // Only show confirm if there are messages
+        showResetConfirm.value = true;
+    } else {
+        showToast('当前没有聊天记录', 'info');
+    }
 };
+
 
 const cancelResetHistory = () => {
   showResetConfirm.value = false;
@@ -615,6 +613,7 @@ const executeResetHistory = async () => {
   if (!currentConversationId) {
     error.value = '没有找到当前会话，无法清空。';
     showResetConfirm.value = false;
+    showToast(error.value, 'error');
     return;
   }
   isResetting.value = true;
@@ -624,11 +623,14 @@ const executeResetHistory = async () => {
     messages.value = [];
     currentConversationId = uuidv4();
     showResetConfirm.value = false;
+    showToast('聊天记录已清空', 'success');
     console.log('History reset, new conversation ID:', currentConversationId)
 
   } catch (err) {
     console.error("Error resetting history:", err);
-    error.value = (err instanceof Error) ? err.message : '清空记录失败。';
+    const message = err instanceof Error ? err.message : '清空记录失败。';
+    error.value = message;
+    showToast(message, 'error');
   } finally {
     isResetting.value = false;
   }
@@ -636,23 +638,34 @@ const executeResetHistory = async () => {
 
 const applyQuickPrompt = (prompt: string) => {
   newMessage.value = prompt;
-  adjustTextAreaHeight();
+  nextTick(() => {
+      adjustTextAreaHeight();
+      if (inputTextArea.value) {
+          inputTextArea.value.focus();
+      }
+  });
 };
 
+
 const formatFileSize = (bytes: number): string => {
-  if (bytes < 1024) return bytes + ' B';
-  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
-  return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  if (bytes === 0) return '0 B';
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
 };
+
 
 const handleImageWheel = (event: WheelEvent) => {
   event.preventDefault();
+  const scaleAmount = 0.1;
   if (event.deltaY < 0) {
-    zoomIn();
+    imageZoom.value = Math.min(imageZoom.value + scaleAmount, 3);
   } else {
-    zoomOut();
+    imageZoom.value = Math.max(imageZoom.value - scaleAmount, 0.5);
   }
 };
+
 
 const zoomIn = () => {
   imageZoom.value = Math.min(imageZoom.value + 0.2, 3);
@@ -667,80 +680,44 @@ const resetZoom = () => {
 };
 
 const handleTextareaInput = () => {
-  adjustTextAreaHeight();
-
-  const lineCount = (newMessage.value.match(/\n/g) || []).length + 1;
-  textareaRows.value = Math.min(Math.max(1, lineCount), 5);
+    adjustTextAreaHeight();
+    // Calculate rows based on lines, capped at a max
+    const lineCount = (newMessage.value.match(/\n/g) || []).length + 1;
+    const maxRows = 6; // Increased max rows slightly
+    textareaRows.value = Math.min(Math.max(1, lineCount), maxRows);
 };
+
 
 const stopRecording = () => {
   isRecording.value = false;
-  newMessage.value = "我最近经常感到头晕和疲劳，是什么原因？";
+  newMessage.value = "我最近经常感到头晕和疲劳，是什么原因？"; // Example result
   adjustTextAreaHeight();
+  showToast('录音已停止（模拟）', 'info');
 };
 
 const checkIfMobile = () => {
   isMobile.value = window.innerWidth < 768;
 };
 
-onMounted(() => {
-  fetchHistory();
-  adjustTextAreaHeight();
-  checkIfMobile();
-
-  // 添加页面可见性事件监听，当页面恢复可见时刷新历史记录
-  document.addEventListener('visibilitychange', handleVisibilityChange);
-
-  // 添加事件监听器以处理文本区域焦点
-  if (inputTextArea.value) {
-    inputTextArea.value.addEventListener('focus', () => {
-      inputFocused.value = true;
-    });
-    inputTextArea.value.addEventListener('blur', () => {
-      setTimeout(() => {
-        inputFocused.value = false;
-      }, 200);
-    });
-  }
-
-  // 添加 resize 事件监听
-  window.addEventListener('resize', checkIfMobile);
-});
-
-onUnmounted(() => {
-  document.removeEventListener('visibilitychange', handleVisibilityChange);
-  window.removeEventListener('resize', checkIfMobile);
-});
-
-// 页面可见性变化时刷新数据（用户返回标签页时重新加载）
 const handleVisibilityChange = () => {
-  if (!document.hidden && messages.value.length === 0) {
-    fetchHistory();
-  }
+    if (!document.hidden && messages.value.length === 0 && !isFetchingHistory.value) {
+      console.log("Tab became visible, fetching history as it's empty.");
+      fetchHistory();
+    } else if (!document.hidden) {
+      console.log("Tab became visible, history already present or fetching.");
+    }
 };
 
-// 添加自定义复制功能
+
 const copyToClipboard = async (text: string) => {
   try {
     await navigator.clipboard.writeText(text);
-    // 显示复制成功提示
     showToast('内容已复制到剪贴板');
   } catch (err) {
     console.error('复制失败:', err);
     showToast('复制失败，请重试', 'error');
   }
 };
-
-// 添加简单的 Toast 提示
-const toast = ref<{
-  show: boolean;
-  message: string;
-  type: 'success' | 'error' | 'info';
-}>({
-  show: false,
-  message: '',
-  type: 'info'
-});
 
 const showToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
   toast.value = {
@@ -754,274 +731,300 @@ const showToast = (message: string, type: 'success' | 'error' | 'info' = 'succes
   }, 3000);
 };
 
-// 根据图片类型智能推荐提示语
 const suggestPromptForImage = (file: File) => {
-  // 清除原有错误
   error.value = null;
-
   const fileName = file.name.toLowerCase();
+  const medicalKeywords = ['x-ray', 'xray', 'ct', 'mri', 'scan', 'ultra', '医学', '影像', '核磁', 'x光', 'ecg', 'ekg', '心电图', 'b超'];
+  const isMedicalImage = medicalKeywords.some(keyword => fileName.includes(keyword));
 
-  // 检测是否是医学影像
-  const isMedicalImage =
-    fileName.includes('x-ray') ||
-    fileName.includes('xray') ||
-    fileName.includes('ct') ||
-    fileName.includes('mri') ||
-    fileName.includes('scan') ||
-    fileName.includes('ultra') ||
-    fileName.includes('医学') ||
-    fileName.includes('影像') ||
-    fileName.includes('ct') ||
-    fileName.includes('核磁') ||
-    fileName.includes('x光');
-
-  // 提供合适的提示语
   if (isMedicalImage) {
-    newMessage.value = "请分析这张医学影像，告诉我可能存在的健康问题";
+    newMessage.value = "请分析这张图片，告诉我可能存在的健康问题。";
   } else {
-    newMessage.value = "请分析这张图片中的健康相关信息";
+    newMessage.value = "请描述这张图片中的内容，并分析其中与健康可能相关的信息。";
   }
-
-  // 调整文本区域
   nextTick(adjustTextAreaHeight);
-
-  // 显示小提示
-  showToast('已添加图片，请输入或修改您的问题', 'info');
+  showToast('已添加图片，请检查或修改问题后发送', 'info');
 };
 
-// 发送消息函数
-const sendMessage = async (retryCount = 0) => {
-  const maxRetries = 2; // 最大重试次数
-  const text = newMessage.value.trim();
-  const file = selectedFile.value;
-
-  if (!text && !file) return;
-  if (!currentConversationId) {
-    error.value = '无法确定当前会话，请刷新页面重试。';
+const processSseLine = (line: string, assistantMessage: Message | undefined) => {
+  const trimmedLine = line.trim();
+  if (!trimmedLine.startsWith('data:') || !assistantMessage) {
+    if (trimmedLine && !trimmedLine.startsWith('data:')) {
+        console.log('Received non-data line:', trimmedLine);
+    }
     return;
   }
 
+  try {
+    const rawData = trimmedLine.substring(5).trim();
+    if (!rawData || rawData === '[DONE]') {
+      if (rawData === '[DONE]') {
+        console.log('Received [DONE] signal');
+        assistantMessage.loading = false;
+        if (!assistantMessage.content && !assistantMessage.imageUrl) {
+          assistantMessage.content = "AI 助手处理完成，但未返回有效内容。";
+        }
+      }
+      return;
+    }
+
+    try {
+      const jsonData = JSON.parse(rawData);
+      const contentPart = jsonData.choices?.[0]?.delta?.content;
+      if (contentPart !== undefined && contentPart !== null) {
+        assistantMessage.content += contentPart;
+        debounceScrollToBottom();
+      }
+      const finishReason = jsonData.choices?.[0]?.finish_reason;
+      if (finishReason === 'stop') {
+        assistantMessage.loading = false;
+        console.log('Stream ended (finish_reason=stop)');
+      }
+    } catch (jsonError) {
+      if (rawData.startsWith('http') || rawData.startsWith('data:image')) { // More specific check for image data URLs
+        console.log('Received image URL/Data:', rawData.substring(0, 100) + '...'); // Log truncated data URI
+        assistantMessage.imageUrl = rawData;
+        debounceScrollToBottom();
+      } else {
+        console.error('Error parsing SSE data (not URL):', jsonError, 'Raw data:', rawData);
+        console.warn('Assistant message received unparseable data block:', rawData);
+      }
+    }
+  } catch (e) {
+    console.error('Unexpected error processing SSE line:', e, 'Original line:', line);
+  }
+};
+
+const processStreamChunk = (chunk: Uint8Array | undefined, bufferObj: { buffer: string }, decoder: TextDecoder, assistantMessage: Message | undefined): void => {
+  if (!chunk) return;
+
+  bufferObj.buffer += decoder.decode(chunk, { stream: true });
+  const lines = bufferObj.buffer.split('\n');
+  bufferObj.buffer = lines.pop() || '';
+
+  lines.forEach(line => processSseLine(line, assistantMessage));
+};
+
+const handleSendMessageError = (
+    err: unknown,
+    assistantMessageIndex: number,
+    retryCount: number,
+    maxRetries: number
+) => {
+    console.error(`Error sending/processing message (Attempt ${retryCount + 1}):`, err);
+    const errorMessage = err instanceof Error ? err.message : '处理AI响应时发生未知错误。';
+    error.value = errorMessage;
+    showToast(`错误: ${errorMessage}`, 'error'); // Show error in toast
+
+    const assistantMessage = messages.value[assistantMessageIndex];
+    if (assistantMessage) {
+        if (!assistantMessage.content && !assistantMessage.imageUrl) {
+            assistantMessage.content = `抱歉，处理请求时遇到问题: ${errorMessage}`;
+        }
+        assistantMessage.loading = false;
+    }
+
+    if (retryCount < maxRetries) {
+        console.log(`Will attempt retry ${retryCount + 2} after 1 second...`);
+        if (assistantMessageIndex !== -1) {
+        }
+        return true;
+    } else {
+        console.error("Max retries reached. Giving up.");
+        return false;
+    }
+};
+
+
+const sendMessage = async (retryAttempt = 0) => {
+  const maxRetries = 2;
+  const text = newMessage.value.trim();
+  const file = selectedFile.value;
+
+  if (!text && !file) {
+      showToast('请输入消息或上传图片', 'info');
+      return;
+  }
+  if (!currentConversationId) {
+    error.value = '无法确定当前会话，请刷新页面重试。';
+    showToast(error.value, 'error');
+    return;
+  }
+  if (isLoading.value && retryAttempt === 0) { // Prevent user double-click, allow retries
+    showToast('正在处理上一条消息，请稍候...', 'info');
+    return;
+  }
+
+
   isLoading.value = true;
   error.value = null;
-
+  const userMessageId = uuidv4();
   const userMessage: Message = {
     role: 'user',
     content: text,
     timestamp: new Date().toISOString(),
-    imageUrl: previewImageUrl.value || undefined
+    imageUrl: previewImageUrl.value || undefined,
+    loading: false,
+    id: userMessageId,
+    conversationId: currentConversationId,
   };
   messages.value.push(userMessage);
 
-  const currentConvId = currentConversationId; // 捕获当前 ID
+  const currentConvId = currentConversationId;
 
-  // 清除输入并调整 UI
+  const originalNewMessage = text;
+  const originalSelectedFile = file;
+  const originalPreviewUrl = previewImageUrl.value;
+
   newMessage.value = '';
   removeSelectedImage();
-  nextTick(adjustTextAreaHeight);
+  nextTick(() => {
+      adjustTextAreaHeight();
+      scrollToBottom();
+  });
+
+  const assistantMessageIndex = messages.value.length;
+  const assistantPlaceholderId = uuidv4();
+  const assistantPlaceholder: Message = {
+    id: assistantPlaceholderId,
+    role: 'assistant',
+    content: '',
+    timestamp: new Date().toISOString(),
+    loading: true,
+    conversationId: currentConvId,
+  };
+  messages.value.push(assistantPlaceholder);
   scrollToBottom();
 
-  // 准备表单数据
-  const formData = new FormData();
-  // 确保消息内容使用UTF-8编码
-  if (text) {
-    const encoder = new TextEncoder(); // 创建UTF-8编码器
-    const utf8Bytes = encoder.encode(text);
-    const utf8Text = new TextDecoder('utf-8').decode(utf8Bytes); // 确保是有效的UTF-8文本
-    formData.append('message', utf8Text);
-  } else {
-    formData.append('message', ' '); // 如果没有文本则发送空格
-  }
-  formData.append('conversationId', currentConvId);
-  if (file) {
-    formData.append('file', file);
-  }
-
-  let assistantMessageIndex = -1; // 初始化索引
+  let assistantMessageRef = messages.value[assistantMessageIndex]; // Get initial ref
 
   try {
-    // 添加助手消息占位符
-    assistantMessageIndex = messages.value.length;
-    messages.value.push({
-      role: 'assistant',
-      content: '',
-      timestamp: new Date().toISOString(),
-      loading: true
-    });
-    scrollToBottom();
+    const formData = new FormData();
+    formData.append('message', text || ' ');
+    formData.append('conversationId', currentConvId);
+    if (file) {
+      formData.append('file', file, file.name); // Include filename
+    }
 
-    // 使用 aiService 初始化流
     const response = await initiateChatStream(formData);
 
+    if (!response.ok) { // Check response status
+        let errorBody = '请求失败';
+        try {
+            const errorData = await response.json();
+            errorBody = errorData.message || errorData.error || JSON.stringify(errorData);
+        } catch {
+            errorBody = await response.text();
+        }
+        throw new Error(`HTTP error ${response.status}: ${errorBody}`);
+    }
+
+
     if (!response.body) {
-      throw new Error('响应体缺失');
+      throw new Error('Response body is missing');
     }
 
     const reader = response.body.getReader();
-    const decoder = new TextDecoder('utf-8'); // 指定UTF-8解码
-    let buffer = '';
-
-    // 处理流式响应
-    const processStream = async () => {
-      console.log('开始处理消息流');
-      try {
-        while (true) {
-          const { done, value } = await reader.read();
-
-          if (done) {
-            if (messages.value[assistantMessageIndex]) {
-              messages.value[assistantMessageIndex].loading = false;
-
-              // 如果收到的内容为空，提供反馈
-              if (!messages.value[assistantMessageIndex].content &&
-                !messages.value[assistantMessageIndex].imageUrl) {
-                messages.value[assistantMessageIndex].content = "AI 助手没有返回有效内容。";
-              }
-            }
-            console.log('消息流结束，会话:', currentConvId);
-            break;
-          }
-
-          if (value) {
-            const decodedChunk = decoder.decode(value, { stream: true });
-            buffer += decodedChunk;
-          }
-
-          const lines = buffer.split('\n');
-          buffer = lines.pop() || '';
-
-          for (const line of lines) {
-            const trimmedLine = line.trim();
-
-            if (trimmedLine.startsWith('data:')) {
-              try {
-                const rawData = trimmedLine.substring(5).trim();
-                if (!rawData || rawData === '[DONE]') {
-                  if (rawData === '[DONE]') {
-                    console.log('收到 [DONE] 信号');
-                    if (assistantMessageIndex !== -1 && messages.value[assistantMessageIndex]) {
-                      messages.value[assistantMessageIndex].loading = false;
-                      if (!messages.value[assistantMessageIndex].content &&
-                        !messages.value[assistantMessageIndex].imageUrl) {
-                        messages.value[assistantMessageIndex].content = "AI 助手没有返回有效内容。";
-                      }
-                    }
-                  }
-                  continue;
-                }
-
-                let isJsonParsed = false;
-                try {
-                  const jsonData = JSON.parse(rawData);
-                  isJsonParsed = true;
-
-                  // 检查文本增量（OpenAI 格式）
-                  const contentPart = jsonData.choices?.[0]?.delta?.content;
-                  if (contentPart !== undefined && contentPart !== null) {
-                    if (assistantMessageIndex !== -1 && messages.value[assistantMessageIndex]) {
-                      // 使用函数防抖合并短时间内的更新
-                      messages.value[assistantMessageIndex].content += contentPart;
-                      debounceScrollToBottom();
-                    } else {
-                      console.error('找不到助手消息占位符，索引:', assistantMessageIndex);
-                    }
-                  }
-
-                  // 检查结束原因
-                  const finishReason = jsonData.choices?.[0]?.finish_reason;
-                  if (finishReason === 'stop' &&
-                    assistantMessageIndex !== -1 &&
-                    messages.value[assistantMessageIndex]) {
-                    messages.value[assistantMessageIndex].loading = false;
-                    console.log('流结束 (finish_reason=stop)');
-                  }
-
-                } catch (jsonError) {
-                  // JSON 解析失败，检查是否为 URL
-                  if (!isJsonParsed && (rawData.startsWith('http') || rawData.startsWith('data:'))) {
-                    console.log('收到图片 URL:', rawData);
-                    if (assistantMessageIndex !== -1 && messages.value[assistantMessageIndex]) {
-                      messages.value[assistantMessageIndex].imageUrl = rawData;
-                      debounceScrollToBottom();
-                    } else {
-                      console.error('收到图片 URL 时找不到助手消息占位符');
-                    }
-                  } else {
-                    // JSON 解析失败且不是 URL - 记录错误
-                    console.error('解析非 URL SSE 数据时出错:', jsonError, '原始数据:', rawData);
-                    if (assistantMessageIndex !== -1 && messages.value[assistantMessageIndex]) {
-                      console.warn('助手消息收到无法解析的数据块:', rawData);
-                    }
-                  }
-                }
-              } catch (e) {
-                console.error('处理数据流行之前出错:', e, '原始行:', line);
-              }
-            } else if (trimmedLine) {
-              console.log('收到非数据行:', trimmedLine);
-            }
-          }
-        }
-      } catch (streamError) {
-        console.error('处理流过程中出错:', streamError);
-        error.value = '处理 AI 响应流时出错。';
-        if (assistantMessageIndex !== -1 && messages.value[assistantMessageIndex]) {
-          if (messages.value[assistantMessageIndex].content === '') {
-            messages.value[assistantMessageIndex].content = `抱歉，处理响应时遇到问题: ${streamError instanceof Error ? streamError.message : String(streamError)}`;
-          }
-          messages.value[assistantMessageIndex].loading = false;
-        }
-
-        // 如果发生流处理错误且允许重试，进行重试
-        if (retryCount < maxRetries) {
-          console.log(`尝试第 ${retryCount + 1} 次重试...`);
-          // 移除失败的助手消息
-          if (assistantMessageIndex !== -1) {
-            messages.value.splice(assistantMessageIndex, 1);
-          }
-          // 短暂延迟后重试
-          setTimeout(() => {
-            sendMessage(retryCount + 1);
-          }, 1000);
-          return;
-        }
+    const decoder = new TextDecoder('utf-8');
+    let bufferObj = { buffer: '' };
+    while (true) {
+      assistantMessageRef = messages.value.find((m: Message) => m.id === assistantPlaceholderId);
+      if (!assistantMessageRef || !assistantMessageRef.loading) {
+          console.log("Assistant placeholder not found or already finished, stopping stream processing.");
+          break;
       }
-    };
 
-    await processStream();
+      const { done, value } = await reader.read();
+
+      if (done) {
+        console.log('Message stream ended normally');
+        if (assistantMessageRef.loading) {
+             assistantMessageRef.loading = false;
+             if (!assistantMessageRef.content && !assistantMessageRef.imageUrl) {
+               assistantMessageRef.content = "AI 助手处理完成。";
+             }
+        }
+        break;
+      }
+
+      processStreamChunk(value, bufferObj, decoder, assistantMessageRef);
+    }
+
+     // Final check for loading state after loop exit
+     if (assistantMessageRef && assistantMessageRef.loading) {
+        assistantMessageRef.loading = false;
+     }
 
   } catch (err) {
-    console.error("发送消息或处理流时出错:", err);
-    error.value = (err instanceof Error) ? err.message : '发送消息时出错，请检查网络或稍后再试。';
+     const shouldRetry = handleSendMessageError(err, assistantMessageIndex, retryAttempt, maxRetries);
 
-    // 更新或移除错误时的占位符
-    if (assistantMessageIndex !== -1 && messages.value[assistantMessageIndex]) {
-      if (messages.value[assistantMessageIndex].content === '') {
-        messages.value[assistantMessageIndex].content = `抱歉，处理时遇到问题: ${error.value}`;
-      }
-      messages.value[assistantMessageIndex].loading = false;
-    }
+     if (shouldRetry) {
+         // Need a robust way to retry, restoring state
+         console.warn(`Attempting retry ${retryAttempt + 1}... Restoring input state (simplified).`);
+         // Restore input for the next attempt (this might conflict if user types meanwhile)
+         // A better approach might involve a queue or disabling input during retry
+         newMessage.value = originalNewMessage;
+         selectedFile.value = originalSelectedFile; // This won't re-select the file in input!
+         previewImageUrl.value = originalPreviewUrl;
+         nextTick(adjustTextAreaHeight);
 
-    // 如果允许重试，进行重试
-    if (retryCount < maxRetries) {
-      console.log(`尝试第 ${retryCount + 1} 次重试...`);
-      // 移除失败的助手消息
-      if (assistantMessageIndex !== -1) {
-        messages.value.splice(assistantMessageIndex, 1);
+         // Remove the failed assistant placeholder before retrying
+         const failedMsgIndex = messages.value.findIndex(m => m.id === assistantPlaceholderId);
+         if (failedMsgIndex > -1) {
+             messages.value.splice(failedMsgIndex, 1);
+         }
+
+
+         setTimeout(() => {
+             sendMessage(retryAttempt + 1); // Recursive call for retry
+         }, 1500); // Slightly longer delay for retry
+         return; // Exit current execution path as retry is initiated
+     }
+     // If not retrying, ensure loading is false on the placeholder if it still exists
+      assistantMessageRef = messages.value.find(m => m.id === assistantPlaceholderId);
+      if (assistantMessageRef && assistantMessageRef.loading) {
+        assistantMessageRef.loading = false;
       }
-      // 短暂延迟后重试
-      setTimeout(() => {
-        sendMessage(retryCount + 1);
-      }, 1000);
-      return;
-    }
+
+
   } finally {
-    isLoading.value = false;
-    // 确保最后一条消息的 loading 状态始终为 false
-    if (assistantMessageIndex !== -1 && messages.value[assistantMessageIndex]) {
-      messages.value[assistantMessageIndex].loading = false;
+    // Only set isLoading to false if it's the last attempt or successful
+    if (retryAttempt >= maxRetries || error.value === null) {
+        isLoading.value = false;
     }
+    // Final check for loading state, in case of unexpected exit
+    assistantMessageRef = messages.value.find(m => m.id === assistantPlaceholderId);
+    if (assistantMessageRef && assistantMessageRef.loading) {
+      assistantMessageRef.loading = false;
+       if (!assistantMessageRef.content && !assistantMessageRef.imageUrl) {
+           assistantMessageRef.content = "处理已结束。";
+       }
+    }
+    scrollToBottom();
   }
 };
+
+onMounted(() => {
+  fetchHistory();
+  adjustTextAreaHeight();
+  checkIfMobile();
+  document.addEventListener('visibilitychange', handleVisibilityChange);
+  if (inputTextArea.value) {
+    inputTextArea.value.addEventListener('focus', () => inputFocused.value = true);
+    inputTextArea.value.addEventListener('blur', () => setTimeout(() => {
+        // Keep focus if modal is shown or related element is clicked
+        if (!showImagePreviewModal.value && !showResetConfirm.value) {
+             inputFocused.value = false;
+        }
+       }, 200));
+  }
+  window.addEventListener('resize', debounce(checkIfMobile, 150)); // Debounce resize check
+});
+
+onUnmounted(() => {
+  document.removeEventListener('visibilitychange', handleVisibilityChange);
+  window.removeEventListener('resize', debounce(checkIfMobile, 150));
+});
 </script>
 
 <style scoped>
