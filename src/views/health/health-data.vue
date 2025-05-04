@@ -193,7 +193,7 @@
                         <div class="text-sm text-gray-600 dark:text-gray-300 mb-1">睡眠时长</div>
                         <div class="flex items-baseline justify-center">
                           <span class="text-2xl font-bold text-gray-900 dark:text-white">{{ bodyData.sleepDuration
-                          }}</span>
+                            }}</span>
                           <span class="ml-1 text-gray-500 dark:text-gray-400 text-xs">小时</span>
                         </div>
                       </div>
@@ -206,7 +206,7 @@
                         <div class="text-sm text-gray-600 dark:text-gray-300 mb-1">饮水量</div>
                         <div class="flex items-baseline justify-center">
                           <span class="text-2xl font-bold text-gray-900 dark:text-white">{{ bodyData.waterConsumption
-                          }}</span>
+                            }}</span>
                           <span class="ml-1 text-gray-500 dark:text-gray-400 text-xs">ml</span>
                         </div>
                       </div>
@@ -244,7 +244,7 @@
                       </div>
                     </div>
                     <div class="relative h-3 w-full bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden">
-                      <div class="absolute top-0 left-0 h-full rounded-full"
+                      <div class="absolute top-0 left-0 h-full rounded-full shadow-inner shadow-lg"
                         :class="getVitalStatus(vital.value, vital.ranges).progressClass"
                         :style="`width: ${calculateProgress(vital.value, vital.progressMax)}%; transition: width 1s ease-in-out;`">
                       </div>
@@ -252,7 +252,7 @@
                     <div class="mt-2 flex justify-between text-xs text-gray-500 dark:text-gray-400">
                       <span>{{ vital.ranges.dangerLow }}</span>
                       <span class="text-green-500 font-medium">{{ vital.ranges.normalMin }} - {{ vital.ranges.normalMax
-                      }}</span>
+                        }}</span>
                       <span>{{ vital.ranges.dangerHigh }}</span>
                     </div>
                   </div>
@@ -628,13 +628,13 @@ const healthIndexColor = computed(() => {
 
 const getVitalStatus = (value: number, ranges: VitalRanges): VitalStatus => {
   if (value >= ranges.normalMin && value <= ranges.normalMax) {
-    return { status: 'normal', textClass: 'text-green-600 dark:text-green-400', progressClass: 'bg-green-500' };
+    return { status: 'normal', textClass: 'text-green-600 dark:text-green-400', progressClass: 'bg-gradient-to-r from-green-400 to-green-600' };
   } else if (value < ranges.dangerLow || value > ranges.dangerHigh) {
     const status = value < ranges.dangerLow ? 'low' : 'high';
-    return { status: status, textClass: 'text-red-600 dark:text-red-400', progressClass: 'bg-red-500' };
+    return { status: status, textClass: 'text-red-600 dark:text-red-400', progressClass: 'bg-gradient-to-r from-red-400 to-red-600' };
   } else {
     const status = value < ranges.normalMin ? 'low' : 'high';
-    return { status: status, textClass: 'text-yellow-600 dark:text-yellow-400', progressClass: 'bg-yellow-500' };
+    return { status: status, textClass: 'text-yellow-600 dark:text-yellow-400', progressClass: 'bg-gradient-to-r from-yellow-400 to-yellow-600' };
   }
 };
 
@@ -651,7 +651,7 @@ const vitalSignsConfig = computed(() => {
   ];
 });
 
-const calculateProgress = (value: number, max: number) => {
+const calculateProgress = (value: number, max: number): number => {
   return Math.min((value / max) * 100, 100);
 };
 
