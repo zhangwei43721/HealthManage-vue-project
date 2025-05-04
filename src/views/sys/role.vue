@@ -11,14 +11,8 @@
       <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <!-- 搜索表单 -->
         <div class="flex items-center gap-2 flex-wrap">
-          <InputField
-            v-model="searchModel.roleName"
-              placeholder="输入角色名称搜索"
-            :leftIcon="Search"
-            size="medium"
-            class="w-full md:w-60"
-            @keyup.enter="getRoleList"
-          />
+          <InputField v-model="searchModel.roleName" placeholder="输入角色名称搜索" :leftIcon="Search" size="medium"
+            class="w-full md:w-60" @keyup.enter="getRoleList" />
           <Button @click="getRoleList" type="primary" :icon="Search" :loading="listLoading">
             查询
           </Button>
@@ -43,12 +37,12 @@
       </div>
 
       <!-- 加载状态 -->
-       <div v-if="listLoading" class="text-center py-10 text-text-secondary">
-          加载中...
-       </div>
+      <div v-if="listLoading" class="text-center py-10 text-text-secondary">
+        加载中...
+      </div>
 
       <!-- 表格 -->
-       <div v-else-if="roleList.length > 0" class="overflow-x-auto">
+      <div v-else-if="roleList.length > 0" class="overflow-x-auto">
         <table class="w-full table-auto border-collapse text-left">
           <thead class="bg-gray-100 border-b">
             <tr>
@@ -59,18 +53,22 @@
             </tr>
           </thead>
           <tbody class="bg-white divide-y divide-gray-200">
-            <tr v-for="role in roleList" :key="role.roleId" class="hover:bg-background-light transition-colors duration-150">
+            <tr v-for="role in roleList" :key="role.roleId"
+              class="hover:bg-background-light transition-colors duration-150">
               <td class="px-4 py-3 text-sm text-text-primary align-middle">{{ role.roleId }}</td>
               <td class="px-4 py-3 text-sm text-text-primary align-middle">
-                 <span class="inline-block px-2 py-1 text-xs font-semibold text-primary bg-primary/10 rounded">
-                   {{ role.roleName }}
-                 </span>
+                <span class="inline-block px-2 py-1 text-xs font-semibold text-primary bg-primary/10 rounded">
+                  {{ role.roleName }}
+                </span>
               </td>
-              <td class="px-4 py-3 text-sm text-text-secondary align-middle max-w-xs truncate" :title="role.roleDesc">{{ role.roleDesc }}</td>
+              <td class="px-4 py-3 text-sm text-text-secondary align-middle max-w-xs truncate" :title="role.roleDesc">{{
+                role.roleDesc }}</td>
               <td class="px-4 py-3 text-center align-middle">
                 <div class="flex justify-center items-center gap-2">
-                  <Button @click="openDialog(role.roleId)" type="primary" :icon="Edit" size="small" iconOnly tooltip="编辑"></Button>
-                  <Button @click="deleteRole(role)" type="danger" :icon="Delete" size="small" iconOnly tooltip="删除"></Button>
+                  <Button @click="openDialog(role.roleId)" type="primary" :icon="Edit" size="small" iconOnly
+                    tooltip="编辑"></Button>
+                  <Button @click="deleteRole(role)" type="danger" :icon="Delete" size="small" iconOnly
+                    tooltip="删除"></Button>
                 </div>
               </td>
             </tr>
@@ -79,46 +77,35 @@
       </div>
 
       <!-- 空状态 -->
-       <div v-else class="text-center py-10 text-text-secondary">
-         <PeoplesTwo theme="outline" size="48" class="mx-auto mb-4 text-gray-400"/>
-         <p class="mb-4">暂无角色数据</p>
-         <Button type="primary" size="small" @click="openDialog()">添加第一个角色</Button>
-       </div>
+      <div v-else class="text-center py-10 text-text-secondary">
+        <PeoplesTwo theme="outline" size="48" class="mx-auto mb-4 text-gray-400" />
+        <p class="mb-4">暂无角色数据</p>
+        <Button type="primary" size="small" @click="openDialog()">添加第一个角色</Button>
+      </div>
 
       <!-- 分页 -->
       <div v-if="total > 0 && !listLoading" class="mt-5 flex flex-col md:flex-row justify-between items-center">
-          <span class="text-sm text-text-secondary mb-2 md:mb-0">
-              共 {{ total }} 条记录，当前第 {{ searchModel.pageNo }} / {{ totalPages }} 页
-          </span>
-          <div class="flex items-center gap-2">
-              <Button
-                  type="outline"
-                  size="small"
-                  :disabled="searchModel.pageNo <= 1"
-                  @click="goToPage(searchModel.pageNo - 1)"
-              >
-                  上一页
-              </Button>
-              <!-- Page numbers could be added here for more complex pagination -->
-              <Button
-                  type="outline"
-                  size="small"
-                  :disabled="searchModel.pageNo >= totalPages"
-                  @click="goToPage(searchModel.pageNo + 1)"
-              >
-                  下一页
-              </Button>
-              <select
-                  v-model="searchModel.pageSize"
-                  @change="getRoleList"
-                  class="px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
-               >
-                  <option value="5">5 条/页</option>
-                  <option value="10">10 条/页</option>
-                  <option value="20">20 条/页</option>
-                  <option value="50">50 条/页</option>
-              </select>
-          </div>
+        <span class="text-sm text-text-secondary mb-2 md:mb-0">
+          共 {{ total }} 条记录，当前第 {{ searchModel.pageNo }} / {{ totalPages }} 页
+        </span>
+        <div class="flex items-center gap-2">
+          <Button type="outline" size="small" :disabled="searchModel.pageNo <= 1"
+            @click="goToPage(searchModel.pageNo - 1)">
+            上一页
+          </Button>
+          <!-- Page numbers could be added here for more complex pagination -->
+          <Button type="outline" size="small" :disabled="searchModel.pageNo >= totalPages"
+            @click="goToPage(searchModel.pageNo + 1)">
+            下一页
+          </Button>
+          <select v-model="searchModel.pageSize" @change="getRoleList"
+            class="px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary">
+            <option value="5">5 条/页</option>
+            <option value="10">10 条/页</option>
+            <option value="20">20 条/页</option>
+            <option value="50">50 条/页</option>
+          </select>
+        </div>
       </div>
 
     </Card>
@@ -126,7 +113,8 @@
     <!-- 角色编辑/新增弹窗 -->
     <Modal v-model="dialogFormVisible" :title="dialogTitle" size="lg" backdropStyle="glass">
       <!-- 保存消息提示 -->
-      <div v-if="saveMessage" :class="['mb-4 p-3 rounded text-sm', saveMessage.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700']">
+      <div v-if="saveMessage"
+        :class="['mb-4 p-3 rounded text-sm', saveMessage.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700']">
         {{ saveMessage.text }}
       </div>
 
@@ -134,28 +122,15 @@
       <form @submit.prevent="saveRole" class="space-y-4">
         <div>
           <label for="roleName" class="block text-sm font-medium text-text-secondary mb-1">角色名称</label>
-          <InputField
-            id="roleName"
-            v-model="roleForm.roleName"
-            placeholder="请输入角色名称 (2-20字符)"
-            :error="!!formErrors.roleName"
-            :errorMessage="formErrors.roleName"
-            required
-          />
+          <InputField id="roleName" v-model="roleForm.roleName" placeholder="请输入角色名称 (2-20字符)"
+            :error="!!formErrors.roleName" :errorMessage="formErrors.roleName" required />
         </div>
         <div>
           <label for="roleDesc" class="block text-sm font-medium text-text-secondary mb-1">角色描述</label>
-          <InputField
-            id="roleDesc"
-            v-model="roleForm.roleDesc"
-            placeholder="请输入角色描述 (2-50字符)"
-            type="textarea"
-            :rows="3"
-            :error="!!formErrors.roleDesc"
-            :errorMessage="formErrors.roleDesc"
-            required
-          />
-          <p v-if="formErrors.roleDesc" class="mt-1 text-xs text-red-600">{{ formErrors.roleDesc }}</p> <!-- Show textarea error below -->
+          <InputField id="roleDesc" v-model="roleForm.roleDesc" placeholder="请输入角色描述 (2-50字符)" type="textarea" :rows="3"
+            :error="!!formErrors.roleDesc" :errorMessage="formErrors.roleDesc" required />
+          <p v-if="formErrors.roleDesc" class="mt-1 text-xs text-red-600">{{ formErrors.roleDesc }}</p>
+          <!-- Show textarea error below -->
         </div>
 
         <!-- 权限树 -->
@@ -165,10 +140,14 @@
             <div class="flex justify-between items-center mb-2 pb-2 border-b">
               <span class="text-sm font-medium text-text-primary">选择权限</span>
               <div class="flex items-center gap-3">
-                <button type="button" @click="expandAllNodes(menuList)" class="text-xs text-blue-600 hover:underline">全部展开</button>
-                <button type="button" @click="collapseAllNodes()" class="text-xs text-blue-600 hover:underline">全部折叠</button>
+                <button type="button" @click="expandAllNodes(menuList)"
+                  class="text-xs text-blue-600 hover:underline">全部展开</button>
+                <button type="button" @click="collapseAllNodes()"
+                  class="text-xs text-blue-600 hover:underline">全部折叠</button>
                 <label class="flex items-center cursor-pointer">
-                  <input type="checkbox" :checked="isAllSelectedComputed" @change="selectAllNodes(menuList, !isAllSelectedComputed)" class="mr-1 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"/>
+                  <input type="checkbox" :checked="isAllSelectedComputed"
+                    @change="selectAllNodes(menuList, !isAllSelectedComputed)"
+                    class="mr-1 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary" />
                   <span class="text-xs">{{ isAllSelectedComputed ? '取消全选' : '全选' }}</span>
                 </label>
               </div>
@@ -181,19 +160,12 @@
                 <span @click="toggleExpand(node.menuId)" class="cursor-pointer mr-1 w-5 text-center">
                   <component
                     :is="node.children && node.children.length > 0 ? (expandedNodes.has(node.menuId) ? FolderOpen : FolderClose) : 'div'"
-                    theme="outline"
-                    size="16"
-                    class="text-gray-500 hover:text-primary inline-block"
-                  />
+                    theme="outline" size="16" class="text-gray-500 hover:text-primary inline-block" />
                 </span>
                 <!-- Checkbox and Label -->
                 <label class="flex items-center cursor-pointer flex-grow">
-                  <input
-                    type="checkbox"
-                    :checked="isNodeSelected(node.menuId)"
-                    @change="toggleNodeSelection(node)"
-                    class="mr-2 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                  />
+                  <input type="checkbox" :checked="isNodeSelected(node.menuId)" @change="toggleNodeSelection(node)"
+                    class="mr-2 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary" />
                   <span class="text-sm">{{ node.title }}</span>
                 </label>
               </div>
@@ -204,33 +176,25 @@
                     <span class="mr-1 w-5 text-center"> <!-- Placeholder for alignment -->
                       <component
                         :is="child.children && child.children.length > 0 ? (expandedNodes.has(child.menuId) ? FolderOpen : FolderClose) : 'div'"
-                        theme="outline"
-                        size="16"
-                        class="text-gray-500 hover:text-primary inline-block"
-                      />
+                        theme="outline" size="16" class="text-gray-500 hover:text-primary inline-block" />
                     </span>
                     <label class="flex items-center cursor-pointer flex-grow">
-                      <input
-                        type="checkbox"
-                        :checked="isNodeSelected(child.menuId)"
+                      <input type="checkbox" :checked="isNodeSelected(child.menuId)"
                         @change="toggleNodeSelection(child)"
-                        class="mr-2 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                      />
+                        class="mr-2 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary" />
                       <span class="text-sm">{{ child.title }}</span>
                     </label>
                   </div>
                   <!-- Grandchildren Nodes (Add more levels if needed) -->
-                  <div v-if="child.children && child.children.length > 0 && expandedNodes.has(child.menuId)" class="pl-6">
+                  <div v-if="child.children && child.children.length > 0 && expandedNodes.has(child.menuId)"
+                    class="pl-6">
                     <div v-for="grandchild in child.children" :key="grandchild.menuId">
                       <div class="flex items-center py-1">
                         <span class="mr-1 w-5 text-center"></span> <!-- Placeholder -->
                         <label class="flex items-center cursor-pointer flex-grow">
-                          <input
-                            type="checkbox"
-                            :checked="isNodeSelected(grandchild.menuId)"
+                          <input type="checkbox" :checked="isNodeSelected(grandchild.menuId)"
                             @change="toggleNodeSelection(grandchild)"
-                            class="mr-2 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                          />
+                            class="mr-2 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary" />
                           <span class="text-sm">{{ grandchild.title }}</span>
                         </label>
                       </div>
@@ -242,11 +206,11 @@
           </div>
         </div>
 
-      <!-- 弹窗底部按钮 -->
+        <!-- 弹窗底部按钮 -->
         <div class="flex justify-end gap-3 pt-4 border-t">
           <Button type="outline" @click="closeDialog">取 消</Button>
           <Button type="primary" nativeType="submit" :loading="saveLoading">确 定</Button>
-      </div>
+        </div>
       </form>
     </Modal>
   </div>
@@ -271,13 +235,13 @@ import Modal from '@/components/base/Modal.vue';
 // import SearchField from '@/components/base/SearchField.vue';
 
 // --- Icon Imports ---
-import { Search, Refresh, Plus, Edit, Delete, Close, PeoplesTwo, FolderClose, FolderOpen } from '@icon-park/vue-next';
+import { Search, Refresh, Plus, Edit, Delete, PeoplesTwo, FolderClose, FolderOpen } from '@icon-park/vue-next';
 
 // --- Reactive State ---
 const searchModel = reactive({
-    roleName: '',
-    pageNo: 1,
-    pageSize: 10, // Default page size
+  roleName: '',
+  pageNo: 1,
+  pageSize: 10, // Default page size
 });
 
 const listLoading = ref(false);
@@ -289,15 +253,15 @@ const saveLoading = ref(false);
 const isEditMode = ref(false);
 // Initialize roleForm with correct types and default values
 const roleForm = reactive<Partial<Role>>({
-    roleId: undefined,
-        roleName: '',
-        roleDesc: '',
-    menuIdList: [], // Initialize as empty array
+  roleId: undefined,
+  roleName: '',
+  roleDesc: '',
+  menuIdList: [], // Initialize as empty array
 });
 const formErrors = reactive<Record<keyof Omit<Role, 'roleId'> | 'menuIdList', string>>({
-        roleName: '',
-    roleDesc: '',
-    menuIdList: '',
+  roleName: '',
+  roleDesc: '',
+  menuIdList: '',
 });
 const saveMessage = ref<{ type: 'success' | 'error'; text: string } | null>(null);
 
@@ -310,225 +274,227 @@ const totalPages = computed(() => Math.ceil(total.value / searchModel.pageSize))
 
 // --- Validation Logic ---
 const validateForm = (): boolean => {
-    clearFormErrors(); // Clear previous errors
-    let isValid = true;
+  clearFormErrors(); // Clear previous errors
+  let isValid = true;
 
-    if (!roleForm.roleName || roleForm.roleName.trim().length < 2 || roleForm.roleName.trim().length > 20) {
-        formErrors.roleName = '角色名称长度需在 2 到 20 个字符';
-        isValid = false;
-    }
-    if (!roleForm.roleDesc || roleForm.roleDesc.trim().length < 2 || roleForm.roleDesc.trim().length > 50) {
-        formErrors.roleDesc = '角色描述长度需在 2 到 50 个字符';
-        isValid = false;
-    }
-     // Ensure menuIdList is initialized before checking length
-    if (!roleForm.menuIdList || roleForm.menuIdList.length === 0) {
-        formErrors.menuIdList = '请至少选择一个权限';
-        isValid = false;
-    }
-    return isValid;
+  if (!roleForm.roleName || roleForm.roleName.trim().length < 2 || roleForm.roleName.trim().length > 20) {
+    formErrors.roleName = '角色名称长度需在 2 到 20 个字符';
+    isValid = false;
+  }
+  if (!roleForm.roleDesc || roleForm.roleDesc.trim().length < 2 || roleForm.roleDesc.trim().length > 50) {
+    formErrors.roleDesc = '角色描述长度需在 2 到 50 个字符';
+    isValid = false;
+  }
+  // Ensure menuIdList is initialized before checking length
+  if (!roleForm.menuIdList || roleForm.menuIdList.length === 0) {
+    formErrors.menuIdList = '请至少选择一个权限';
+    isValid = false;
+  }
+  return isValid;
 };
 
 const clearFormErrors = () => {
-    formErrors.roleName = '';
-    formErrors.roleDesc = '';
-    formErrors.menuIdList = '';
-    saveMessage.value = null; // Also clear save message
+  formErrors.roleName = '';
+  formErrors.roleDesc = '';
+  formErrors.menuIdList = '';
+  saveMessage.value = null; // Also clear save message
 };
 
 // --- Methods ---
 const getRoleList = async () => {
-    listLoading.value = true;
-    saveMessage.value = null; // Clear message on new fetch
-    try {
-        // Expect the full response { code, message, data: { rows, total } }
-        const response = await roleApi.getRoleList(searchModel);
-         // Access data within response.data
-         if (response && response.data && typeof response.data === 'object' && 'rows' in response.data && 'total' in response.data) {
-             roleList.value = response.data.rows as Role[];
-             total.value = response.data.total as number;
-         } else {
-             // Handle unexpected response structure
-             console.error("Unexpected response structure from getRoleList:", response);
-             roleList.value = [];
-             total.value = 0;
-             saveMessage.value = { type: 'error', text: '获取角色列表失败: 响应格式错误' };
-         }
-      } catch (error) {
-        console.error("Error fetching role list:", error);
-        roleList.value = [];
-        total.value = 0;
-        saveMessage.value = { type: 'error', text: `获取角色列表失败: ${error instanceof Error ? error.message : '未知错误'}` };
-    } finally {
-        listLoading.value = false;
+  listLoading.value = true;
+  saveMessage.value = null; // Clear message on new fetch
+  try {
+    // Expect the full response { code, message, data: { rows, total } }
+    const response = await roleApi.getRoleList(searchModel);
+    // Access data within response.data
+    if (response && response.data && typeof response.data === 'object' && 'rows' in response.data && 'total' in response.data) {
+      roleList.value = response.data.rows as Role[];
+      total.value = response.data.total as number;
+    } else {
+      // Handle unexpected response structure
+      console.error("Unexpected response structure from getRoleList:", response);
+      roleList.value = [];
+      total.value = 0;
+      saveMessage.value = { type: 'error', text: '获取角色列表失败: 响应格式错误' };
     }
+  } catch (error) {
+    console.error("Error fetching role list:", error);
+    roleList.value = [];
+    total.value = 0;
+    saveMessage.value = { type: 'error', text: `获取角色列表失败: ${error instanceof Error ? error.message : '未知错误'}` };
+  } finally {
+    listLoading.value = false;
+  }
 };
 
 const getMenuList = async () => {
-    try {
-        // Expect the full response { code, message, data: Menu[] }
-        const response = await menuApi.getAllMenus();
-        // Access the menu array within response.data
-        if (response && response.data && Array.isArray(response.data)) {
-            menuList.value = response.data;
-            // Automatically expand all nodes initially for better UX
-            expandAllNodes(menuList.value);
-        } else {
-            menuList.value = [];
-            console.error("Invalid response structure from getAllMenus:", response);
-            saveMessage.value = { type: 'error', text: '获取权限菜单失败: 无效响应' };
-        }
-    } catch (error) {
-        console.error("Error fetching menu list:", error);
-        menuList.value = [];
-        saveMessage.value = { type: 'error', text: `获取权限菜单失败: ${error instanceof Error ? error.message : '未知错误'}` };
+  try {
+    // Expect the full response { code, message, data: Menu[] }
+    const response = await menuApi.getAllMenus();
+    // Access the menu array within response.data
+    if (response && response.data && Array.isArray(response.data)) {
+      menuList.value = response.data;
+      // Automatically expand all nodes initially for better UX
+      expandAllNodes(menuList.value);
+    } else {
+      menuList.value = [];
+      console.error("Invalid response structure from getAllMenus:", response);
+      saveMessage.value = { type: 'error', text: '获取权限菜单失败: 无效响应' };
     }
+  } catch (error) {
+    console.error("Error fetching menu list:", error);
+    menuList.value = [];
+    saveMessage.value = { type: 'error', text: `获取权限菜单失败: ${error instanceof Error ? error.message : '未知错误'}` };
+  }
 };
 
 const resetSearch = () => {
-    searchModel.roleName = '';
-    searchModel.pageNo = 1;
-    getRoleList(); // Refetch with default params
+  searchModel.roleName = '';
+  searchModel.pageNo = 1;
+  getRoleList(); // Refetch with default params
 };
 
 const goToPage = (page: number) => {
-    if (page >= 1 && page <= totalPages.value) {
-        searchModel.pageNo = page;
-        getRoleList();
-    }
+  if (page >= 1 && page <= totalPages.value) {
+    searchModel.pageNo = page;
+    getRoleList();
+  }
 };
 
 const openDialog = async (id?: number) => {
-    clearFormErrors();
-    saveMessage.value = null; // Clear message when opening dialog
-    await getMenuList(); // Fetch latest menu list
+  clearFormErrors();
+  saveMessage.value = null; // Clear message when opening dialog
+  await getMenuList(); // Fetch latest menu list
 
-    if (id) {
-        isEditMode.value = true;
-        try {
-            // Expect the full response { code, message, data: Role }
-            const response = await roleApi.getRoleById(id);
-             // Check if response.data contains the role object
-            const roleData = response.data as Role; // Extract data part
-            if (roleData && typeof roleData === 'object' && 'roleId' in roleData) {
-                 // Use Object.assign for partial updates, ensure menuIdList is always an array
-                Object.assign(roleForm, {
-                    ...roleData,
-                    menuIdList: Array.isArray(roleData.menuIdList) ? roleData.menuIdList : []
-                });
-        } else {
-                 console.error("Invalid data received for role:", response);
-                 throw new Error("获取的角色数据格式无效");
-            }
-        } catch (error) {
-            console.error("Error fetching role by ID:", error);
-            saveMessage.value = { type: 'error', text: `获取角色信息失败: ${error instanceof Error ? error.message : '未知错误'}` };
-            closeDialog(); // Close dialog if fetch fails
-            return;
-        }
-    } else {
-        isEditMode.value = false;
-        // Reset form for adding new role
+  if (id) {
+    isEditMode.value = true;
+    try {
+      // Expect the full response { code, message, data: Role }
+      const response = await roleApi.getRoleById(id);
+      // Check if response.data contains the role object
+      const roleData = response.data as Role; // Extract data part
+      if (roleData && typeof roleData === 'object' && 'roleId' in roleData) {
+        // Use Object.assign for partial updates, ensure menuIdList is always an array
         Object.assign(roleForm, {
-            roleId: undefined,
-            roleName: '',
-            roleDesc: '',
-            menuIdList: [], // Ensure it's an empty array
+          ...roleData,
+          menuIdList: Array.isArray(roleData.menuIdList) ? roleData.menuIdList : []
         });
+      } else {
+        console.error("Invalid data received for role:", response);
+        throw new Error("获取的角色数据格式无效");
+      }
+    } catch (error) {
+      console.error("Error fetching role by ID:", error);
+      saveMessage.value = { type: 'error', text: `获取角色信息失败: ${error instanceof Error ? error.message : '未知错误'}` };
+      closeDialog(); // Close dialog if fetch fails
+      return;
     }
-    dialogFormVisible.value = true;
+  } else {
+    isEditMode.value = false;
+    // Reset form for adding new role
+    Object.assign(roleForm, {
+      roleId: undefined,
+      roleName: '',
+      roleDesc: '',
+      menuIdList: [], // Ensure it's an empty array
+    });
+  }
+  dialogFormVisible.value = true;
 };
 
 const closeDialog = () => {
-    dialogFormVisible.value = false;
-    // No need to clear form here as openDialog handles reset/population
+  dialogFormVisible.value = false;
+  // No need to clear form here as openDialog handles reset/population
 };
 
 const saveRole = async () => {
-    if (!validateForm()) {
-        return;
+  if (!validateForm()) {
+    return;
+  }
+
+  saveLoading.value = true;
+  saveMessage.value = null; // Clear previous messages
+
+  // Make sure menuIdList is assigned correctly before saving
+  // getSelectedMenuIds might not be needed if roleForm.menuIdList is directly bound
+  // const selectedIds = getSelectedMenuIds(menuList.value);
+  // roleForm.menuIdList = selectedIds;
+
+  try {
+    if (isEditMode.value && roleForm.roleId) {
+      // Ensure roleForm is cast to Role for update, requires roleId
+      await roleApi.updateRole(roleForm as Role);
+      saveMessage.value = { type: 'success', text: '角色更新成功' };
+    } else {
+      // Ensure roleId is omitted for add operation
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { roleId, ...addData } = roleForm;
+      // Explicitly cast addData to the required type for addRole
+      await roleApi.addRole(addData as Omit<Role, 'roleId'>);
+      saveMessage.value = { type: 'success', text: '角色添加成功' };
     }
 
-    saveLoading.value = true;
-    saveMessage.value = null; // Clear previous messages
+    closeDialog();
+    await getRoleList(); // Refresh the list
 
-    // Make sure menuIdList is assigned correctly before saving
-    // getSelectedMenuIds might not be needed if roleForm.menuIdList is directly bound
-    // const selectedIds = getSelectedMenuIds(menuList.value);
-    // roleForm.menuIdList = selectedIds;
-
-    try {
-        if (isEditMode.value && roleForm.roleId) {
-             // Ensure roleForm is cast to Role for update, requires roleId
-             await roleApi.updateRole(roleForm as Role);
-             saveMessage.value = { type: 'success', text: '角色更新成功' };
-        } else {
-             // Ensure roleId is omitted for add operation
-             const { roleId, ...addData } = roleForm;
-             // Explicitly cast addData to the required type for addRole
-             await roleApi.addRole(addData as Omit<Role, 'roleId'>);
-             saveMessage.value = { type: 'success', text: '角色添加成功' };
-        }
-
-        closeDialog();
-        await getRoleList(); // Refresh the list
-
-      } catch (error) {
-        console.error("Save role error:", error);
-        saveMessage.value = { type: 'error', text: `操作失败: ${error instanceof Error ? error.message : '未知错误'}` };
-      } finally {
-        saveLoading.value = false;
-    }
+  } catch (error) {
+    console.error("Save role error:", error);
+    saveMessage.value = { type: 'error', text: `操作失败: ${error instanceof Error ? error.message : '未知错误'}` };
+  } finally {
+    saveLoading.value = false;
+  }
 };
 
 
 const deleteRole = async (role: Role) => {
-    // Use a more modern confirmation dialog if available, otherwise window.confirm
-    if (window.confirm(`您确定要删除角色【${role.roleName}】吗？此操作不可撤销。`)) {
-        listLoading.value = true; // Indicate loading state on the list
-        saveMessage.value = null;
-        try {
-            await roleApi.deleteRole(role.roleId);
-            saveMessage.value = { type: 'success', text: `角色【${role.roleName}】已删除` };
+  // Use a more modern confirmation dialog if available, otherwise window.confirm
+  if (window.confirm(`您确定要删除角色【${role.roleName}】吗？此操作不可撤销。`)) {
+    listLoading.value = true; // Indicate loading state on the list
+    saveMessage.value = null;
+    try {
+      await roleApi.deleteRole(role.roleId);
+      saveMessage.value = { type: 'success', text: `角色【${role.roleName}】已删除` };
 
-            // Adjust page number if the last item on a page is deleted
-            if (roleList.value.length === 1 && searchModel.pageNo > 1) {
-                searchModel.pageNo--;
-            }
-            await getRoleList(); // Refresh list
+      // Adjust page number if the last item on a page is deleted
+      if (roleList.value.length === 1 && searchModel.pageNo > 1) {
+        searchModel.pageNo--;
+      }
+      await getRoleList(); // Refresh list
 
-        } catch (error) {
-            console.error("Delete role error:", error);
-            saveMessage.value = { type: 'error', text: `删除角色时出错: ${error instanceof Error ? error.message : '未知错误'}` };
-             listLoading.value = false; // Ensure loading is turned off on error
-        }
-        // No finally block needed here as getRoleList sets listLoading to false
+    } catch (error) {
+      console.error("Delete role error:", error);
+      saveMessage.value = { type: 'error', text: `删除角色时出错: ${error instanceof Error ? error.message : '未知错误'}` };
+      listLoading.value = false; // Ensure loading is turned off on error
     }
+    // No finally block needed here as getRoleList sets listLoading to false
+  }
 };
 
 // --- Custom Tree Logic ---
 const isNodeSelected = (nodeId: number): boolean => {
-    return roleForm.menuIdList?.includes(nodeId) ?? false;
+  return roleForm.menuIdList?.includes(nodeId) ?? false;
 };
 
 const toggleNodeSelection = (node: Menu) => {
-     // Ensure menuIdList is always an array
-    const list = Array.isArray(roleForm.menuIdList) ? [...roleForm.menuIdList] : [];
-    const index = list.indexOf(node.menuId);
+  // Ensure menuIdList is always an array
+  const list = Array.isArray(roleForm.menuIdList) ? [...roleForm.menuIdList] : [];
+  const index = list.indexOf(node.menuId);
 
-    if (index > -1) {
-        list.splice(index, 1); // Deselect
-    } else {
-        list.push(node.menuId); // Select
-    }
-    roleForm.menuIdList = list;
+  if (index > -1) {
+    list.splice(index, 1); // Deselect
+  } else {
+    list.push(node.menuId); // Select
+  }
+  roleForm.menuIdList = list;
 
-    // Optional: Add logic to auto-select/deselect children/parents if needed
-    // handleChildSelection(node, index === -1);
-    // handleParentSelection(node);
+  // Optional: Add logic to auto-select/deselect children/parents if needed
+  // handleChildSelection(node, index === -1);
+  // handleParentSelection(node);
 };
 
 // Helper to recursively get all descendant IDs (including self)
+/* // Remove unused function
 const getAllDescendantIds = (node: Menu): number[] => {
     let ids = [node.menuId];
     if (node.children) {
@@ -538,98 +504,69 @@ const getAllDescendantIds = (node: Menu): number[] => {
     }
     return ids;
 };
-
-// Optional: Handle child selection when a parent is toggled
-const handleChildSelection = (node: Menu, select: boolean) => {
-    if (!node.children) return;
-    const descendantIds = getAllDescendantIds(node).filter(id => id !== node.menuId); // Exclude the node itself
-    let currentSelected = Array.isArray(roleForm.menuIdList) ? [...roleForm.menuIdList] : [];
-
-    if (select) {
-        // Add all children to selection
-        currentSelected = [...new Set([...currentSelected, ...descendantIds])];
-    } else {
-        // Remove all children from selection
-        currentSelected = currentSelected.filter(id => !descendantIds.includes(id));
-    }
-    roleForm.menuIdList = currentSelected;
-};
+*/
 
 // Optional: Handle parent selection based on children state (more complex)
-// const handleParentSelection = (node: Menu) => { ... }
-
-const getSelectedMenuIds = (nodes: Menu[]): number[] => {
-    let selectedIds: number[] = [];
-    nodes.forEach(node => {
-        if (roleForm.menuIdList?.includes(node.menuId)) {
-            selectedIds.push(node.menuId);
-        }
-        if (node.children && node.children.length > 0) {
-            // Recursively get selected IDs from children
-             selectedIds = selectedIds.concat(getSelectedMenuIds(node.children));
-        }
-    });
-    // Return unique IDs
-    return [...new Set(selectedIds)];
-};
-
+/* // Remove unused function
+const handleParentSelection = (node: Menu) => { ... }
+*/
 
 const toggleExpand = (nodeId: number) => {
-    if (expandedNodes.has(nodeId)) {
-        expandedNodes.delete(nodeId);
-    } else {
-        expandedNodes.add(nodeId);
-    }
+  if (expandedNodes.has(nodeId)) {
+    expandedNodes.delete(nodeId);
+  } else {
+    expandedNodes.add(nodeId);
+  }
 };
 
 const expandAllNodes = (nodes: Menu[]) => {
-    nodes.forEach(node => {
-        if (node.children && node.children.length > 0) {
-            expandedNodes.add(node.menuId);
-            expandAllNodes(node.children); // Recurse
-        }
-    });
+  nodes.forEach(node => {
+    if (node.children && node.children.length > 0) {
+      expandedNodes.add(node.menuId);
+      expandAllNodes(node.children); // Recurse
+    }
+  });
 };
 
 const collapseAllNodes = () => {
-    expandedNodes.clear();
+  expandedNodes.clear();
 };
 
 const selectAllNodes = (nodes: Menu[], select: boolean) => {
-    const allIds = getAllMenuIds(nodes);
-    if (select) {
-        // Select all available menu IDs
-        roleForm.menuIdList = [...allIds];
-    } else {
-        // Deselect all, clear the list
-        roleForm.menuIdList = [];
-    }
+  const allIds = getAllMenuIds(nodes);
+  if (select) {
+    // Select all available menu IDs
+    roleForm.menuIdList = [...allIds];
+  } else {
+    // Deselect all, clear the list
+    roleForm.menuIdList = [];
+  }
 };
 
 // Computed property for the master checkbox state
 const isAllSelectedComputed = computed(() => {
-    const allAvailableIds = getAllMenuIds(menuList.value);
-    const currentSelectedIds = roleForm.menuIdList || [];
-    // Check if all available IDs are present in the selected list
-     return allAvailableIds.length > 0 && allAvailableIds.every(id => currentSelectedIds.includes(id));
+  const allAvailableIds = getAllMenuIds(menuList.value);
+  const currentSelectedIds = roleForm.menuIdList || [];
+  // Check if all available IDs are present in the selected list
+  return allAvailableIds.length > 0 && allAvailableIds.every(id => currentSelectedIds.includes(id));
 });
 
 
 const getAllMenuIds = (nodes: Menu[]): number[] => {
-    let ids: number[] = [];
-    nodes.forEach(node => {
-        ids.push(node.menuId);
-        if (node.children && node.children.length > 0) {
-            ids = ids.concat(getAllMenuIds(node.children)); // Recurse
-        }
-    });
-    return ids;
+  let ids: number[] = [];
+  nodes.forEach(node => {
+    ids.push(node.menuId);
+    if (node.children && node.children.length > 0) {
+      ids = ids.concat(getAllMenuIds(node.children)); // Recurse
+    }
+  });
+  return ids;
 };
 
 // --- Lifecycle Hooks ---
 onMounted(() => {
-    getRoleList(); // Fetch initial role list on component mount
-    // getMenuList(); // Fetch menu list once on mount? Or fetch when dialog opens? Fetching in openDialog is better for freshness.
+  getRoleList(); // Fetch initial role list on component mount
+  // getMenuList(); // Fetch menu list once on mount? Or fetch when dialog opens? Fetching in openDialog is better for freshness.
 });
 
 </script>
@@ -637,6 +574,7 @@ onMounted(() => {
 <style scoped>
 /* Add any specific scoped styles if needed, Tailwind handles most styling */
 .role-manage-container :deep(textarea) {
-  min-height: 80px; /* Ensure textarea has a decent default height */
+  min-height: 80px;
+  /* Ensure textarea has a decent default height */
 }
 </style>

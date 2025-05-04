@@ -257,7 +257,7 @@ const dialogTitle = computed(() => (isEditMode.value ? '编辑用户' : '新增�
 
 // --- Validation Logic (Basic) ---
 const phoneReg = /^1[3-9]\d{9}$/;
-const emailReg = /^([a-zA-Z0-9_\-\.]+)@([a-zA-Z0-9_\-\.]+)\.([a-zA-Z]{2,5})$/;
+const emailReg = /^([a-zA-Z0-9_.-]+)@([a-zA-Z0-9_.-]+)\.([a-zA-Z]{2,5})$/;
 
 const validateForm = (): boolean => {
   let isValid = true;

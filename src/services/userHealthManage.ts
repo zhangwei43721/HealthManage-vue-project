@@ -14,6 +14,12 @@ interface BodyData {
   heartRate?: number
   vision?: number
   sleepDuration?: number
+  sleepQuality?: string
+  smoking?: boolean | number
+  drinking?: boolean | number
+  exercise?: boolean | number
+  foodTypes?: string
+  waterConsumption?: number
   // 其他可能的健康数据字段
 }
 
@@ -88,3 +94,10 @@ export interface BodyNotes extends BodyData {
     Date: string; // Or Date type
 }
 */
+
+export interface ListParams {
+  name?: string
+  id?: number // 假设这是用户ID
+  pageNo: number
+  pageSize: number
+}
