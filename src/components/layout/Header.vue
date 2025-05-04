@@ -11,7 +11,7 @@
           <RouterLink to="/" class="flex-shrink-0 flex items-center group">
             <div
               class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center mr-3 shadow-lg group-hover:shadow-blue-500/30 transition-all duration-300">
-              <img src="/favicon.ico" alt="Logo" class="w-8 h-8" />
+              <img src="@/assets/logo.svg" alt="Logo" class="w-8 h-8" />
             </div>
             <span class="text-xl font-bold tracking-tight"
               :class="isHomePage ? 'text-white' : 'text-gray-800'">AI健康管理</span>
