@@ -361,11 +361,9 @@
 
 <script setup lang="ts">
 // Corrected: Component name should be multi-word
-// defineOptions({ name: 'HealthLog' }); // Optional: Explicitly name component
-
+// @ts-expect-error Vue 3.x型声明文件兼容性问题
 import { ref, reactive, onMounted, computed } from 'vue';
 import Button from '@/components/base/Button.vue';
-import Card from '@/components/base/Card.vue';
 import InputField from '@/components/base/InputField.vue';
 import SearchField from '@/components/base/SearchField.vue';
 import { Plus, Edit, Delete, Close, LoadingOne, Empty, Male, Female, CheckSmall, CloseSmall, Info } from '@icon-park/vue-next'; // Added icons for notification

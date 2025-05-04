@@ -111,6 +111,7 @@
 
 <script setup lang="ts">
 import { Heart, CheckSmall, People, Like, User } from '@icon-park/vue-next'
+// @ts-expect-error Vue 3.x型声明文件兼容性问题
 import { ref } from 'vue'
 
 // 网络背景Canvas引用

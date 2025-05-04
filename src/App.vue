@@ -14,7 +14,7 @@ const isAdminRoute = computed(() => {
 
 // 判断是否在ChatGPT风格页面下，不显示footer
 const isAIRoute = computed(() => {
-  return route.path.includes('/health/ai-') || route.path.includes('/health/chat') || route.path.includes('/health/chatgpt-clone');
+  return route.path.includes('/chatgpt-clone');
 });
 </script>
 

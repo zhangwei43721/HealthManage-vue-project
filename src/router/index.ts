@@ -12,7 +12,6 @@ import Register from '../views/register/register.vue'
 import HealthData from '../views/health/health-data.vue'
 import HealthKnowledge from '../views/health-knowledge.vue'
 import HealthLog from '../views/health/health-log.vue'
-import AiQaPage from '../views/health/ai-qa.vue'
 import ChatGPTClone from '../views/health/ChatGPTClone.vue'
 import SysIndex from '../views/sys/SysIndex.vue' // Import Admin Index page
 import Profile from '../views/profile/index.vue' // 导入个人中心页面
@@ -62,16 +61,10 @@ const routes = [
     meta: { requiresAuth: true, title: '健康数据日志' },
   },
   {
-    path: '/ai-qa',
-    name: 'AiQaPage',
-    component: AiQaPage,
-    meta: { requiresAuth: true, title: 'AI 健康问答' },
-  },
-  {
     path: '/chatgpt-clone',
     name: 'ChatGPTClone',
     component: ChatGPTClone,
-    meta: { requiresAuth: false, title: 'ChatGPT 风格助手' },
+    meta: { requiresAuth: false, title: 'AI 助手' },
   },
   {
     path: '/profile',

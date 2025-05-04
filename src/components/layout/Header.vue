@@ -31,7 +31,7 @@
           <RouterLink v-if="userStore.isAdmin" to="/sys"
             class="flex items-center px-4 py-2 rounded-full text-white/90 bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 transition-all duration-300 shadow-md hover:shadow-lg">
             <SettingTwo size="16" class="mr-1.5" />
-            进入管理后台
+            管理后台
           </RouterLink>
 
           <!-- 用户认证区域 (桌面端) -->
@@ -148,8 +148,7 @@ const userNavigationItems = [
   { name: '健康数据', path: '/health-data', icon: Clipboard },
   { name: '健康知识', path: '/health-knowledge', icon: Book },
   { name: '健康日志', path: '/health-log', icon: Like },
-  { name: 'AI 助手', path: '/ai-qa', icon: Robot },
-  { name: 'ChatGPT风格', path: '/chatgpt-clone', icon: Robot }
+  { name: 'AI 助手', path: '/chatgpt-clone', icon: Robot }
 ];
 
 // 监听滚动

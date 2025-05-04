@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-gray-50 text-gray-800 flex flex-col pt-[60px] pb-0">
+  <div class="min-h-screen bg-gray-50 text-gray-800 flex flex-col pt-[80px] pb-0">
     <!-- 欢迎信息 -->
     <div v-if="!currentChat || currentChat.messages.length === 0"
       class="flex-1 flex flex-col items-center justify-center p-4">
@@ -68,7 +68,7 @@
     <!-- 聊天内容 -->
     <div v-else class="flex-1 flex flex-col">
       <!-- 消息列表 -->
-      <div ref="messagesContainer" class="flex-1 overflow-y-auto pt-4 pb-24">
+      <div ref="messagesContainer" class="flex-1 overflow-y-auto pt-4 pb-32">
         <div class="max-w-3xl mx-auto px-4">
           <!-- 顶部清空历史按钮 -->
           <div class="text-right mb-4">
@@ -108,16 +108,24 @@
               <div class="flex-1 px-1">
                 <!-- 用户发送的图片 -->
                 <div v-if="message.imageUrl" class="mb-4">
+                  <div class="text-sm text-gray-500 mb-1">您上传的图片:</div>
                   <img :src="message.imageUrl" alt="用户图片"
-                    class="max-w-md rounded-lg border border-gray-200 cursor-pointer"
+                    class="max-w-md rounded-lg border border-gray-200 cursor-pointer shadow-sm hover:shadow-md transition-shadow"
                     @click="previewImage(message.imageUrl || '')" />
                 </div>
 
                 <!-- 分析结果图片（AI返回） -->
-                <div v-if="message.resultImageUrl" class="mb-4">
-                  <div class="text-sm text-gray-500 mb-1">分析结果图片:</div>
+                <div v-if="message.resultImageUrl" class="mb-4 mt-3">
+                  <div class="text-sm text-gray-500 mb-1 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                      stroke="currentColor" class="w-4 h-4 mr-1">
+                      <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
+                    </svg>
+                    AI分析结果图片:
+                  </div>
                   <img :src="message.resultImageUrl" alt="分析结果"
-                    class="max-w-md rounded-lg border border-gray-200 cursor-pointer"
+                    class="max-w-md rounded-lg border border-gray-200 cursor-pointer shadow-sm hover:shadow-md transition-shadow"
                     @click="previewImage(message.resultImageUrl || '')" />
                 </div>
 
@@ -146,7 +154,7 @@
       <!-- 底部输入框 - 固定在底部 -->
       <div class="fixed bottom-0 left-0 right-0 p-4 z-20">
         <div class="max-w-3xl mx-auto relative">
-          <div class="relative rounded-2xl border border-gray-300 bg-white shadow-sm">
+          <div class="relative rounded-2xl border border-gray-300 bg-white/90 backdrop-blur-md shadow-md">
             <textarea ref="inputArea" v-model="newMessage" rows="1"
               class="w-full resize-none border-0 bg-transparent p-4 pr-24 text-gray-800 placeholder-gray-400 focus:outline-none rounded-2xl"
               placeholder="继续您的问题..." @keydown.enter.prevent="handleEnterKey" @input="adjustTextareaHeight">
@@ -425,8 +433,9 @@ const renderMarkdown = (content: string): string => {
   }
 
   try {
-    // 移除markdown内容中的图片链接部分，避免重复渲染
-    const contentWithoutImages = content.replace(/!\[.*?\]\(.*?\)/g, '');
+    // 更精确地移除markdown内容中的图片链接部分，避免重复渲染
+    // 检测content是否包含resultImageUrl对应的图片链接
+    const contentWithoutImages = content.replace(/!\[.*?\]\(https?:\/\/[^\s)]+\)/g, '');
 
     marked.setOptions({
       gfm: true,
@@ -1059,9 +1068,13 @@ const toBase64 = (file: File): Promise<string> => {
 
 /* 固定在底部的输入框 */
 .fixed.bottom-0 {
-  background-color: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(5px);
+  background-color: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   z-index: 10;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+  box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.05);
+  padding-bottom: 16px;
 }
 
 /* 改进滚动条样式 */
