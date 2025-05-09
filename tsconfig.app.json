@@ -1,0 +1,28 @@
+{
+  "extends": "@vue/tsconfig/tsconfig.dom.json",
+  "include": ["env.d.ts", "src/**/*", "src/**/*.vue", "src/vite-env.d.ts"], // 确保包含 vite-env.d.ts
+  "exclude": [
+    "src/**/__tests__/*",
+    "src/views/ComponentTest.vue",
+    "src/components/ButtonDemo.vue",
+    "src/components/CardDemo.vue",
+    "src/components/HelloWorld.vue",
+    "src/components/InputFieldDemo.vue",
+    "src/components/TailwindDemo.vue",
+    "src/components/TheWelcome.vue",
+    "src/components/WelcomeItem.vue",
+    "src/components/HealthCard.vue",
+    "src/components/HealthDashboard.vue",
+    "src/components/icons/IconDocumentation.vue",
+    "src/components/icons/IconEcosystem.vue",
+    "src/components/icons/IconSupport.vue",
+    "src/components/icons/IconTooling.vue"
+  ],
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
+    "lib": ["esnext", "dom"],
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  }
+}

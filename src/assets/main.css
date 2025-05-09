@@ -1,0 +1,12 @@
+@import 'tailwindcss';
+
+/* AiSuggestionBubble Loading Dots */
+.dot {
+  @apply bg-primary;
+}
+
+/* 其他自定义全局样式可以放在这里 */
+body {
+  font-family: 'PingFang SC', 'Microsoft YaHei', 'Hiragino Sans GB', sans-serif;
+  /* ... */
+}
