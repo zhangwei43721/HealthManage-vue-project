@@ -232,9 +232,6 @@ const handleAuthClickAndCloseMenu = async () => {
 onMounted(() => {
   window.addEventListener('scroll', handleScroll);
   handleScroll();
-  if (userStore.token && !userStore.userInfo) {
-    userStore.fetchUserInfo();
-  }
 });
 
 onUnmounted(() => {

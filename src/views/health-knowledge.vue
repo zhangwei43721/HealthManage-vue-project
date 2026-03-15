@@ -366,12 +366,18 @@ const fetchSportDetail = async (sport: SportListItem) => {
     sport.detailLoading = true;
     console.log('获取运动详情:', sport.sportType);
 
-    // Assuming getDetailInfoByName returns Promise<{ data: SportDetail | null }>
+    // `api` interceptor unwraps successful responses to `res.data`, so this is
+    // usually the detail object itself instead of `{ data: ... }`.
     const response = await getDetailInfoByName(sport.sportType);
     console.log('获取运动详情API响应:', response);
 
-    if (response && response.data && (response.data.method || response.data.disease || response.data.notes)) {
-      sport.detail = response.data;
+    const detail =
+      response && typeof response === 'object' && 'data' in response
+        ? (response.data as SportDetail | null)
+        : (response as SportDetail | null);
+
+    if (detail && (detail.method || detail.disease || detail.notes)) {
+      sport.detail = detail;
     } else {
       // Provide default placeholder if no valid detail found
       sport.detail = {
@@ -379,7 +385,7 @@ const fetchSportDetail = async (sport: SportListItem) => {
         disease: '暂无相关适宜/禁忌疾病信息',
         notes: '暂无相关注意事项信息'
       };
-      console.warn('运动详情数据不完整或未找到:', sport.sportType, response?.data);
+      console.warn('运动详情数据不完整或未找到:', sport.sportType, detail);
     }
   } catch (err) {
     console.error('获取运动详情失败:', err);

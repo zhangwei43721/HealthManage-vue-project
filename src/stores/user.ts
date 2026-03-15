@@ -3,9 +3,11 @@ import { ref, computed } from 'vue'
 import api from '@/services/api' // 假设你的axios实例封装在 @/services/api
 // 定义用户信息接口
 interface UserInfo {
-  id?: string
+  id?: number
+  username?: string
   name: string
   email?: string
+  phone?: string
   roles: string[]
   avatar?: string
   menuList?: any[]
@@ -53,8 +55,10 @@ export const useUserStore = defineStore('user', () => {
       ) {
         userInfo.value = {
           id: userDataPayload.id,
+          username: userDataPayload.username ?? userDataPayload.name,
           name: userDataPayload.name,
           email: userDataPayload.email,
+          phone: userDataPayload.phone,
           roles: userDataPayload.roles,
           avatar: userDataPayload.avatar,
           menuList: userDataPayload.menuList,

@@ -1144,14 +1144,6 @@ watch(historyData, async () => {
   updateChartOptions();
 }, { deep: true });
 
-watch(bodyData, async (newData: BodyDataType) => {
-  if (newData && newData.name !== '加载中...') {
-    if (!historyData.value.length && newData.id) {
-      await fetchHistoryData();
-    }
-  }
-}, { deep: true });
-
 const getBmiComment = (bmiValue: number): string => {
   if (bmiValue < 18.5) return '偏轻';
   if (bmiValue < 24.9) return '正常';
@@ -1826,4 +1818,3 @@ const submitUserInfoForm = async () => {
   animation: gradientRotate 5s ease infinite;
 }
 </style>
-

@@ -50,7 +50,7 @@ export default {
     // 假设成功时没有特定的返回数据
     return api.delete<void>(`/user/${id}`)
   },
-  changePassword(data: { id: number; newPassword: string }) {
+  changePassword(data: { id?: number; username?: string; password?: string; newPassword: string }) {
     // Assuming the backend expects this specific shape for password change
     // 假设成功时没有特定的返回数据
     return api.put<void>('/user/changePassword', data)

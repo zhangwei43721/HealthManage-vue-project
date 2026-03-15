@@ -174,7 +174,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, computed, watch } from '@/composables/vue-imports';
+import { ref, reactive, onMounted, computed } from '@/composables/vue-imports';
 import { useUserStore } from '@/stores/user';
 import api from '@/services/api';
 import userManageApi from '@/services/userManage';
@@ -221,27 +221,23 @@ const passwordForm = reactive({
 
 // 生命周期钩子
 onMounted(async () => {
-  if (userStore.token) {
+  if (!userStore.token) return;
+
+  if (!userStore.userInfo?.id) {
     await userStore.fetchUserInfo();
-    // 在获取到基本用户信息后，使用正确的接口获取详细信息
-    await fetchUserDetailInfo();
+  }
+
+  if (userStore.userInfo?.id) {
+    fetchUserDetailInfo();
   }
 });
 
-// 当userInfo更新时，重新填充表单
-// 这确保了即使userInfo异步加载，表单也会正确更新
-watch(() => userStore.userInfo, (newValue: any) => {
-  if (newValue && newValue.id) {
-    fetchUserDetailInfo();
-  }
-}, { deep: true });
-
 // 方法
 const resetProfileForm = () => {
-  if (userStore.userInfo) {
-    profileForm.username = userStore.userInfo.username || '';
-    profileForm.email = userStore.userInfo.email || '';
-    profileForm.phone = userStore.userInfo.phone || '';
+  if (userInfo.value) {
+    profileForm.username = userInfo.value.username || userInfo.value.name || '';
+    profileForm.email = userInfo.value.email || '';
+    profileForm.phone = userInfo.value.phone || '';
   }
 };
 
@@ -251,12 +247,17 @@ const fetchUserDetailInfo = async () => {
 
   try {
     const response = await userManageApi.getUserById(userStore.userInfo.id);
-    // 使用获取到的详细信息更新表单
-    userDetail.value = response.data;
+    const detail =
+      response && typeof response === 'object' && 'data' in response
+        ? response.data
+        : response;
 
-    profileForm.username = userDetail.value.username || '';
-    profileForm.email = userDetail.value.email || '';
-    profileForm.phone = userDetail.value.phone || '';
+    // 使用获取到的详细信息更新表单
+    userDetail.value = detail;
+
+    profileForm.username = detail?.username || '';
+    profileForm.email = detail?.email || '';
+    profileForm.phone = detail?.phone || '';
 
     // 可以在此处更新其他您想要显示的用户详细信息
     console.log('获取到用户详细信息:', userDetail.value);
@@ -310,7 +311,11 @@ const updateProfile = async () => {
       id: userStore.userInfo?.id,
       username: profileForm.username,
       email: profileForm.email,
-      phone: profileForm.phone
+      phone: profileForm.phone,
+      avatar: userDetail.value?.avatar || userStore.userInfo?.avatar,
+      status: userDetail.value?.status,
+      deleted: userDetail.value?.deleted,
+      roleIdList: userDetail.value?.roleIdList
     };
 
     // 调用API更新
@@ -319,6 +324,7 @@ const updateProfile = async () => {
     message.value = { type: 'success', text: '个人资料已更新' };
     // 刷新用户信息
     await userStore.fetchUserInfo();
+    await fetchUserDetailInfo();
   } catch (error) {
     console.error('更新个人资料失败:', error);
     message.value = { type: 'error', text: '更新个人资料失败，请稍后再试' };
@@ -359,6 +365,8 @@ const updatePassword = async () => {
     // 调用API更新密码
     const response = await userManageApi.changePassword({
       id: userStore.userInfo?.id,
+      username: profileForm.username || userDetail.value?.username || userStore.userInfo?.username || userStore.userInfo?.name,
+      password: passwordForm.oldPassword,
       newPassword: passwordForm.newPassword
     });
 
@@ -439,7 +447,7 @@ const uploadAvatar = async () => {
     });
 
     // 获取返回的头像URL
-    const avatarUrl = response.data.url;
+    const avatarUrl = response?.data?.url || response?.url;
 
     // 确保有用户ID和头像URL
     if (avatarUrl && userDetail.value && userDetail.value.id) {
@@ -449,10 +457,16 @@ const uploadAvatar = async () => {
       await userManageApi.updateUser({
         id: userId,
         username: userDetail.value.username, // 必须提供username字段
+        email: userDetail.value.email,
+        phone: userDetail.value.phone,
+        status: userDetail.value.status,
+        deleted: userDetail.value.deleted,
+        roleIdList: userDetail.value.roleIdList,
         avatar: avatarUrl
       });
 
       // 刷新用户详细信息
+      await userStore.fetchUserInfo();
       await fetchUserDetailInfo();
 
       message.value = { type: 'success', text: '头像已更新' };
