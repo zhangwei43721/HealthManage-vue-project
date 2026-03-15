@@ -1,7 +1,12 @@
 <script setup lang="ts">
 import { ref, reactive } from 'vue';
 import { useRouter } from 'vue-router';
-import { register, User } from '../../services/auth';
+import { register } from '../../services/auth';
+import type { User } from '../../services/auth';
+import Card from '@/components/base/Card.vue';
+import Button from '@/components/base/Button.vue';
+import InputField from '@/components/base/InputField.vue';
+import { User as UserIcon, Lock, LockOne, Mail, Phone } from '@icon-park/vue-next';
 
 const router = useRouter();
 
@@ -64,8 +69,13 @@ const goToLogin = () => {
 
 <template>
   <div class="register-page min-h-screen w-full flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-    <div
-      class="max-w-md w-full space-y-8 backdrop-blur-md bg-white/90 dark:bg-gray-800/90 p-10 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700">
+    <Card
+      class="max-w-md w-full space-y-8 backdrop-blur-md bg-white/90 dark:bg-gray-800/90"
+      variant="solid"
+      radius="medium"
+      elevation="large"
+      padding="large"
+    >
       <div class="text-center">
         <div class="flex justify-center">
           <div
@@ -103,91 +113,57 @@ const goToLogin = () => {
 
       <form v-else class="mt-8 space-y-6" @submit.prevent="handleSubmit">
         <div class="space-y-4">
-          <!-- 用户名输入框 -->
-          <div>
-            <label for="username" class="block text-sm font-medium text-gray-700 dark:text-gray-300">用户名</label>
-            <div class="mt-1 relative">
-              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24"
-                  stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-              </div>
-              <input id="username" name="username" type="text" required v-model="registerForm.username"
-                class="appearance-none pl-10 block w-full px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500 bg-white dark:bg-gray-700 dark:text-white sm:text-sm"
-                placeholder="请输入用户名" />
-            </div>
-          </div>
+          <InputField
+            id="username"
+            v-model="registerForm.username"
+            name="username"
+            label="用户名"
+            placeholder="请输入用户名"
+            :leftIcon="UserIcon"
+            required
+          />
 
-          <!-- 密码输入框 -->
-          <div>
-            <label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-300">密码</label>
-            <div class="mt-1 relative">
-              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24"
-                  stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                </svg>
-              </div>
-              <input id="password" name="password" type="password" required v-model="registerForm.password"
-                class="appearance-none pl-10 block w-full px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500 bg-white dark:bg-gray-700 dark:text-white sm:text-sm"
-                placeholder="请输入密码" />
-            </div>
-          </div>
+          <InputField
+            id="password"
+            v-model="registerForm.password"
+            name="password"
+            type="password"
+            label="密码"
+            placeholder="请输入密码"
+            :leftIcon="Lock"
+            required
+          />
 
-          <!-- 确认密码输入框 -->
-          <div>
-            <label for="confirm-password"
-              class="block text-sm font-medium text-gray-700 dark:text-gray-300">确认密码</label>
-            <div class="mt-1 relative">
-              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24"
-                  stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
-                </svg>
-              </div>
-              <input id="confirm-password" name="confirm-password" type="password" required v-model="confirmPassword"
-                class="appearance-none pl-10 block w-full px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500 bg-white dark:bg-gray-700 dark:text-white sm:text-sm"
-                placeholder="请再次输入密码" />
-            </div>
-          </div>
+          <InputField
+            id="confirm-password"
+            v-model="confirmPassword"
+            name="confirm-password"
+            type="password"
+            label="确认密码"
+            placeholder="请再次输入密码"
+            :leftIcon="LockOne"
+            required
+          />
 
-          <!-- 邮箱输入框（可选） -->
-          <div>
-            <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300">邮箱（可选）</label>
-            <div class="mt-1 relative">
-              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24"
-                  stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                </svg>
-              </div>
-              <input id="email" name="email" type="email" v-model="registerForm.email"
-                class="appearance-none pl-10 block w-full px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500 bg-white dark:bg-gray-700 dark:text-white sm:text-sm"
-                placeholder="请输入邮箱" />
-            </div>
-          </div>
+          <InputField
+            id="email"
+            v-model="registerForm.email"
+            name="email"
+            type="email"
+            label="邮箱（可选）"
+            placeholder="请输入邮箱"
+            :leftIcon="Mail"
+          />
 
-          <!-- 手机号输入框（可选） -->
-          <div>
-            <label for="phone" class="block text-sm font-medium text-gray-700 dark:text-gray-300">手机号（可选）</label>
-            <div class="mt-1 relative">
-              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24"
-                  stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                </svg>
-              </div>
-              <input id="phone" name="phone" type="tel" v-model="registerForm.phone"
-                class="appearance-none pl-10 block w-full px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500 bg-white dark:bg-gray-700 dark:text-white sm:text-sm"
-                placeholder="请输入手机号" />
-            </div>
-          </div>
+          <InputField
+            id="phone"
+            v-model="registerForm.phone"
+            name="phone"
+            type="tel"
+            label="手机号（可选）"
+            placeholder="请输入手机号"
+            :leftIcon="Phone"
+          />
         </div>
 
         <!-- 错误信息显示 -->
@@ -205,20 +181,9 @@ const goToLogin = () => {
 
         <!-- 注册按钮 -->
         <div>
-          <button type="submit" :disabled="loading"
-            class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-semibold rounded-lg text-white bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 shadow-lg transform transition hover:-translate-y-0.5">
-            <span v-if="loading" class="flex items-center">
-              <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none"
-                viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-                </path>
-              </svg>
-              注册中...
-            </span>
-            <span v-else>立即注册</span>
-          </button>
+          <Button :disabled="loading" block>
+            {{ loading ? '注册中...' : '立即注册' }}
+          </Button>
         </div>
 
         <!-- 登录链接 -->
@@ -232,7 +197,7 @@ const goToLogin = () => {
           </div>
         </div>
       </form>
-    </div>
+    </Card>
   </div>
 </template>
 

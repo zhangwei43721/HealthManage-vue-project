@@ -2,6 +2,10 @@
 import { ref, reactive } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useUserStore } from '@/stores/user';
+import Card from '@/components/base/Card.vue';
+import Button from '@/components/base/Button.vue';
+import InputField from '@/components/base/InputField.vue';
+import { User as UserIcon, Lock } from '@icon-park/vue-next';
 
 const router = useRouter();
 const route = useRoute();
@@ -68,8 +72,13 @@ const goToRegister = () => {
 
 <template>
   <div class="login-page min-h-screen w-full flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-    <div
-      class="max-w-md w-full space-y-8 backdrop-blur-md bg-white/90 dark:bg-gray-800/90 p-10 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700">
+    <Card
+      class="max-w-md w-full space-y-8 backdrop-blur-md bg-white/90 dark:bg-gray-800/90"
+      variant="solid"
+      radius="medium"
+      elevation="large"
+      padding="large"
+    >
       <div class="text-center">
         <div class="flex justify-center">
           <div
@@ -91,39 +100,26 @@ const goToRegister = () => {
 
       <form class="mt-8 space-y-6" @submit.prevent="handleLogin">
         <div class="space-y-4">
-          <!-- 用户名输入框 -->
-          <div>
-            <label for="username" class="block text-sm font-medium text-gray-700 dark:text-gray-300">用户名</label>
-            <div class="mt-1 relative">
-              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24"
-                  stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-              </div>
-              <input id="username" name="username" type="text" required v-model="loginForm.username"
-                class="appearance-none pl-10 block w-full px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500 bg-white dark:bg-gray-700 dark:text-white sm:text-sm"
-                placeholder="请输入用户名" />
-            </div>
-          </div>
+          <InputField
+            id="username"
+            v-model="loginForm.username"
+            name="username"
+            label="用户名"
+            placeholder="请输入用户名"
+            :leftIcon="UserIcon"
+            required
+          />
 
-          <!-- 密码输入框 -->
-          <div>
-            <label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-300">密码</label>
-            <div class="mt-1 relative">
-              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24"
-                  stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                </svg>
-              </div>
-              <input id="password" name="password" type="password" required v-model="loginForm.password"
-                class="appearance-none pl-10 block w-full px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500 bg-white dark:bg-gray-700 dark:text-white sm:text-sm"
-                placeholder="请输入密码" />
-            </div>
-          </div>
+          <InputField
+            id="password"
+            v-model="loginForm.password"
+            name="password"
+            type="password"
+            label="密码"
+            placeholder="请输入密码"
+            :leftIcon="Lock"
+            required
+          />
         </div>
 
         <!-- 错误信息显示 -->
@@ -141,20 +137,9 @@ const goToRegister = () => {
 
         <!-- 登录按钮 -->
         <div>
-          <button type="submit" :disabled="loading"
-            class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-semibold rounded-lg text-white bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 shadow-lg transform transition hover:-translate-y-0.5">
-            <span v-if="loading" class="flex items-center">
-              <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none"
-                viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-                </path>
-              </svg>
-              登录中...
-            </span>
-            <span v-else>登录</span>
-          </button>
+          <Button :disabled="loading" block>
+            {{ loading ? '登录中...' : '登录' }}
+          </Button>
         </div>
 
         <!-- 注册链接 -->
@@ -168,7 +153,7 @@ const goToRegister = () => {
           </div>
         </div>
       </form>
-    </div>
+    </Card>
   </div>
 </template>
 

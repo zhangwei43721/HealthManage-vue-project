@@ -1,74 +1,76 @@
 <template>
-  <div class="relative w-full">
+  <div class="w-full">
     <!-- 表单标签 (可选) -->
     <label v-if="label" :for="id" class="block text-sm font-medium text-gray-700 mb-1">
       {{ label }}
       <span v-if="required" class="text-health-danger">*</span>
     </label>
 
-    <!-- 左侧图标 -->
-    <component
-      v-if="leftIcon"
-      :is="leftIcon"
-      :theme="iconTheme"
-      :size="iconSizeValue"
-      class="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-secondary"
-    />
+    <div class="relative">
+      <!-- 左侧图标 -->
+      <component
+        v-if="leftIcon"
+        :is="leftIcon"
+        :theme="iconTheme"
+        :size="iconSizeValue"
+        class="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-secondary"
+      />
 
-    <!-- 输入框 -->
-    <input
-      :id="id"
-      :type="type"
-      :value="modelValue"
-      :placeholder="placeholder"
-      :disabled="disabled"
-      :required="required"
-      :name="name"
-      :maxlength="maxLength"
-      :step="step"
-      :autocomplete="autocomplete"
-      :class="[
-        /* 基础样式 */
-        'w-full transition-all duration-200 rounded-lg border',
-        'outline-none focus:ring-2 focus:ring-opacity-20',
-        'font-medium placeholder:text-text-light',
+      <!-- 输入框 -->
+      <input
+        :id="id"
+        :type="type"
+        :value="modelValue"
+        :placeholder="placeholder"
+        :disabled="disabled"
+        :required="required"
+        :name="name"
+        :maxlength="maxLength"
+        :step="step"
+        :autocomplete="autocomplete"
+        :class="[
+          /* 基础样式 */
+          'w-full transition-all duration-200 rounded-lg border',
+          'outline-none focus:ring-2 focus:ring-opacity-20',
+          'font-medium placeholder:text-text-light',
 
-        /* 尺寸控制 */
-        {
-          'py-1.5 text-sm': size === 'small',
-          'py-2 text-base': size === 'medium',
-          'py-2.5 text-lg': size === 'large',
-        },
+          /* 尺寸控制 */
+          {
+            'py-1.5 text-sm': size === 'small',
+            'py-2 text-base': size === 'medium',
+            'py-2.5 text-lg': size === 'large',
+          },
 
-        /* 图标间距控制 */
-        {
-          'pl-10': leftIcon,
-          'pl-4': !leftIcon,
-          'pr-10': rightIcon,
-          'pr-4': !rightIcon,
-        },
+          /* 图标间距控制 */
+          {
+            'pl-10': leftIcon,
+            'pl-4': !leftIcon,
+            'pr-10': rightIcon,
+            'pr-4': !rightIcon,
+          },
 
-        /* 状态样式 */
-        {
-          'bg-gray-100 text-gray-500 border-gray-300 cursor-not-allowed': disabled,
-          'bg-white text-gray-900 border-gray-300 hover:border-gray-400 focus:border-primary focus:ring-primary': !disabled && !error,
-          'bg-white text-gray-900 border-health-danger focus:border-health-danger focus:ring-health-danger': !disabled && error,
-        }
-      ]"
-      @input="onInput"
-      @blur="emit('blur', $event)"
-      @focus="emit('focus', $event)"
-      @keydown.enter="emit('enter', $event)"
-    />
+          /* 状态样式 */
+          {
+            'bg-gray-100 text-gray-500 border-gray-300 cursor-not-allowed': disabled,
+            'bg-white text-gray-900 border-gray-300 hover:border-gray-400 focus:border-primary focus:ring-primary': !disabled && !error,
+            'bg-white text-gray-900 border-health-danger focus:border-health-danger focus:ring-health-danger': !disabled && error,
+          }
+        ]"
+        @input="onInput"
+        @blur="emit('blur', $event)"
+        @focus="emit('focus', $event)"
+        @keydown.enter="emit('enter', $event)"
+      />
 
-    <!-- 右侧图标 -->
-    <component
-      v-if="rightIcon"
-      :is="rightIcon"
-      :theme="iconTheme"
-      :size="iconSizeValue"
-      class="absolute right-3 top-1/2 transform -translate-y-1/2 text-text-secondary"
-    />
+      <!-- 右侧图标 -->
+      <component
+        v-if="rightIcon"
+        :is="rightIcon"
+        :theme="iconTheme"
+        :size="iconSizeValue"
+        class="absolute right-3 top-1/2 transform -translate-y-1/2 text-text-secondary"
+      />
+    </div>
 
     <!-- 错误提示 -->
     <p v-if="error && errorMessage" class="mt-1 text-sm text-health-danger">

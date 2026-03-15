@@ -28,10 +28,9 @@
             <Logout theme="outline" size="16" class="mr-1 transform rotate-180" /> <!-- 使用旋转的登出图标作为"返回"图标 -->
             返回前台
           </RouterLink>
-          <button @click="handleLogout" class="text-gray-300 hover:text-red-400 text-sm flex items-center">
-            <Power theme="outline" size="16" class="mr-1" />
+          <Button type="text" :icon="Power" @click="handleLogout" class="text-gray-300 hover:!text-red-400">
             退出登录
-          </button>
+          </Button>
         </div>
 
          <!-- Mobile Menu Button (Optional for Admin) -->
@@ -47,6 +46,7 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router';
 import { useUserStore } from '@/stores/user';
+import Button from '@/components/base/Button.vue';
 import { Key, User, SettingTwo, BookOne, TransactionOrder, Logout, Power } from '@icon-park/vue-next';
 
 const router = useRouter();

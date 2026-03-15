@@ -24,10 +24,14 @@
               <img v-if="userInfo.avatar" :src="userInfo.avatar" alt="用户头像" class="w-full h-full object-cover" />
               <UserIcon v-else theme="filled" size="64" fill="#fff" />
             </div>
-            <button @click="openAvatarUpload"
-              class="absolute bottom-0 right-0 bg-primary text-white p-2 rounded-full shadow-md hover:bg-primary-dark transition">
-              <Upload size="16" />
-            </button>
+            <Button
+              type="primary"
+              size="small"
+              :icon="Upload"
+              iconOnly
+              class="absolute bottom-0 right-0 rounded-full"
+              @click="openAvatarUpload"
+            />
           </div>
           <h2 class="mt-4 text-xl font-semibold text-gray-800">{{ userInfo.username || '未登录' }}</h2>
           <p class="text-sm text-gray-500 mt-1">{{ userInfo.email || '未设置邮箱' }}</p>
