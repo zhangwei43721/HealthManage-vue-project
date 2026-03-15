@@ -13,7 +13,6 @@ import HealthData from '../views/health/health-data.vue'
 import HealthKnowledge from '../views/health-knowledge.vue'
 import HealthLog from '../views/health/health-log.vue'
 import ChatGPTClone from '../views/health/ChatGPTClone.vue'
-import SysIndex from '../views/sys/SysIndex.vue' // Import Admin Index page
 import Profile from '../views/profile/index.vue' // 导入个人中心页面
 // Admin page components (lazy loaded)
 const UserManagement = () => import('@/views/sys/user.vue')
@@ -93,9 +92,7 @@ const routes = [
     children: [
       {
         path: '', // Default route for /sys
-        name: 'AdminIndex',
-        component: SysIndex,
-        meta: { title: '管理后台首页' },
+        redirect: '/sys/user',
       },
       {
         path: 'user',

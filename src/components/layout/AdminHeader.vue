@@ -53,7 +53,6 @@ const router = useRouter();
 const userStore = useUserStore();
 
 const adminNavItems = [
-  { name: '首页', path: '/sys', icon: Key }, // Link to the admin index
   { name: '用户管理', path: '/sys/user', icon: User },
   { name: '角色管理', path: '/sys/role', icon: SettingTwo },
   { name: '知识管理', path: '/sys/knowledge-manage', icon: BookOne },

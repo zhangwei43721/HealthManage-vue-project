@@ -1,6 +1,5 @@
 import api from './api' // Corrected import path
 import type { ChatHistory } from '@/types/chat' // Define this type if needed
-import { getToken } from './auth' // Import function to get the token
 
 /**
  * 解析Content文本内容，处理非UTF-8编码问题
@@ -94,7 +93,7 @@ export const resetChatHistory = async (conversationId?: string): Promise<{ messa
  * @param formData FormData containing message, file (optional), and conversationId.
  * @returns Promise<Response> The raw fetch response to access the stream.
  */
-export const initiateChatStream = async (formData: FormData): Promise<Response> => {
+export const initiateChatStream = async (formData: FormData, signal?: AbortSignal): Promise<Response> => {
   // Token 获取方式与 api.ts 的请求拦截器保持一致
   const token = localStorage.getItem('token');
   // 或者: const token = getToken(); // 如果有 auth.ts 和 getToken
@@ -138,6 +137,7 @@ export const initiateChatStream = async (formData: FormData): Promise<Response> 
         // 对于 FormData, 'Content-Type' 会由浏览器自动设置，包含正确的 boundary
       },
       body: formData,
+      signal,
       // credentials: 'include', // 如果需要跨域 cookies 或认证信息，取消注释
     });
   } catch (error) {
@@ -145,6 +145,25 @@ export const initiateChatStream = async (formData: FormData): Promise<Response> 
     return Promise.reject(error); // 将错误向上抛出
   }
 };
+
+export const cancelChatStream = async (conversationId: string): Promise<{ message: string }> => {
+  try {
+    const response = await api.post('/chatStream/cancel', null, {
+      params: { conversationId },
+    })
+
+    if (typeof response === 'string') {
+      return { message: response }
+    }
+    if (response && response.data) {
+      return { message: typeof response.data === 'string' ? response.data : '已停止生成' }
+    }
+    return { message: '已停止生成' }
+  } catch (error) {
+    console.error('取消流式对话出错:', error)
+    return { message: '停止请求已发送' }
+  }
+}
 
 // ChatHistory type is now imported from '@/types/chat'
 

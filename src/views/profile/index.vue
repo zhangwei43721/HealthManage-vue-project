@@ -140,11 +140,9 @@
         <div v-if="!avatarFile" class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
           <input type="file" ref="avatarInput" accept="image/*" class="hidden" @change="handleAvatarSelect" />
           <div class="space-y-2">
-            <button type="button" @click="triggerAvatarUpload"
-              class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
-              <Upload class="mr-2" />
+            <Button type="primary" :icon="Upload" @click="triggerAvatarUpload">
               选择图片
-            </button>
+            </Button>
             <p class="text-xs text-gray-500">
               支持 JPG、PNG、GIF 格式，最大 2MB
             </p>
@@ -155,11 +153,11 @@
           <div class="relative w-40 h-40 mx-auto rounded-full overflow-hidden border-4 border-white shadow-lg">
             <img :src="avatarPreview" alt="Avatar Preview" class="w-full h-full object-cover" />
           </div>
-          <button type="button" @click="cancelAvatarUpload"
-            class="mt-4 inline-flex items-center px-3 py-1 border border-gray-300 text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
-            <Close class="mr-1" />
-            取消
-          </button>
+          <div class="mt-4 flex justify-center">
+            <Button type="outline" size="small" :icon="Close" @click="cancelAvatarUpload">
+              取消
+            </Button>
+          </div>
         </div>
 
         <div class="flex justify-end space-x-3 pt-4 border-t">

@@ -8,7 +8,7 @@
       <div class="flex justify-between items-center h-16">
         <!-- Logo区域 -->
         <div class="flex items-center">
-          <RouterLink to="/" class="flex-shrink-0 flex items-center group">
+          <RouterLink :to="homeTarget" class="flex-shrink-0 flex items-center group">
             <div
               class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center mr-3 shadow-lg group-hover:shadow-blue-500/30 transition-all duration-300">
               <img src="@/assets/logo.svg" alt="Logo" class="w-8 h-8" />
@@ -175,13 +175,22 @@ const isHomePage = computed(() => {
 });
 
 // 导航菜单项 (用户菜单)
-const userNavigationItems = [
-  { name: '首页', path: '/', icon: Home },
-  { name: '健康数据', path: '/health-data', icon: Clipboard },
-  { name: '健康知识', path: '/health-knowledge', icon: Book },
-  { name: '健康日志', path: '/health-log', icon: Like },
-  { name: 'AI 助手', path: '/chatgpt-clone', icon: Robot }
-];
+const homeTarget = computed(() => userStore.isAuthenticated ? '/health-data' : '/');
+
+const userNavigationItems = computed(() => {
+  const items = [
+    { name: '健康数据', path: '/health-data', icon: Clipboard },
+    { name: '健康知识', path: '/health-knowledge', icon: Book },
+    { name: '健康日志', path: '/health-log', icon: Like },
+    { name: 'AI 助手', path: '/chatgpt-clone', icon: Robot }
+  ];
+
+  if (!userStore.isAuthenticated) {
+    items.unshift({ name: '首页', path: '/', icon: Home });
+  }
+
+  return items;
+});
 
 // 监听滚动
 const handleScroll = () => {

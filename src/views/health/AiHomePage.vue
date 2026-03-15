@@ -15,11 +15,11 @@
             <span>AI驱动的</span>
             <span>个性化健康管理</span>
           </h1>
-          <p class="hero-subtitle">基于DeepSeek R1与Yolov10，为您提供全方位的健康解决方案</p>
+          <p class="hero-subtitle">把每天的身体情况看清楚、记下来、管起来，记录体重、血压、睡眠和饮食变化，系统会帮您整理数据，并给出更容易理解的健康建议。</p>
 
           <div class="hero-buttons">
-            <RouterLink to="/health-data" class="btn-primary">开始体验</RouterLink>
-            <RouterLink to="/about" class="btn-secondary">了解更多</RouterLink>
+            <RouterLink to="/health-data" class="btn-primary">查看我的健康数据</RouterLink>
+            <RouterLink to="/health-knowledge" class="btn-secondary">看看健康知识</RouterLink>
           </div>
         </div>
 
@@ -51,8 +51,8 @@
       <!-- 项目介绍部分 -->
       <div class="project-intro">
         <div class="intro-container glass-effect">
-          <h2 class="intro-title">智能健康管理系统</h2>
-          <p class="intro-desc">基于Vue 3和Tailwind CSS 4构建的现代化健康管理平台，结合最新AI技术，为用户提供个性化健康解决方案。</p>
+          <h2 class="intro-title">你可以在这里做什么</h2>
+          <p class="intro-desc">不用看复杂术语，也不用自己整理表格。把每天的健康数据记录下来，就能更快发现变化、调整习惯。</p>
 
           <div class="features-grid">
             <div class="feature-card">
@@ -60,8 +60,8 @@
                 <Like theme="filled" size="24" />
               </div>
               <div class="feature-content">
-                <h3>健康数据记录与分析</h3>
-                <p>记录并可视化您的健康指标，AI分析提供个性化健康建议</p>
+                <h3>记录每天的身体变化</h3>
+                <p>把身高体重、血压、血糖等数据集中保存，查看趋势更直观。</p>
               </div>
             </div>
 
@@ -70,8 +70,8 @@
                 <Heart theme="filled" size="24" />
               </div>
               <div class="feature-content">
-                <h3>饮食营养管理</h3>
-                <p>智能饮食记录与分析，提供基于健康目标的膳食建议</p>
+                <h3>看懂饮食和营养情况</h3>
+                <p>结合日常饮食内容，帮助您了解吃得是否均衡，哪些地方需要调整。</p>
               </div>
             </div>
 
@@ -80,8 +80,8 @@
                 <People theme="filled" size="24" />
               </div>
               <div class="feature-content">
-                <h3>个性化运动计划</h3>
-                <p>根据用户健康状况和目标，制定科学合理的运动方案</p>
+                <h3>找到适合自己的运动方式</h3>
+                <p>根据当前身体情况和目标，给出更容易坚持的运动建议。</p>
               </div>
             </div>
 
@@ -90,18 +90,18 @@
                 <User theme="filled" size="24" />
               </div>
               <div class="feature-content">
-                <h3>AI健康助手</h3>
-                <p>基于DeepSeek R1大模型，实时回答健康问题，提供专业建议</p>
+                <h3>遇到问题随时问一问</h3>
+                <p>不清楚该怎么吃、怎么练、怎么看数据时，可以直接让 AI 帮您解释。</p>
               </div>
             </div>
           </div>
 
           <div class="tech-tags">
-            <div class="tag">Vue 3</div>
-            <div class="tag">TypeScript</div>
-            <div class="tag">Tailwind CSS</div>
-            <div class="tag">DeepSeek R1</div>
-            <div class="tag">YOLOv10</div>
+            <div class="tag">健康记录</div>
+            <div class="tag">趋势查看</div>
+            <div class="tag">饮食分析</div>
+            <div class="tag">运动建议</div>
+            <div class="tag">AI 问答</div>
           </div>
         </div>
       </div>

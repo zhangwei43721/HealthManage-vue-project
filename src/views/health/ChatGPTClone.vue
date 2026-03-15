@@ -27,12 +27,16 @@
               </button>
               <input type="file" ref="fileInput" class="hidden" accept="image/*" @change="handleFileSelected" />
 
-              <button @click="sendMessage" :disabled="!newMessage.trim() && !selectedFile"
+              <button @click="isLoading ? stopGenerating() : sendMessage()"
+                :disabled="!isLoading && !newMessage.trim() && !selectedFile"
                 class="bg-blue-600 hover:bg-blue-700 text-white rounded-full p-2 disabled:opacity-50 disabled:cursor-not-allowed">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                <svg v-if="!isLoading" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                   stroke="currentColor" class="w-5 h-5">
                   <path stroke-linecap="round" stroke-linejoin="round"
                     d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
+                </svg>
+                <svg v-else xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" class="w-5 h-5">
+                  <path d="M7 7h10v10H7z" />
                 </svg>
               </button>
             </div>
@@ -171,12 +175,16 @@
               </button>
               <input type="file" ref="fileInput" class="hidden" accept="image/*" @change="handleFileSelected" />
 
-              <button @click="sendMessage" :disabled="!newMessage.trim() && !selectedFile"
+              <button @click="isLoading ? stopGenerating() : sendMessage()"
+                :disabled="!isLoading && !newMessage.trim() && !selectedFile"
                 class="bg-blue-600 hover:bg-blue-700 text-white rounded-full p-2 disabled:opacity-50 disabled:cursor-not-allowed">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                <svg v-if="!isLoading" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                   stroke="currentColor" class="w-5 h-5">
                   <path stroke-linecap="round" stroke-linejoin="round"
                     d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
+                </svg>
+                <svg v-else xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" class="w-5 h-5">
+                  <path d="M7 7h10v10H7z" />
                 </svg>
               </button>
             </div>
@@ -343,7 +351,7 @@
 import { ref, onMounted, onUnmounted, nextTick, watch, computed } from 'vue';
 import DOMPurify from 'dompurify';
 import { v4 as uuidv4 } from 'uuid';
-import { getChatHistory, resetChatHistory } from '@/services/aiService';
+import { cancelChatStream, getChatHistory, initiateChatStream, resetChatHistory } from '@/services/aiService';
 
 // 导入marked和样式
 import { marked } from 'marked';
@@ -379,6 +387,7 @@ const messagesContainer = ref<HTMLElement | null>(null);
 const inputArea = ref<HTMLTextAreaElement | null>(null);
 const fileInput = ref<HTMLInputElement | null>(null);
 const isLoading = ref(false);
+let currentAbortController: AbortController | null = null;
 
 // 图片预览
 const showImagePreviewModal = ref(false);
@@ -499,6 +508,9 @@ const adjustTextareaHeight = () => {
 
 // 处理Enter键
 const handleEnterKey = (event: KeyboardEvent) => {
+  if (isLoading.value) {
+    return;
+  }
   if (event.key === 'Enter' && !event.shiftKey) {
     event.preventDefault();
     sendMessage();
@@ -604,6 +616,9 @@ const showToast = (message: string, type: 'success' | 'error' | 'info' = 'succes
 
 // 发送示例问题
 const askExample = (example: { title: string; content: string }) => {
+  if (isLoading.value) {
+    return;
+  }
   if (chatHistory.value.length === 0) {
     startNewChat();
   }
@@ -618,7 +633,7 @@ const askExample = (example: { title: string; content: string }) => {
 const sendMessage = async () => {
   const text = newMessage.value.trim();
 
-  if (!text && !selectedFile.value) return;
+  if (isLoading.value || (!text && !selectedFile.value)) return;
 
   if (chatHistory.value.length === 0) {
     startNewChat();
@@ -677,24 +692,14 @@ const sendMessage = async () => {
     const formData = new FormData();
 
     // 添加文本消息
-    formData.append('message', text || ' ');
+    formData.append('message', text || '请根据这张图片做健康分析和建议。');
 
     // 添加会话ID
     formData.append('conversationId', activeChat.conversationId || uuidv4());
 
-    // 添加图片（如果有）
+    // 图片直接交给后端 /chatStream，由后端内部转调 YOLO
     if (imageToSend) {
-      console.log('准备发送图片:', imageToSend.name, imageToSend.type, imageToSend.size);
-
-      // 检查是否能从File转换为Blob
-      const imageBlob = imageToSend.slice(0, imageToSend.size, imageToSend.type);
-
-      // 确保使用正确的字段名称
-      formData.append('file', imageBlob, imageToSend.name);
-
-      // 检查FormData中是否成功添加了文件
-      const hasFile = formData.has('file');
-      console.log('FormData包含file字段:', hasFile);
+      formData.append('file', imageToSend);
     }
 
     // 查看FormData包含的内容
@@ -715,19 +720,8 @@ const sendMessage = async () => {
       console.error('无法检查FormData内容:', e);
     }
 
-    // 发送请求
-    const baseUrl = 'http://120.55.192.74:9401';
-    const targetUrl = `${baseUrl}/chatStream`;
-
-    console.log('发送请求到:', targetUrl);
-
-    const response = await fetch(targetUrl, {
-      method: 'POST',
-      headers: {
-        'X-Token': localStorage.getItem('token') || ''
-      },
-      body: formData
-    });
+    currentAbortController = new AbortController();
+    const response = await initiateChatStream(formData, currentAbortController.signal);
 
     // 完成后清除图片
     removeSelectedImage();
@@ -743,7 +737,8 @@ const sendMessage = async () => {
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
     let chatContent = '';
-    let receivingImageUrl = false;
+    let pendingEvent = 'message';
+    let sseBuffer = '';
 
     // 找到当前AI消息
     const currentChat = chatHistory.value.find((chat: Chat) => chat.active);
@@ -757,72 +752,84 @@ const sendMessage = async () => {
         break;
       }
 
-      // 解码接收到的数据
-      const chunk = decoder.decode(value, { stream: true });
-      const lines = chunk.split('\n');
+      sseBuffer += decoder.decode(value, { stream: true });
+      const events = sseBuffer.split('\n\n');
+      sseBuffer = events.pop() || '';
 
-      for (const line of lines) {
-        // 处理事件流中的不同类型消息
-        if (line.startsWith('event:')) {
-          const eventType = line.slice(6).trim();
-          // 检查是否有图片事件
-          if (eventType === 'detectionResultImage') {
-            // 标记当前正在处理图片结果，下一行data将是图片URL
-            receivingImageUrl = true;
-            continue;
+      for (const rawEvent of events) {
+        const lines = rawEvent
+          .split('\n')
+          .map((line) => line.trimEnd())
+          .filter(Boolean);
+
+        let eventType = pendingEvent;
+        const dataLines: string[] = [];
+
+        for (const line of lines) {
+          if (line.startsWith('event:')) {
+            eventType = line.slice(6).trim() || 'message';
+          } else if (line.startsWith('data:')) {
+            dataLines.push(line.slice(5).trim());
           }
         }
 
-        if (line.startsWith('data:')) {
-          try {
-            const data = line.slice(5).trim();
+        pendingEvent = 'message';
 
-            // 处理图片URL（由YOLOv10分析后返回的图片）
-            if (receivingImageUrl || data.startsWith('http')) {
-              receivingImageUrl = false;
-              console.log('收到分析结果图片URL:', data);
+        if (!dataLines.length) {
+          continue;
+        }
 
-              // 找到当前消息并保存图片URL
+        const data = dataLines.join('\n');
+        if (data === '[DONE]') {
+          continue;
+        }
+
+        try {
+          if (eventType === 'detectionResultImage') {
+            if (currentMessage) {
+              currentMessage.resultImageUrl = data;
+            }
+            scrollToBottom();
+            continue;
+          }
+
+          if (eventType === 'conversationId') {
+            if (currentChat) {
+              currentChat.conversationId = data;
+            }
+            continue;
+          }
+
+          if (eventType === 'error') {
+            throw new Error(data);
+          }
+
+          const json = JSON.parse(data);
+
+          if (json.choices && json.choices.length > 0) {
+            const delta = json.choices[0].delta;
+            if (delta && delta.content) {
+              chatContent += delta.content;
               if (currentMessage) {
-                // 保存结果图片URL
-                currentMessage.resultImageUrl = data;
-                // 将图片链接添加到消息内容中，以便在界面上显示
-                if (!currentMessage.content.includes(data)) {
-                  currentMessage.content += `\n\n![分析结果](${data})`;
-                  scrollToBottom();
-                }
-              }
-              continue;
-            }
-
-            if (data === '[DONE]') continue;
-
-            // 尝试解析JSON
-            const json = JSON.parse(data);
-
-            // 处理OpenAI流式响应格式
-            if (json.choices && json.choices.length > 0) {
-              const delta = json.choices[0].delta;
-              if (delta && delta.content) {
-                chatContent += delta.content;
-                if (currentMessage) {
-                  currentMessage.content = chatContent;
-                }
+                currentMessage.content = chatContent;
               }
             }
-            // 处理conversationId
-            else if (json.conversationId && currentChat) {
-              currentChat.conversationId = json.conversationId;
-            }
-            // 处理error
-            else if (json.error) {
-              throw new Error(json.error);
-            }
-          } catch (e) {
-            console.error('解析流响应时出错:', e);
+          } else if (json.error) {
+            throw new Error(json.error);
+          } else if (json.conversationId && currentChat) {
+            currentChat.conversationId = json.conversationId;
+          }
+        } catch (e) {
+          console.error('解析流响应时出错:', e);
+          if (e instanceof Error && currentMessage) {
+            currentMessage.content = currentMessage.content || `发送消息失败: ${e.message}`;
           }
         }
       }
+    }
+
+    if (sseBuffer.trim()) {
+      console.warn('存在未完整解析的 SSE 片段:', sseBuffer);
     }
 
     // 完成后更新消息
@@ -836,15 +843,60 @@ const sendMessage = async () => {
     const currentChat = chatHistory.value.find((chat: Chat) => chat.active);
     const currentMessage = currentChat?.messages.find((msg: Message) => msg.id === assistantMessageId);
 
-    if (currentMessage) {
-      currentMessage.content = `发送消息失败: ${error instanceof Error ? error.message : String(error)}`;
-      currentMessage.loading = false;
-    }
+    if (error instanceof DOMException && error.name === 'AbortError') {
+      if (currentMessage) {
+        currentMessage.loading = false;
+        if (!currentMessage.content.trim()) {
+          currentMessage.content = '已停止生成';
+        }
+      }
+      showToast('已停止生成', 'info');
+    } else {
+      if (currentMessage) {
+        currentMessage.content = `发送消息失败: ${error instanceof Error ? error.message : String(error)}`;
+        currentMessage.loading = false;
+      }
 
-    showToast('发送消息失败', 'error');
-    isLoading.value = false;
+      showToast('发送消息失败', 'error');
+    }
   } finally {
+    currentAbortController = null;
+    isLoading.value = false;
     scrollToBottom();
+  }
+};
+
+const stopGenerating = async () => {
+  const activeChat = currentChat.value;
+  if (!isLoading.value || !activeChat?.conversationId) {
+    return;
+  }
+
+  currentAbortController?.abort();
+  currentAbortController = null;
+
+  let loadingMessage: Message | undefined;
+  for (let i = activeChat.messages.length - 1; i >= 0; i -= 1) {
+    const message = activeChat.messages[i];
+    if (message.role === 'assistant' && message.loading) {
+      loadingMessage = message;
+      break;
+    }
+  }
+  if (loadingMessage) {
+    loadingMessage.loading = false;
+    if (!loadingMessage.content.trim()) {
+      loadingMessage.content = '已停止生成';
+    }
+  }
+
+  try {
+    await cancelChatStream(activeChat.conversationId);
+  } catch (error) {
+    console.error('停止生成时出错:', error);
+  } finally {
+    isLoading.value = false;
+    showToast('已停止生成', 'info');
   }
 };
 

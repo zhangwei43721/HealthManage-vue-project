@@ -28,9 +28,12 @@ export const useUserStore = defineStore('user', () => {
   const token = ref<string | null>(localStorage.getItem('token'))
   const userInfo = ref<UserInfo | null>(null)
   const roles = ref<string[]>([])
+  let fetchUserInfoPromise: Promise<UserInfo | null> | null = null
 
   const isAuthenticated = computed(() => !!token.value && checkAuth())
-  const isAdmin = computed(() => roles.value.includes('admin')) // 判断是否包含 admin 角色
+  const isAdmin = computed(() => {
+    return roles.value.includes('admin') || userInfo.value?.username === 'admin' || userInfo.value?.name === 'admin'
+  })
 
   // 设置 Token
   function setToken(newToken: string) {
@@ -44,38 +47,49 @@ export const useUserStore = defineStore('user', () => {
       resetState()
       return null
     }
-    try {
-      const userDataPayload = await api.get<UserInfo>('/user/info')
 
-      // 检查核心字段是否存在且类型正确
-      if (
-        userDataPayload &&
-        typeof userDataPayload.name === 'string' &&
-        Array.isArray(userDataPayload.roles)
-      ) {
-        userInfo.value = {
-          id: userDataPayload.id,
-          username: userDataPayload.username ?? userDataPayload.name,
-          name: userDataPayload.name,
-          email: userDataPayload.email,
-          phone: userDataPayload.phone,
-          roles: userDataPayload.roles,
-          avatar: userDataPayload.avatar,
-          menuList: userDataPayload.menuList,
+    if (fetchUserInfoPromise) {
+      return fetchUserInfoPromise
+    }
+
+    fetchUserInfoPromise = (async () => {
+      try {
+        const userDataPayload = await api.get<UserInfo>('/user/info')
+
+        // 检查核心字段是否存在且类型正确
+        if (
+          userDataPayload &&
+          typeof userDataPayload.name === 'string' &&
+          Array.isArray(userDataPayload.roles)
+        ) {
+          userInfo.value = {
+            id: userDataPayload.id,
+            username: userDataPayload.username ?? userDataPayload.name,
+            name: userDataPayload.name,
+            email: userDataPayload.email,
+            phone: userDataPayload.phone,
+            roles: userDataPayload.roles,
+            avatar: userDataPayload.avatar,
+            menuList: userDataPayload.menuList,
+          }
+          roles.value = userDataPayload.roles
+
+          return userInfo.value
+        } else {
+          console.error('Invalid user info response structure or missing required fields (name, roles):', userDataPayload)
+          resetState()
+          return null
         }
-        roles.value = userDataPayload.roles
-
-        return userInfo.value
-      } else {
-        console.error('Invalid user info response structure or missing required fields (name, roles):', userDataPayload)
+      } catch (error) {
+        console.error('Failed to fetch user info:', error)
         resetState()
         return null
+      } finally {
+        fetchUserInfoPromise = null
       }
-    } catch (error) {
-      console.error('Failed to fetch user info:', error)
-      resetState()
-      return null
-    }
+    })()
+
+    return fetchUserInfoPromise
   }
 
   // 登录
@@ -122,6 +136,7 @@ export const useUserStore = defineStore('user', () => {
     token.value = null
     userInfo.value = null
     roles.value = []
+    fetchUserInfoPromise = null
     clearLocalAuth() // 清除 localStorage
   }
 
