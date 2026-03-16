@@ -1,11 +1,5 @@
 <template>
   <div class="p-6 pt-24 bg-gray-100 min-h-screen">
-    <!-- 页面标题 -->
-    <div class="mb-6 bg-white p-5 rounded-lg shadow border border-gray-200">
-      <h1 class="text-2xl font-semibold text-gray-800 mb-1">个人中心</h1>
-      <p class="text-sm text-gray-500">管理您的个人信息、账户安全和头像设置</p>
-    </div>
-
     <!-- 成功/错误消息 -->
     <div v-if="message" :class="[
       'mb-4 p-3 rounded-md text-sm',

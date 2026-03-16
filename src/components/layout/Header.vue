@@ -34,13 +34,6 @@
             {{ item.name }}
           </RouterLink>
 
-          <!-- 管理员入口按钮 (桌面端) -->
-          <RouterLink v-if="userStore.isAdmin" to="/sys"
-            class="flex items-center px-4 py-2 rounded-full text-white bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 transition-all duration-300 shadow-md hover:shadow-lg">
-            <SettingTwo size="16" class="mr-1.5" />
-            管理后台
-          </RouterLink>
-
           <!-- 用户认证区域 (桌面端) -->
           <div v-if="!userStore.isAuthenticated" @click="handleAuthClick" :class="[
             'flex items-center cursor-pointer rounded-full px-3.5 py-1.5 transition-all duration-300 shadow-sm hover:shadow-md',
@@ -53,31 +46,57 @@
             <span class="ml-2 text-sm font-medium" :class="isHomePage ? 'text-white' : 'text-gray-800'">登录</span>
           </div>
 
-          <!-- 个人信息入口 (桌面端-已登录) -->
-          <RouterLink v-if="userStore.isAuthenticated" to="/profile" :class="[
-            'flex items-center cursor-pointer rounded-full px-3.5 py-1.5 transition-all duration-300 shadow-sm hover:shadow-md',
-            isHomePage ? 'bg-white/10 hover:bg-white/20' : 'bg-blue-50 hover:bg-blue-100'
-          ]">
-            <div
-              class="w-7 h-7 rounded-full bg-gradient-to-r from-cyan-400 to-blue-400 flex items-center justify-center text-white text-xs font-medium shadow-sm">
-              <!-- Display user avatar if available, otherwise default icon -->
-              <img v-if="userStore.userInfo?.avatar" :src="userStore.userInfo.avatar" alt="Avatar"
-                class="w-full h-full rounded-full object-cover" />
-              <User v-else theme="outline" size="16" />
-            </div>
-            <span class="ml-2 text-sm font-medium" :class="isHomePage ? 'text-white' : 'text-gray-800'">个人中心</span>
-          </RouterLink>
+          <!-- 头像下拉菜单 (桌面端-已登录) -->
+          <div v-if="userStore.isAuthenticated" class="relative">
+            <button
+              type="button"
+              @click="toggleUserMenu"
+              :class="[
+                'flex items-center cursor-pointer rounded-full p-1.5 transition-all duration-300 shadow-sm hover:shadow-md',
+                isHomePage ? 'bg-white/10 hover:bg-white/20' : 'bg-blue-50 hover:bg-blue-100'
+              ]"
+            >
+              <div
+                class="w-8 h-8 rounded-full bg-gradient-to-r from-cyan-400 to-blue-400 flex items-center justify-center text-white text-xs font-medium shadow-sm overflow-hidden">
+                <img
+                  v-if="userStore.userInfo?.avatar"
+                  :src="userStore.userInfo.avatar"
+                  alt="Avatar"
+                  class="w-full h-full rounded-full object-cover"
+                />
+                <User v-else theme="outline" size="18" />
+              </div>
+            </button>
 
-          <!-- 退出按钮 (桌面端-已登录) -->
-          <div v-if="userStore.isAuthenticated" @click="handleLogout" :class="[
-            'flex items-center cursor-pointer rounded-full px-3.5 py-1.5 transition-all duration-300 shadow-sm hover:shadow-md',
-            isHomePage ? 'bg-white/10 hover:bg-white/20' : 'bg-red-50 hover:bg-red-100'
-          ]">
             <div
-              class="w-7 h-7 rounded-full bg-gradient-to-r from-red-400 to-pink-500 flex items-center justify-center text-white text-xs font-medium shadow-sm">
-              <Logout theme="outline" size="16" />
+              v-if="isUserMenuOpen"
+              class="absolute right-0 top-12 w-44 overflow-hidden rounded-2xl border border-white/30 bg-white/95 py-2 shadow-xl backdrop-blur"
+            >
+              <button
+                type="button"
+                class="flex w-full items-center px-4 py-2.5 text-sm text-gray-700 transition-colors hover:bg-blue-50"
+                @click="goToProfile"
+              >
+                <SettingTwo size="16" class="mr-2" />
+                个人资料设置
+              </button>
+              <button
+                type="button"
+                class="flex w-full items-center px-4 py-2.5 text-sm text-gray-700 transition-colors hover:bg-blue-50"
+                @click="goToHealthLog"
+              >
+                <Like size="16" class="mr-2" />
+                健康日志
+              </button>
+              <button
+                type="button"
+                class="flex w-full items-center px-4 py-2.5 text-sm text-red-500 transition-colors hover:bg-red-50"
+                @click="handleLogout"
+              >
+                <Logout theme="outline" size="16" class="mr-2" />
+                退出登录
+              </button>
             </div>
-            <span class="ml-2 text-sm font-medium" :class="isHomePage ? 'text-white' : 'text-gray-800'">退出</span>
           </div>
         </nav>
 
@@ -113,32 +132,69 @@
           {{ item.name }}
         </RouterLink>
 
-        <!-- 管理员入口按钮 (移动端) -->
-        <RouterLink v-if="userStore.isAdmin" to="/sys"
-          class="flex items-center px-4 py-3 my-1 rounded-xl text-white bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 shadow-md"
-          @click="closeMenu">
-          <SettingTwo size="18" class="mr-2.5" />
-          进入管理后台
-        </RouterLink>
+        <!-- 头像菜单 (移动端-已登录) -->
+        <div v-if="userStore.isAuthenticated">
+          <button
+            type="button"
+            class="flex w-full items-center px-4 py-3 my-1 rounded-xl transition-all"
+            :class="isHomePage ? 'text-white/90 hover:bg-white/10' : 'text-gray-700 hover:bg-gray-200/60'"
+            @click="toggleUserMenu"
+          >
+            <div
+              class="mr-2.5 flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-gradient-to-r from-cyan-400 to-blue-400 text-white shadow-sm">
+              <img
+                v-if="userStore.userInfo?.avatar"
+                :src="userStore.userInfo.avatar"
+                alt="Avatar"
+                class="h-full w-full object-cover"
+              />
+              <User v-else theme="outline" size="18" />
+            </div>
+            <span class="flex-1 text-left">账户菜单</span>
+            <Close v-if="isUserMenuOpen" theme="outline" size="14" />
+            <HamburgerButton v-else theme="outline" size="14" />
+          </button>
 
-        <!-- 个人中心入口 (移动端-已登录) -->
-        <RouterLink v-if="userStore.isAuthenticated" to="/profile"
-          class="flex items-center px-4 py-3 my-1 rounded-xl transition-all"
-          :class="isHomePage ? 'text-white/90 hover:bg-white/10' : 'text-gray-700 hover:bg-gray-200/60'"
-          @click="closeMenu">
-          <User size="18" class="mr-2.5" />
-          个人中心
-        </RouterLink>
+          <div v-if="isUserMenuOpen" class="space-y-1 pl-4">
+            <button
+              type="button"
+              class="flex w-full items-center px-4 py-2.5 rounded-xl text-sm transition-all"
+              :class="isHomePage ? 'text-white/90 hover:bg-white/10' : 'text-gray-700 hover:bg-gray-200/60'"
+              @click="goToProfileAndCloseMenu"
+            >
+              <SettingTwo size="16" class="mr-2.5" />
+              个人资料设置
+            </button>
+            <button
+              type="button"
+              class="flex w-full items-center px-4 py-2.5 rounded-xl text-sm transition-all"
+              :class="isHomePage ? 'text-white/90 hover:bg-white/10' : 'text-gray-700 hover:bg-gray-200/60'"
+              @click="goToHealthLogAndCloseMenu"
+            >
+              <Like size="16" class="mr-2.5" />
+              健康日志
+            </button>
+            <button
+              type="button"
+              class="flex w-full items-center px-4 py-2.5 rounded-xl text-sm transition-all"
+              :class="isHomePage ? 'text-white/90 hover:bg-white/10' : 'text-red-500 hover:bg-red-50'"
+              @click="handleLogoutAndCloseMenu"
+            >
+              <Logout theme="outline" size="16" class="mr-2.5" />
+              退出登录
+            </button>
+          </div>
+        </div>
 
         <!-- 分隔线 -->
-        <div :class="isHomePage ? 'border-t border-white/20 my-2' : 'border-t border-gray-200 my-2'"></div>
+        <div v-if="!userStore.isAuthenticated" :class="isHomePage ? 'border-t border-white/20 my-2' : 'border-t border-gray-200 my-2'"></div>
 
         <!-- 用户认证区域 (移动端) -->
-        <div class="flex items-center px-4 py-3 rounded-xl cursor-pointer transition-all"
+        <div v-if="!userStore.isAuthenticated" class="flex items-center px-4 py-3 rounded-xl cursor-pointer transition-all"
           :class="isHomePage ? 'text-white/90 hover:bg-white/10' : 'text-gray-700 hover:bg-gray-200/60'"
           @click="handleAuthClickAndCloseMenu">
-          <component :is="userStore.isAuthenticated ? Logout : User" theme="outline" size="18" class="mr-2.5" />
-          {{ userStore.isAuthenticated ? '退出登录' : '登录 / 注册' }}
+          <User theme="outline" size="18" class="mr-2.5" />
+          登录 / 注册
         </div>
       </div>
     </div>
@@ -146,9 +202,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from '@/composables/vue-imports';
+import { ref, computed, onMounted, onUnmounted, watch } from '@/composables/vue-imports';
 import { useRoute, useRouter } from 'vue-router';
-import { HamburgerButton, Close, Home, Like, User, Logout, Book, Clipboard, Robot, SettingTwo } from '@icon-park/vue-next';
+import { HamburgerButton, Close, Home, Like, User, Logout, Book, Robot, SettingTwo } from '@icon-park/vue-next';
 import { useUserStore } from '@/stores/user';
 
 // 定义组件名称
@@ -163,6 +219,7 @@ const userStore = useUserStore();
 // 状态管理
 const isMenuOpen = ref(false);
 const scrolled = ref(false);
+const isUserMenuOpen = ref(false);
 
 // 是否在认证页面（登录/注册）
 const isAuthPage = computed(() => {
@@ -178,18 +235,19 @@ const isHomePage = computed(() => {
 const homeTarget = computed(() => userStore.isAuthenticated ? '/health-data' : '/');
 
 const userNavigationItems = computed(() => {
-  const items = [
-    { name: '健康数据', path: '/health-data', icon: Clipboard },
-    { name: '健康知识', path: '/health-knowledge', icon: Book },
-    { name: '健康日志', path: '/health-log', icon: Like },
-    { name: 'AI 助手', path: '/chatgpt-clone', icon: Robot }
-  ];
-
-  if (!userStore.isAuthenticated) {
-    items.unshift({ name: '首页', path: '/', icon: Home });
+  if (userStore.isAuthenticated) {
+    return [
+      { name: '首页', path: '/health-data', icon: Home },
+      { name: '小爱医生', path: '/chatgpt-clone', icon: Robot },
+      { name: '健康知识', path: '/health-knowledge', icon: Book }
+    ];
   }
 
-  return items;
+  return [
+    { name: '首页', path: '/', icon: Home },
+    { name: '小爱医生', path: '/chatgpt-clone', icon: Robot },
+    { name: '健康知识', path: '/health-knowledge', icon: Book }
+  ];
 });
 
 // 监听滚动
@@ -215,20 +273,51 @@ const closeMenu = () => {
   isMenuOpen.value = false;
 };
 
+const toggleUserMenu = () => {
+  isUserMenuOpen.value = !isUserMenuOpen.value;
+};
+
+const closeUserMenu = () => {
+  isUserMenuOpen.value = false;
+};
+
 // 处理桌面端认证点击
 const handleAuthClick = async () => {
-  if (userStore.isAuthenticated) {
-    await userStore.logout();
-    router.push('/');
-  } else {
+  if (!userStore.isAuthenticated) {
     router.push('/login');
   }
 };
 
+const goToProfile = () => {
+  closeUserMenu();
+  router.push('/profile');
+};
+
+const goToHealthLog = () => {
+  closeUserMenu();
+  router.push('/health-log');
+};
+
+const goToProfileAndCloseMenu = () => {
+  goToProfile();
+  closeMenu();
+};
+
+const goToHealthLogAndCloseMenu = () => {
+  goToHealthLog();
+  closeMenu();
+};
+
 // 处理登出
 const handleLogout = async () => {
+  closeUserMenu();
   await userStore.logout();
   router.push('/');
+};
+
+const handleLogoutAndCloseMenu = async () => {
+  await handleLogout();
+  closeMenu();
 };
 
 // 处理移动端认证点击并关闭菜单
@@ -237,14 +326,32 @@ const handleAuthClickAndCloseMenu = async () => {
   closeMenu();
 };
 
+watch(
+  () => route.fullPath,
+  () => {
+    closeMenu();
+    closeUserMenu();
+  }
+);
+
+const handleDocumentClick = (event: MouseEvent) => {
+  const target = event.target as HTMLElement | null;
+
+  if (!target?.closest('header')) {
+    closeUserMenu();
+  }
+};
+
 // 生命周期钩子
 onMounted(() => {
   window.addEventListener('scroll', handleScroll);
+  document.addEventListener('click', handleDocumentClick);
   handleScroll();
 });
 
 onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll);
+  document.removeEventListener('click', handleDocumentClick);
 });
 </script>
 

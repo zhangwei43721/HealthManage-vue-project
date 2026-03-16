@@ -1,11 +1,5 @@
 <template>
   <div class="role-manage-container p-5 bg-background-DEFAULT min-h-[calc(100vh-84px)]">
-    <!-- 页面标题 -->
-    <div class="text-center mb-6">
-      <h1 class="text-3xl font-bold text-text-primary mb-2">角色权限管理</h1>
-      <p class="text-base text-text-secondary">管理系统角色及其对应的权限设置</p>
-    </div>
-
     <!-- 搜索与操作区域 -->
     <Card class="mb-5" elevation="small" :maxWidth="false">
       <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">

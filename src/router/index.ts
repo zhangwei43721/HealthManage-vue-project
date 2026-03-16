@@ -63,7 +63,7 @@ const routes = [
     path: '/chatgpt-clone',
     name: 'ChatGPTClone',
     component: ChatGPTClone,
-    meta: { requiresAuth: false, title: 'AI 助手' },
+    meta: { requiresAuth: false, title: '小爱医生' },
   },
   {
     path: '/profile',

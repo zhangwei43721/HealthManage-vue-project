@@ -43,12 +43,6 @@
 
     <!-- 主内容区域 -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <!-- 页面标题 -->
-      <div class="text-center mb-10">
-        <h1 class="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">个人健康数据中心</h1>
-        <p class="mt-2 text-base text-gray-500 dark:text-gray-400">全面了解您的健康状况和趋势变化</p>
-      </div>
-
       <!-- 用户信息录入弹窗 -->
       <Transition name="fade">
         <div v-if="showUserInfoDialog"
@@ -302,7 +296,7 @@
                       d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z">
                     </path>
                   </svg>
-                  身体基础数据
+                  基础信息
                 </h2>
                 <!-- 将身高、体重、BMI改为紧凑的行式布局 -->
                 <div class="bg-gray-50 dark:bg-gray-700 rounded-xl p-4 mb-4">

@@ -39,11 +39,6 @@
     </div>
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="text-center mb-10">
-        <h1 class="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">健康知识库</h1>
-        <p class="mt-3 text-xl text-gray-500 dark:text-gray-400">探索各类运动知识与健康生活方式</p>
-      </div>
-
       <!-- 搜索和筛选区域 -->
       <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 mb-8">
         <div class="flex flex-col md:flex-row gap-4">

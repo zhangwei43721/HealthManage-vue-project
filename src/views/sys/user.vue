@@ -1,11 +1,5 @@
 <template>
   <div class="p-4 md:p-6 bg-gray-100 min-h-screen">
-    <!-- Page Header -->
-    <div class="mb-6 bg-white p-5 rounded-lg shadow border border-gray-200">
-      <h1 class="text-2xl font-semibold text-gray-800 mb-1">用户管理</h1>
-      <p class="text-sm text-gray-500">管理系统用户信息，包括用户添加、编辑、删除及权限分配</p>
-    </div>
-
     <!-- Search Card -->
     <Card class="mb-6" variant="solid" :maxWidth="false">
       <div class="flex flex-wrap gap-4 items-center">

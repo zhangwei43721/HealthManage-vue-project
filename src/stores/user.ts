@@ -8,6 +8,7 @@ interface UserInfo {
   name: string
   email?: string
   phone?: string
+  role?: string
   roles: string[]
   avatar?: string
   menuList?: any[]
@@ -32,7 +33,7 @@ export const useUserStore = defineStore('user', () => {
 
   const isAuthenticated = computed(() => !!token.value && checkAuth())
   const isAdmin = computed(() => {
-    return roles.value.includes('admin') || userInfo.value?.username === 'admin' || userInfo.value?.name === 'admin'
+    return userInfo.value?.role === 'admin' || userInfo.value?.roles?.includes('admin') === true
   })
 
   // 设置 Token
@@ -68,6 +69,7 @@ export const useUserStore = defineStore('user', () => {
             name: userDataPayload.name,
             email: userDataPayload.email,
             phone: userDataPayload.phone,
+            role: userDataPayload.role,
             roles: userDataPayload.roles,
             avatar: userDataPayload.avatar,
             menuList: userDataPayload.menuList,

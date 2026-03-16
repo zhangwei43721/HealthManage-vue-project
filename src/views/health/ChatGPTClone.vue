@@ -4,9 +4,6 @@
     <div v-if="!currentChat || currentChat.messages.length === 0"
       class="flex-1 flex flex-col items-center justify-center p-4 min-h-[calc(100vh-64px)] mt-16">
       <div class="max-w-3xl w-full">
-        <h1 class="text-3xl font-bold text-center mb-3">您好，有什么可以帮助您的？</h1>
-        <p class="text-xl text-center text-gray-500 mb-10">您可以询问任何健康相关的问题</p>
-
         <!-- 中央输入框 -->
         <div class="max-w-2xl mx-auto mb-8 relative">
           <div

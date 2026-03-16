@@ -11,12 +11,6 @@
       <div class="hero-content-wrapper">
         <!-- 英雄区域 -->
         <div class="hero-section">
-          <h1 class="hero-title">
-            <span>AI驱动的</span>
-            <span>个性化健康管理</span>
-          </h1>
-          <p class="hero-subtitle">把每天的身体情况看清楚、记下来、管起来，记录体重、血压、睡眠和饮食变化，系统会帮您整理数据，并给出更容易理解的健康建议。</p>
-
           <div class="hero-buttons">
             <RouterLink to="/health-data" class="btn-primary">查看我的健康数据</RouterLink>
             <RouterLink to="/health-knowledge" class="btn-secondary">看看健康知识</RouterLink>

@@ -1,11 +1,5 @@
 <template>
   <div class="user-health-manage-container p-5 bg-background-DEFAULT min-h-[calc(100vh-84px)]">
-    <!-- 页面标题 -->
-    <div class="text-center mb-6">
-      <h1 class="text-3xl font-bold text-text-primary mb-2">用户健康数据管理</h1>
-      <p class="text-base text-text-secondary">管理所有用户的身体健康数据，支持筛选、查看和维护</p>
-    </div>
-
     <!-- 搜索与操作区域 -->
     <Card class="mb-5" elevation="small" :maxWidth="false">
       <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
