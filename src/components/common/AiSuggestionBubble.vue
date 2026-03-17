@@ -119,7 +119,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from '@/composables/vue-imports'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { Robot, Close, Refresh, CloseSmall, Clipboard } from '@icon-park/vue-next'
 import { marked } from 'marked' // Popular Markdown parser

@@ -202,7 +202,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, watch } from '@/composables/vue-imports';
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { HamburgerButton, Close, Home, Like, User, Logout, Book, Robot, SettingTwo } from '@icon-park/vue-next';
 import { useUserStore } from '@/stores/user';

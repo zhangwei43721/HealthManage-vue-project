@@ -80,7 +80,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from '@/composables/vue-imports';
+import { computed } from 'vue';
 
 // 定义 props
 interface Props {

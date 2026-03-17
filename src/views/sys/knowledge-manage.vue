@@ -161,7 +161,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, computed } from '@/composables/vue-imports';
+import { ref, reactive, onMounted, computed } from 'vue';
 // --- Type Imports ---
 import type { SportInfo } from '@/types/sport'; // Import SportInfo type
 

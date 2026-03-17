@@ -2,7 +2,7 @@
 import Header from './components/layout/Header.vue';
 import Footer from './components/layout/Footer.vue';
 import AiSuggestionBubble from './components/common/AiSuggestionBubble.vue';
-import { computed } from '@/composables/vue-imports';
+import { computed } from 'vue';
 import { useRoute } from 'vue-router';
 
 const route = useRoute();

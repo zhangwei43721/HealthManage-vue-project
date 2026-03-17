@@ -211,7 +211,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, computed } from '@/composables/vue-imports';
+import { ref, reactive, onMounted, computed } from 'vue';
 // --- Type Imports ---
 import type { Role } from '@/types/role'; // Import Role type
 import type { Menu } from '@/types/menu'; // Import Menu type

@@ -665,7 +665,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, watch, nextTick } from '@/composables/vue-imports'
+import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { getUserBodyInfo as getUserInfo, getHistoricalData, addBodyInformationNotes } from '@/services/health.ts';
 import * as echarts from 'echarts/core';
 import { LineChart } from 'echarts/charts';
