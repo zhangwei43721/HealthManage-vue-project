@@ -801,20 +801,9 @@ const sendMessage = async () => {
             throw new Error(data);
           }
 
-          const json = JSON.parse(data);
-
-          if (json.choices && json.choices.length > 0) {
-            const delta = json.choices[0].delta;
-            if (delta && delta.content) {
-              chatContent += delta.content;
-              if (currentMessage) {
-                currentMessage.content = chatContent;
-              }
-            }
-          } else if (json.error) {
-            throw new Error(json.error);
-          } else if (json.conversationId && currentChat) {
-            currentChat.conversationId = json.conversationId;
+          chatContent += data;
+          if (currentMessage) {
+            currentMessage.content = chatContent;
           }
         } catch (e) {
           console.error('解析流响应时出错:', e);
